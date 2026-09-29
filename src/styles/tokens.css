@@ -1,0 +1,23 @@
+/* Design tokens: copied from site-source/reference (priority-map.html + study-plan.html). */
+:root{
+  --bg:#f5f6f3; --panel:#ffffff; --ink:#1b2229; --muted:#5b6670; --line:#dde1dc;
+  --accent:#3d5a2a; --accent-soft:#e6ecdf; --warn:#9a5b00; --warn-soft:#fbefd9; --bad:#a3322a; --bad-soft:#f8e3e0;
+  --mt:#5a5f8a; --mt-soft:#e9eaf4;
+  --phy:#2f5d8a; --phy-soft:#e3ecf5; --chem:#8a4a2f; --chem-soft:#f6e9e2; --math:#5a3f8a; --math-soft:#ece6f5;
+  --t1:#3d5a2a; --t2:#5f7f3f; --t3:#8a8f5a; --t4:#9aa1a8;
+  --display:"Noto Serif Bengali","Hind Siliguri",serif; --body:"Hind Siliguri",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+  --radius:8px; --tap:44px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12161a; --panel:#1a2026; --ink:#e7eae6; --muted:#9aa4ac; --line:#2c343b;
+  --accent:#a9c98a; --accent-soft:#233020; --warn:#e3a94f; --warn-soft:#33281a; --bad:#ef8a80; --bad-soft:#3a1f1d;
+  --mt:#aeb3e6; --mt-soft:#252842;
+  --phy:#8fb8e3; --phy-soft:#1c2a38; --chem:#e3a58a; --chem-soft:#35231c; --math:#bba6e8; --math-soft:#2a2338;
+  --t1:#a9c98a; --t2:#86a868; --t3:#b3b27a; --t4:#6b747c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12161a; --panel:#1a2026; --ink:#e7eae6; --muted:#9aa4ac; --line:#2c343b;
+  --accent:#a9c98a; --accent-soft:#233020; --warn:#e3a94f; --warn-soft:#33281a; --bad:#ef8a80; --bad-soft:#3a1f1d;
+  --mt:#aeb3e6; --mt-soft:#252842;
+  --phy:#8fb8e3; --phy-soft:#1c2a38; --chem:#e3a58a; --chem-soft:#35231c; --math:#bba6e8; --math-soft:#2a2338;
+  --t1:#a9c98a; --t2:#86a868; --t3:#b3b27a; --t4:#6b747c; color-scheme:dark}
+:root[data-theme="light"]{color-scheme:light}

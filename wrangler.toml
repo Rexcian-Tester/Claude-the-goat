@@ -1,0 +1,9 @@
+name = "mist-prep"
+compatibility_date = "2026-09-01"
+pages_build_output_dir = "dist"
+
+# Create the namespace once (see README) and paste its id here, or bind it in the
+# Cloudflare dashboard: Pages project -> Settings -> Bindings -> KV namespace (name: PROGRESS).
+[[kv_namespaces]]
+binding = "PROGRESS"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
