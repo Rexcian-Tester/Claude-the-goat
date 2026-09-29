@@ -16,6 +16,7 @@ import { ProgressView } from './views/Progress'
 import { SettingsView } from './views/Settings'
 import { SearchSheet } from './views/Search'
 import { FocusView } from './views/Focus'
+import { RoutineView } from './views/Routine'
 import { ReminderPopup } from './views/Habits'
 
 /** The mark: a single gold numeral 1 in a thin gold frame. Same art as the favicon. */
@@ -48,6 +49,7 @@ function TopBar() {
     { name: 'map', label: 'Priority Map', short: 'Map', to: href.map(), cur: route.name === 'map' || route.name === 'chapter' },
     { name: 'progress', label: 'Progress', to: href.progress(), cur: route.name === 'progress' },
     { name: 'focus', label: 'Focus', to: href.focus(), cur: route.name === 'focus' },
+    { name: 'routine', label: 'Routine', to: href.routine(), cur: route.name === 'routine' },
   ]
   const lagCls = info.lag > 2 ? 'bad' : info.lag > 0 ? 'warn' : 'ok'
   const syncTxt = { off: 'Local only', synced: 'Synced', syncing: 'Syncing…', offline: `Offline${sync.pending ? ` · ${sync.pending}` : ''}`, conflict: 'Conflict resolved', auth: 'Wrong passcode', error: 'Sync error' }[sync.status]
@@ -135,6 +137,7 @@ export function App() {
         {route.name === 'chapter' && <ChapterView />}
         {route.name === 'progress' && <ProgressView />}
         {route.name === 'focus' && <FocusView />}
+        {route.name === 'routine' && <RoutineView />}
         {route.name === 'settings' && <SettingsView />}
       </main>
       {searchOpen && <SearchSheet />}

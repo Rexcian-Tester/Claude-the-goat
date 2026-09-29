@@ -1,12 +1,12 @@
 import { useSyncExternalStore } from 'react'
 
-export type RouteName = 'today' | 'plan' | 'map' | 'chapter' | 'progress' | 'focus' | 'settings'
+export type RouteName = 'today' | 'plan' | 'map' | 'chapter' | 'progress' | 'focus' | 'routine' | 'settings'
 export interface Route {
   name: RouteName
   param?: string
   query: URLSearchParams
 }
-const NAMES: RouteName[] = ['today', 'plan', 'map', 'chapter', 'progress', 'focus', 'settings']
+const NAMES: RouteName[] = ['today', 'plan', 'map', 'chapter', 'progress', 'focus', 'routine', 'settings']
 
 export function parse(hash: string): Route {
   const raw = hash.replace(/^#/, '') || '/today'
@@ -30,6 +30,7 @@ export const href = {
   chapter: (id: string, focus?: string) => `#/chapter/${encodeURIComponent(id)}${focus ? `?focus=${encodeURIComponent(focus)}` : ''}`,
   progress: () => '#/progress',
   focus: () => '#/focus',
+  routine: () => '#/routine',
   settings: () => '#/settings',
 }
 

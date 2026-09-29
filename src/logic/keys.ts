@@ -21,6 +21,8 @@ export const K = {
   goal: (date: string) => `day:${date}:goal`,
   /** calendar date: a standing reminder ticked off for that day */
   rem: (date: string, id: string) => `day:${date}:rem:${id}`,
+  /** calendar date: a block of the daily routine ticked off */
+  routine: (date: string, id: string) => `day:${date}:routine:${id}`,
 }
 export type GoalAnswer = 'yes' | 'close' | 'no'
 export type QStatus = 'unsolved' | 'solved' | 'wrong' | 'revisit'

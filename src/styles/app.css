@@ -510,3 +510,37 @@ ol.find li::marker{font-weight:700;color:var(--accent)}
 .btn.primary.copy-btn.ok{background:var(--ok);color:var(--panel)}
 .copy-btn.fail{border-color:var(--bad);color:var(--bad)}
 .fc-hist-r .copy-btn{margin-left:4px}
+
+/* ---------- daily routine ---------- */
+.rt-head{gap:14px}
+.rt-sum{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 24px;align-items:flex-end}
+.rt-of{font-size:20px;color:var(--muted);font-weight:600}
+.rt-cur{display:flex;flex-direction:column;gap:2px;text-align:right}
+.rt-cur b{font:700 18px var(--display);color:var(--accent)}
+.rt-totals{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13.5px;color:var(--muted)}
+.rt-totals span{display:inline-flex;align-items:center;gap:6px}
+.dot.study{background:var(--ok)}.dot.agency{background:var(--mt)}.dot.sleep{background:var(--phy)}.dot.break{background:var(--t4)}
+.rt-list{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:var(--radius-lg);background:var(--panel);overflow:hidden;box-shadow:var(--shadow-1)}
+.rt-row{display:grid;grid-template-columns:26px 150px minmax(0,1fr) auto;gap:14px;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line);cursor:pointer;position:relative;transition:background .15s}
+.rt-row:last-child{border-bottom:none}
+.rt-row:hover{background:color-mix(in srgb,var(--accent-soft) 45%,transparent)}
+.rt-row::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--t4)}
+.rt-row.study::before{background:var(--ok)}.rt-row.agency::before{background:var(--mt)}.rt-row.sleep::before{background:var(--phy)}.rt-row.wake::before{background:var(--gold)}
+.rt-row input{width:22px;height:22px;margin:0;accent-color:var(--ok);cursor:pointer}
+.rt-row input:checked{animation:pop .32s var(--spring)}
+.rt-time{font:500 13.5px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.rt-label{display:flex;align-items:center;gap:8px;min-width:0}
+.rt-label b{font-size:16px;font-weight:600}
+.rt-row.study .rt-label b,.rt-row.agency .rt-label b{font-weight:700}
+.rt-len{font:600 13px var(--mono);color:var(--muted)}
+.rt-row.done .rt-label b{color:var(--muted);text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--muted) 60%,transparent)}
+.rt-row.now{background:color-mix(in srgb,var(--accent-soft) 70%,var(--panel))}
+.rt-now{font:700 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:99px;background:var(--accent);color:var(--panel)}
+@media (max-width:560px){
+  .rt-row{grid-template-columns:24px minmax(0,1fr) auto;grid-template-areas:"c l n" "c t n";row-gap:2px;padding:12px 14px}
+  .rt-row input{grid-area:c}.rt-label{grid-area:l}.rt-time{grid-area:t;font-size:12.5px}.rt-len{grid-area:n}
+  .rt-cur{text-align:left}
+}
+/* six tabs: let the bar scroll sideways on narrow phones rather than squeeze */
+@media (max-width:560px){.nav{overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}.nav::-webkit-scrollbar{display:none}.nav a{flex:1 0 auto}}
+@media (max-width:400px){.nav{gap:0}.nav .sep{margin:8px 1px}.nav a{font-size:13.5px;padding:0 5px}}
