@@ -1,36 +1,55 @@
-/* Design tokens: copied from site-source/reference (priority-map.html + study-plan.html). */
+/* Design tokens.
+   Light: warm paper (#FDF6E3) with clay accent and charcoal ink.
+   Dark: near-black green with a lime accent.
+   --accent is the brand/interactive colour; --ok marks "done / yes"; tiers run hot (T1) to quiet (T4). */
+
+/* Bangla digits in headings: the serif face draws ১ with a heavy hook, so digits come from Hind Siliguri */
+@font-face{font-family:"Bangla Digits";font-style:normal;font-weight:600 800;font-display:swap;src:url("@fontsource/hind-siliguri/files/hind-siliguri-bengali-700-normal.woff2") format("woff2");unicode-range:U+09E6-09EF}
+
 :root{
-  --bg:#f5f6f3; --panel:#ffffff; --ink:#1b2229; --muted:#5b6670; --line:#dde1dc;
-  --accent:#3d5a2a; --accent-soft:#e6ecdf; --warn:#9a5b00; --warn-soft:#fbefd9; --bad:#a3322a; --bad-soft:#f8e3e0;
-  --mt:#5a5f8a; --mt-soft:#e9eaf4;
-  --phy:#2f5d8a; --phy-soft:#e3ecf5; --chem:#8a4a2f; --chem-soft:#f6e9e2; --math:#5a3f8a; --math-soft:#ece6f5;
-  --t1:#3d5a2a; --t2:#5f7f3f; --t3:#8a8f5a; --t4:#9aa1a8;
-  --display:"Noto Serif Bengali","Hind Siliguri",serif; --body:"Hind Siliguri",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+  --bg:#FDF6E3; --panel:#FFFCF5; --ink:#1F1D1A; --muted:#6B665C; --line:#EADFC8;
+  --accent:#A8491F; --accent-soft:#F6E4D5;
+  --ok:#3F6B3A; --ok-soft:#E5ECD8;
+  --warn:#8A5A00; --warn-soft:#F6E9C6; --bad:#B3261E; --bad-soft:#F9E1DB;
+  --mt:#57598F; --mt-soft:#E9E6F2;
+  --phy:#2F5F8A; --phy-soft:#E2EAF1; --chem:#94462B; --chem-soft:#F5E3D8; --math:#5F458C; --math-soft:#ECE4F3;
+  --t1:#A8491F; --t1-ink:#FFFCF5; --t2:#9C6A12; --t2-ink:#FFFCF5; --t3:#5E7A55; --t3-soft:#E3EBDB; --t4:#9E978A;
+  --gold:#9C6A12; --gold-soft:#F6E9C6;
+  /* dark "hero" panels (countdown, focus timer) */
+  --hero-1:#2B2622; --hero-2:#151311; --hero-hi:#FBE3B5; --hero-acc:#E3A857; --hero-ink:#F7EFDF;
+  --display:"Bangla Digits","Noto Serif Bengali","Hind Siliguri",serif; --body:"Hind Siliguri",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
   --radius:10px; --radius-lg:14px; --tap:44px;
-  --gold:#b8811f; --gold-soft:#f7ecd4;
-  --shadow-1:0 1px 2px rgba(22,34,26,.05),0 1px 3px rgba(22,34,26,.05);
-  --shadow-2:0 10px 30px -12px rgba(22,34,26,.22),0 3px 8px -2px rgba(22,34,26,.07);
-  --shadow-3:0 24px 60px -18px rgba(10,20,14,.4),0 8px 20px -8px rgba(10,20,14,.18);
+  --shadow-1:0 1px 2px rgba(60,45,20,.05),0 1px 3px rgba(60,45,20,.05);
+  --shadow-2:0 10px 30px -12px rgba(60,45,20,.2),0 3px 8px -2px rgba(60,45,20,.06);
+  --shadow-3:0 24px 60px -18px rgba(40,28,12,.35),0 8px 20px -8px rgba(40,28,12,.16);
   --ease:cubic-bezier(.2,.8,.2,1); --spring:cubic-bezier(.34,1.4,.64,1);
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#12161a; --panel:#1a2026; --ink:#e7eae6; --muted:#9aa4ac; --line:#2c343b;
-  --accent:#a9c98a; --accent-soft:#233020; --warn:#e3a94f; --warn-soft:#33281a; --bad:#ef8a80; --bad-soft:#3a1f1d;
-  --mt:#aeb3e6; --mt-soft:#252842;
-  --phy:#8fb8e3; --phy-soft:#1c2a38; --chem:#e3a58a; --chem-soft:#35231c; --math:#bba6e8; --math-soft:#2a2338;
-  --t1:#a9c98a; --t2:#86a868; --t3:#b3b27a; --t4:#6b747c; color-scheme:dark;
-  --gold:#eab54c; --gold-soft:#33291a;
-  --shadow-1:0 1px 2px rgba(0,0,0,.3);
-  --shadow-2:0 12px 30px -12px rgba(0,0,0,.55),0 2px 6px rgba(0,0,0,.25);
-  --shadow-3:0 28px 70px -20px rgba(0,0,0,.7),0 8px 20px -8px rgba(0,0,0,.4);}}
+  --bg:#060806; --panel:#0D110D; --ink:#E8EFE4; --muted:#8E9A8A; --line:#1D251D;
+  --accent:#8FFF5A; --accent-soft:#15210F;
+  --ok:#8FFF5A; --ok-soft:#15210F;
+  --warn:#F2C14E; --warn-soft:#262010; --bad:#FF6B5E; --bad-soft:#2A1311;
+  --mt:#B0B4EC; --mt-soft:#181A2C;
+  --phy:#8CC4F0; --phy-soft:#0E1B26; --chem:#F0A585; --chem-soft:#26170F; --math:#C3A9F0; --math-soft:#1C1527;
+  --t1:#FF7A45; --t1-ink:#0D110D; --t2:#F2C14E; --t2-ink:#0D110D; --t3:#9CCB8A; --t3-soft:#152015; --t4:#5E685C;
+  --gold:#F2C14E; --gold-soft:#262010;
+  --hero-1:#0F1A0E; --hero-2:#050705; --hero-hi:#D9FFC6; --hero-acc:#8FFF5A; --hero-ink:#E8EFE4;
+  --shadow-1:0 1px 2px rgba(0,0,0,.4);
+  --shadow-2:0 12px 30px -12px rgba(0,0,0,.7),0 2px 6px rgba(0,0,0,.35);
+  --shadow-3:0 28px 70px -20px rgba(0,0,0,.85),0 8px 20px -8px rgba(0,0,0,.5);
+  color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#12161a; --panel:#1a2026; --ink:#e7eae6; --muted:#9aa4ac; --line:#2c343b;
-  --accent:#a9c98a; --accent-soft:#233020; --warn:#e3a94f; --warn-soft:#33281a; --bad:#ef8a80; --bad-soft:#3a1f1d;
-  --mt:#aeb3e6; --mt-soft:#252842;
-  --phy:#8fb8e3; --phy-soft:#1c2a38; --chem:#e3a58a; --chem-soft:#35231c; --math:#bba6e8; --math-soft:#2a2338;
-  --t1:#a9c98a; --t2:#86a868; --t3:#b3b27a; --t4:#6b747c; color-scheme:dark;
-  --gold:#eab54c; --gold-soft:#33291a;
-  --shadow-1:0 1px 2px rgba(0,0,0,.3);
-  --shadow-2:0 12px 30px -12px rgba(0,0,0,.55),0 2px 6px rgba(0,0,0,.25);
-  --shadow-3:0 28px 70px -20px rgba(0,0,0,.7),0 8px 20px -8px rgba(0,0,0,.4);}
+  --bg:#060806; --panel:#0D110D; --ink:#E8EFE4; --muted:#8E9A8A; --line:#1D251D;
+  --accent:#8FFF5A; --accent-soft:#15210F;
+  --ok:#8FFF5A; --ok-soft:#15210F;
+  --warn:#F2C14E; --warn-soft:#262010; --bad:#FF6B5E; --bad-soft:#2A1311;
+  --mt:#B0B4EC; --mt-soft:#181A2C;
+  --phy:#8CC4F0; --phy-soft:#0E1B26; --chem:#F0A585; --chem-soft:#26170F; --math:#C3A9F0; --math-soft:#1C1527;
+  --t1:#FF7A45; --t1-ink:#0D110D; --t2:#F2C14E; --t2-ink:#0D110D; --t3:#9CCB8A; --t3-soft:#152015; --t4:#5E685C;
+  --gold:#F2C14E; --gold-soft:#262010;
+  --hero-1:#0F1A0E; --hero-2:#050705; --hero-hi:#D9FFC6; --hero-acc:#8FFF5A; --hero-ink:#E8EFE4;
+  --shadow-1:0 1px 2px rgba(0,0,0,.4);
+  --shadow-2:0 12px 30px -12px rgba(0,0,0,.7),0 2px 6px rgba(0,0,0,.35);
+  --shadow-3:0 28px 70px -20px rgba(0,0,0,.85),0 8px 20px -8px rgba(0,0,0,.5);
+  color-scheme:dark}
 :root[data-theme="light"]{color-scheme:light}

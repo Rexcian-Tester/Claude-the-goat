@@ -116,3 +116,29 @@ export function mmss(ms: number) {
   const s = Math.max(0, Math.floor(ms / 1000))
   return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
 }
+
+/** "14 min", "2 min 14 sec", "45 sec", "1 h 2 min" */
+export function dur(ms: number) {
+  const t = Math.round(Math.max(0, ms) / 1000)
+  const h = Math.floor(t / 3600)
+  const m = Math.floor((t % 3600) / 60)
+  const sec = t % 60
+  if (h) return `${h} h${m ? ` ${m} min` : ''}`
+  if (!m) return `${sec} sec`
+  return sec ? `${m} min ${sec} sec` : `${m} min`
+}
+const TAG_TXT: Record<LapTag, string> = { early: 'early', ontime: 'on time', over: 'over' }
+
+/** Plain-text report for pasting elsewhere (one bullet per question). */
+export function reportText(laps: Lap[], cycleMs: number, when: string, totalMs?: number) {
+  const ms = laps.map((l) => l.ms)
+  const sum = ms.reduce((a, b) => a + b, 0)
+  const tags = laps.map((l) => tag(l.ms, cycleMs))
+  const first = laps[0]?.q
+  const last = laps[laps.length - 1]?.q
+  return [
+    `Focus session · ${when} · ${laps.length} question${laps.length === 1 ? '' : 's'}${laps.length ? ` (Q${first}–Q${last})` : ''} · target ${dur(cycleMs)} each`,
+    ...laps.map((l, i) => `• Question ${l.q}: ${dur(l.ms)} to solve (${TAG_TXT[tags[i]]})`),
+    `Total ${dur(totalMs ?? sum)} · average ${dur(laps.length ? sum / laps.length : 0)} · ${tags.filter((t) => t === 'early').length} early, ${tags.filter((t) => t === 'ontime').length} on time, ${tags.filter((t) => t === 'over').length} over`,
+  ].join('\n')
+}

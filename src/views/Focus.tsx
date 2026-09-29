@@ -32,7 +32,49 @@ interface Past {
   from: number
   to: number
   cycleMs: number
+  /** per-question times, kept so an older session can be copied again */
+  laps?: F.Lap[]
 }
+
+/** Copy text; falls back to a hidden textarea where the clipboard API is unavailable. */
+async function copyText(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text)
+    return true
+  } catch {
+    try {
+      const ta = document.createElement('textarea')
+      ta.value = text
+      ta.setAttribute('readonly', '')
+      ta.style.position = 'fixed'
+      ta.style.opacity = '0'
+      document.body.appendChild(ta)
+      ta.select()
+      const ok = document.execCommand('copy')
+      ta.remove()
+      return ok
+    } catch {
+      return false
+    }
+  }
+}
+function CopyButton({ text, label = 'Copy report', className = 'btn' }: { text: () => string; label?: string; className?: string }) {
+  const [state, setState] = useState<'idle' | 'ok' | 'fail'>('idle')
+  useEffect(() => {
+    if (state === 'idle') return
+    const t = setTimeout(() => setState('idle'), 2200)
+    return () => clearTimeout(t)
+  }, [state])
+  return (
+    <button type="button" className={`${className} copy-btn ${state}`} onClick={async () => setState((await copyText(text())) ? 'ok' : 'fail')}>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        {state === 'ok' ? <path d="m5 12 5 5 9-10" /> : <><rect x="9" y="9" width="12" height="12" rx="2" /><path d="M5 15V5a2 2 0 0 1 2-2h10" /></>}
+      </svg>
+      <span aria-live="polite">{state === 'ok' ? 'Copied' : state === 'fail' ? 'Copy failed' : label}</span>
+    </button>
+  )
+}
+const whenOf = (ms: number) => dateEn(dhakaDate(ms))
 
 const PUSH = [
   "Hard work beats talent when talent doesn't work hard.",
@@ -175,6 +217,7 @@ function Setup({ onStart }: { onStart: (c: FocusConfig) => void }) {
                 <b>{dateEn(dhakaDate(h.at))}</b>
                 <span>Q{h.from}–Q{h.to} · {h.n} done</span>
                 <span className="num muted">avg {F.mmss(h.avg)} of {F.mmss(h.cycleMs)} · {F.hms(h.total)}</span>
+                {h.laps?.length ? <CopyButton className="btn sm" label="Copy" text={() => F.reportText(h.laps!, h.cycleMs, whenOf(h.at), h.total)} /> : null}
               </div>
             ))}
           </div>
@@ -304,6 +347,12 @@ function Report({ s, onNew }: { s: FocusSession; onNew: () => void }) {
           <span className="fc-tag ontime">{r.ontime} on time</span>
           <span className="fc-tag over">{r.over} over</span>
         </div>
+        {r.n > 0 && (
+          <div className="row-flex">
+            <CopyButton className="btn primary" text={() => F.reportText(s.laps, s.cycleMs, whenOf(s.startedAt), r.total)} />
+            <span className="small">One line per question, ready to paste into a chat.</span>
+          </div>
+        )}
       </div>
       {r.n > 0 && (
         <div className="card">
@@ -341,7 +390,7 @@ export function FocusView() {
     const h = read<Past[]>(LS_HISTORY, [])
     if (h.some((x) => x.at === s.startedAt)) return
     const r = F.report(s)
-    write(LS_HISTORY, [{ at: s.startedAt, n: r.n, total: r.total, avg: r.avg, from: s.startQ, to: s.laps[s.laps.length - 1].q, cycleMs: s.cycleMs }, ...h].slice(0, 20))
+    write(LS_HISTORY, [{ at: s.startedAt, n: r.n, total: r.total, avg: r.avg, from: s.startQ, to: s.laps[s.laps.length - 1].q, cycleMs: s.cycleMs, laps: s.laps }, ...h].slice(0, 20))
   }, [s])
   return (
     <div className="view">

@@ -32,9 +32,11 @@ export function ItemHeader({ item }: { item: PlanItem }) {
       <div className="top">
         <SubjectChip s={item.s} />
         {first ? <a className="ch" href={href.chapter(first.id)}>{item.ch}</a> : <span className="ch">{item.ch}</span>}
+      </div>
+      <div className="meta">
+        {tier && <TierPill tier={tier} />}
         <span className="part">{item.part}</span>
         <KindBadges item={item} />
-        {tier && <TierPill tier={tier} />}
       </div>
       {more.length > 0 && (
         <div className="small">

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { active, finish, markAlerted, next, pause, plan, report, resume, start, tag, view } from '../logic/focus'
+import { active, dur, finish, markAlerted, next, pause, plan, report, reportText, resume, start, tag, view } from '../logic/focus'
 
 const cfg = { totalMin: 150, cycleMin: 3, startQ: 1 }
 const MIN = 60000
@@ -63,5 +63,19 @@ describe('focus timer', () => {
     s = next(s, 6 * MIN)
     s = finish(s, 6 * MIN)
     expect(report(s)).toMatchObject({ n: 2, avg: 3 * MIN, fastest: 2 * MIN, slowest: 4 * MIN, early: 1, over: 1, total: 6 * MIN })
+  })
+
+  it('formats a copyable report', () => {
+    expect(dur(14 * MIN)).toBe('14 min')
+    expect(dur(2 * MIN + 14000)).toBe('2 min 14 sec')
+    expect(dur(45000)).toBe('45 sec')
+    expect(dur(62 * MIN)).toBe('1 h 2 min')
+    const txt = reportText([{ q: 2, ms: 14 * MIN }, { q: 3, ms: 2 * MIN }], 3 * MIN, '30 Sep')
+    expect(txt.split('\n')).toEqual([
+      'Focus session · 30 Sep · 2 questions (Q2–Q3) · target 3 min each',
+      '• Question 2: 14 min to solve (over)',
+      '• Question 3: 2 min to solve (early)',
+      'Total 16 min · average 8 min · 1 early, 0 on time, 1 over',
+    ])
   })
 })

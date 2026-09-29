@@ -1,5 +1,5 @@
 import { memo, useCallback, useState } from 'react'
-import { bn, dateBn, dateEn, WD_BN } from '../data/bn'
+import { bn, dateBn, dateEn, MONTHS_BN as MONTH_BN, WD_BN } from '../data/bn'
 import { addDays, weekdayIndex } from '../data/dhaka'
 import { studyPlan } from '../data/load'
 import { endgameKind, endgameRows, planDays } from '../data/plan'
@@ -34,9 +34,11 @@ function ItemLine({ row }: { row: Row }) {
             <div className="top">
               <SubjectChip s={it.s} />
               <span className="ch">{it.ch}</span>
+            </div>
+            <div className="meta">
+              {tier && <TierPill tier={tier} />}
               <span className="part">{it.part}</span>
               <KindBadges item={it} />
-              {tier && <TierPill tier={tier} />}
             </div>
             <div className="topics-t">{it.t}</div>
             {it.m && <div className="note">{it.m}</div>}
@@ -54,9 +56,9 @@ function DayRow({ row, today, sched }: { row: Row; today: string; sched: Schedul
   return (
     <a className={`day st-${st} ${eff === today ? 'is-today' : ''}`} href={href.plan(row.date)} aria-label={`${eff ? dateBn(eff) : 'Unscheduled'}, day ${row.dayNo}, ${row.items.map((i) => i.ch).join(', ')}`}>
       <div className="date">
-        <span className="dn">{eff ? dateBn(eff) : '—'}</span>
-        <span className="wd">{eff ? WD_BN[weekdayIndex(eff)] + 'বার' : 'Unscheduled'}</span>
-        <span className="ix">Day {row.dayNo}{eff && eff !== row.date ? ` · was ${dateEn(row.date)}` : ''}</span>
+        <span className="dd">{eff ? bn(Number(eff.slice(8))) : '—'}</span>
+        <span className="mm">{eff ? `${MONTH_BN[Number(eff.slice(5, 7)) - 1]} · ${WD_BN[weekdayIndex(eff)]}বার` : 'Unscheduled'}</span>
+        <span className="ix">Day {row.dayNo}{eff === today ? ' · today' : ''}{eff && eff !== row.date ? ` · was ${dateEn(row.date)}` : ''}</span>
       </div>
       <div className="body"><ItemLine row={row} /></div>
       <div className="ratio">
@@ -79,7 +81,7 @@ const SUB_LETTER: Record<string, string> = { P: 'প', C: 'র', M: 'গ', X: '�
 function MonthGrid({ sched, today }: { sched: Schedule; today: string }) {
   const r = useReader()
   return (
-    <div className="stack" style={{ gap: 22 }}>
+    <div className="stack" style={{ gap: 32 }}>
       <div className="legend">
         <span className="pd"><span className="chip P">প</span> পদার্থ</span>
         <span className="pd"><span className="chip C">র</span> রসায়ন</span>
@@ -229,29 +231,30 @@ const PlanBody = memo(function PlanBody({ today, sched, view, setView }: { today
       {view === 'month' ? (
         <MonthGrid sched={sched} today={today} />
       ) : (
-        <div className="stack" style={{ gap: 20 }}>
+        <div className="phases">
           {day0 && day0.eff && (
-            <section className="stack" style={{ gap: 8 }}>
-              <div className="phase-h"><h2>দিন ০</h2><span>{dateBn(day0.eff)}</span></div>
+            <section className="phase">
+              <div className="phase-h"><span className="ph-n">Start</span><h2>দিন ০</h2><span className="ph-d">{dateBn(day0.eff)}</span></div>
               <div className="days"><DayRow row={day0} today={today} sched={sched} /></div>
             </section>
           )}
           {phases.map((ph, idx) => {
             const list = inPhase(ph.name)
             return (
-              <section key={ph.name} className="stack" style={{ gap: 8 }}>
+              <section key={ph.name} className="phase">
                 <div className="phase-h">
-                  <h2>{bn(idx + 1)}. {ph.name}</h2>
-                  <span>{list.length ? `${dateBn(list[0].eff!)} – ${dateBn(list[list.length - 1].eff!)} · ${bn(list.length)} দিন` : ''}</span>
+                  <span className="ph-n">Phase {idx + 1}</span>
+                  <h2>{ph.name}</h2>
+                  <span className="ph-d">{list.length ? `${dateBn(list[0].eff!)} – ${dateBn(list[list.length - 1].eff!)} · ${bn(list.length)} দিন` : ''}</span>
                 </div>
-                <p className="small">{ph.about}</p>
+                <p className="ph-about">{ph.about}</p>
                 <div className="days">{list.map((row) => <DayRow key={row.date} row={row} today={today} sched={sched} />)}</div>
               </section>
             )
           })}
           {sched.unscheduled.length > 0 && (
-            <section className="stack" style={{ gap: 8 }}>
-              <div className="phase-h"><h2>Unscheduled</h2><span>did not fit before 15 Dec</span></div>
+            <section className="phase">
+              <div className="phase-h"><span className="ph-n">Parked</span><h2>Unscheduled</h2><span className="ph-d">did not fit before 15 Dec</span></div>
               <div className="days">{sched.unscheduled.map((row) => <DayRow key={row.date} row={row} today={today} sched={sched} />)}</div>
             </section>
           )}

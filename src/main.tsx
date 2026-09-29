@@ -24,6 +24,8 @@ import { store } from './store/store'
 import { startSync } from './store/syncClient'
 
 async function boot() {
+  // ask the browser not to clear this site's saved progress when storage runs low (weeks of offline use)
+  void navigator.storage?.persist?.().catch(() => {})
   await store.init()
   loadTodayOverride()
   startSync()
