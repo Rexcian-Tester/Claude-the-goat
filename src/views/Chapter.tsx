@@ -74,7 +74,7 @@ export function ChapterView() {
   return (
     <div className="view">
       <div className="page-h">
-        <div className="eyebrow"><a href={href.map(c.subject)}>Priority Map</a> › {SUBJ_BN[c.subject]}</div>
+        <div className="eyebrow"><a href={href.map(c.subject)}>Priority Map</a> › <span className="eb-bn">{SUBJ_BN[c.subject]}</span></div>
         <h1>{c.n}</h1>
         <div className="row-flex">
           <span className={`chip ${c.subject}`}>{SUBJ_BN[c.subject]}</span>

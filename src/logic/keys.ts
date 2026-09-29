@@ -17,7 +17,12 @@ export const K = {
   rev: (id: string) => `endgame:rev:${id}`,
   examCustom: 'endgame:examlist',
   note: (id: string) => `note:${id}`,
+  /** calendar date (Asia/Dhaka): 'yes' | 'close' | 'no', answer to "did you complete today's goal?" */
+  goal: (date: string) => `day:${date}:goal`,
+  /** calendar date: a standing reminder ticked off for that day */
+  rem: (date: string, id: string) => `day:${date}:rem:${id}`,
 }
+export type GoalAnswer = 'yes' | 'close' | 'no'
 export type QStatus = 'unsolved' | 'solved' | 'wrong' | 'revisit'
 export const Q_STATUSES: QStatus[] = ['unsolved', 'solved', 'wrong', 'revisit']
 export type ReflField = 'hours' | 'focus' | 'well' | 'blocked' | 'first'

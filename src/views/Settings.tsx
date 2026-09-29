@@ -2,10 +2,12 @@ import { useRef, useState } from 'react'
 import { getTodayOverride } from '../data/dhaka'
 import { changeTodayOverride, useToday } from '../hooks'
 import { downloadBackup, importBackup } from '../store/exportImport'
-import { getPasscode, setPasscode, syncNow, useSyncState } from '../store/syncClient'
+import { getPasscode, setPasscode, syncNow, useSyncState, type SyncStatus } from '../store/syncClient'
 import { store } from '../store/store'
 import { applyTheme, getTheme, type Theme } from '../ui-state'
 import { toast } from '../components/ui'
+
+const STATUS_TXT: Record<SyncStatus, string> = { off: 'Local only', synced: 'Synced', syncing: 'Syncing…', offline: 'Offline', conflict: 'Conflict resolved', auth: 'Wrong passcode', error: 'Sync error' }
 
 export function SettingsView() {
   const today = useToday()
@@ -40,12 +42,12 @@ export function SettingsView() {
         <form className="field" onSubmit={(e) => { e.preventDefault(); setPasscode(pass.trim()) }}>
           <label htmlFor="pass">Passcode</label>
           <div className="row-flex" style={{ flexWrap: 'nowrap' }}>
-            <input id="pass" className="input" type="password" autoComplete="off" value={pass} onChange={(e) => setPass(e.target.value)} placeholder="Not set: progress stays on this device only" />
+            <input id="pass" className="input" type="password" autoComplete="off" value={pass} onChange={(e) => setPass(e.target.value)} placeholder="Not set (this device only)" />
             <button className="btn primary" type="submit">Save</button>
           </div>
         </form>
         <div className="row-flex">
-          <span className={`chip-s ${sync.status === 'synced' ? 'ok' : sync.status === 'auth' || sync.status === 'error' ? 'bad' : sync.status === 'conflict' ? 'warn' : ''}`}><span className="dot" />{sync.status}</span>
+          <span className={`chip-s ${sync.status === 'synced' ? 'ok' : sync.status === 'auth' || sync.status === 'error' ? 'bad' : sync.status === 'conflict' ? 'warn' : ''}`}><span className="dot" />{STATUS_TXT[sync.status]}</span>
           <span className="small">Last synced: {last} · {sync.pending} change{sync.pending === 1 ? '' : 's'} pending</span>
         </div>
         {sync.message && <p className="small" role="status">{sync.message}</p>}

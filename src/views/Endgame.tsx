@@ -7,9 +7,10 @@ import { K } from '../logic/keys'
 import { revisionList, type RevisionItem } from '../logic/stats'
 import { href } from '../router'
 import { store, useField } from '../store/store'
-import { useReader } from '../hooks'
+import { useReader, useSchedule } from '../hooks'
 import { Timer } from '../components/Timer'
 import { FieldCheck, TierPill } from '../components/ui'
+import { Accountability, RemindersCard } from './Habits'
 
 const DEFAULT_EXAM = [
   'Admit card',
@@ -115,6 +116,7 @@ export function RevisionListCard() {
 export function EndgameView({ today }: { today: string }) {
   const minutes = useField<number>(K.exam('minutes'), 90)
   const daysLeft = diffDays(today, EXAM_DATE)
+  const sched = useSchedule()
 
   if (today > EXAM_DATE)
     return (
@@ -126,7 +128,7 @@ export function EndgameView({ today }: { today: string }) {
   if (today === EXAM_DATE)
     return (
       <div className="view">
-        <div className="page-h"><div className="eyebrow">{dateLongBn(today)}</div><h1>Today is the MIST exam</h1></div>
+        <div className="page-h"><div className="eyebrow"><span className="eb-bn">{dateLongBn(today)}</span></div><h1>Today is the MIST exam</h1></div>
         <div className="card accent"><h2>You've done the work.</h2><p>Read each question fully, take the marks you can get first, and keep an eye on time.</p></div>
         <ExamChecklist />
       </div>
@@ -134,7 +136,7 @@ export function EndgameView({ today }: { today: string }) {
   if (today === REST_DATE)
     return (
       <div className="view">
-        <div className="page-h"><div className="eyebrow">{dateLongBn(today)}</div><h1>Rest day</h1></div>
+        <div className="page-h"><div className="eyebrow"><span className="eb-bn">{dateLongBn(today)}</span></div><h1>Rest day</h1></div>
         <div className="card accent">
           <h2>Pure mental rest.</h2>
           <p>No new problems, no re-solving. Sleep on time. The exam is tomorrow.</p>
@@ -145,13 +147,17 @@ export function EndgameView({ today }: { today: string }) {
   return (
     <div className="view">
       <div className="page-h">
-        <div className="eyebrow">Endgame · {dateBn(today)} · {daysLeft} days to the exam</div>
+        <div className="eyebrow">Endgame · <span className="eb-bn">{dateBn(today)}</span> · {daysLeft} days to the exam</div>
         <h1>Revision and model tests</h1>
         <p className="small">One full timed paper this morning, then fix every mistake. Re-solve the Repeats list.</p>
       </div>
       <div className="card accent">
         <h2>Timed model test</h2>
         <Timer id="model-test" minutes={minutes} onMinutes={(m) => store.set(K.exam('minutes'), m)} label="Pens down. Now mark it and fix every mistake." big />
+      </div>
+      <div className="grid2 habits">
+        <RemindersCard />
+        <Accountability sched={sched} />
       </div>
       <PaperChecklist />
       <RevisionListCard />

@@ -1,4 +1,4 @@
-import { dateBn, SUBJ_BN } from '../data/bn'
+import { dateBn, dateEn, SUBJ_BN } from '../data/bn'
 const bn = (x: string | number) => String(x)
 const pctBn = (x: number) => `${Math.round(x * 100)}%`
 const fmt1 = (x: number) => String(+x.toFixed(1))
@@ -67,7 +67,7 @@ export function ProgressView() {
       <div className="page-h">
         <div className="eyebrow">Progress</div>
         <h1>How it's going</h1>
-        <p className="small">{lagLabel(info.lag)} · {info.daysLeft} days to the exam ({dateBn(EXAM_DATE)})</p>
+        <p className="small">{lagLabel(info.lag)} · {info.daysLeft} days to the exam ({dateEn(EXAM_DATE)})</p>
       </div>
 
       <div className="grid2">

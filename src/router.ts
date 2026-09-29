@@ -1,12 +1,12 @@
 import { useSyncExternalStore } from 'react'
 
-export type RouteName = 'today' | 'plan' | 'map' | 'chapter' | 'progress' | 'settings'
+export type RouteName = 'today' | 'plan' | 'map' | 'chapter' | 'progress' | 'focus' | 'settings'
 export interface Route {
   name: RouteName
   param?: string
   query: URLSearchParams
 }
-const NAMES: RouteName[] = ['today', 'plan', 'map', 'chapter', 'progress', 'settings']
+const NAMES: RouteName[] = ['today', 'plan', 'map', 'chapter', 'progress', 'focus', 'settings']
 
 export function parse(hash: string): Route {
   const raw = hash.replace(/^#/, '') || '/today'
@@ -29,6 +29,7 @@ export const href = {
   map: (tab?: string) => (tab ? `#/map/${tab}` : '#/map'),
   chapter: (id: string, focus?: string) => `#/chapter/${encodeURIComponent(id)}${focus ? `?focus=${encodeURIComponent(focus)}` : ''}`,
   progress: () => '#/progress',
+  focus: () => '#/focus',
   settings: () => '#/settings',
 }
 
@@ -115,6 +116,8 @@ if (typeof window !== 'undefined') {
 export function restoredScroll(): Saved | null {
   return lastNav === 'pop' ? saved.get(cur) ?? null : null
 }
+/** True when the page on screen came from Back/Forward (or a reload), not a fresh navigation. */
+export const cameBack = () => lastNav === 'pop'
 /** Record the current page position for this entry (scroll events alone miss a page you never scrolled). */
 export function rememberScroll() {
   saved.set(cur, { ...saved.get(cur), y: scrollY })

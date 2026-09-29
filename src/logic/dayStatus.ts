@@ -13,10 +13,34 @@ export interface TaskRef {
 }
 export type TaskState = 'done' | 'moved' | 'cleared' | 'open'
 
+// Plan days are static, and schedule rows share their day's items array, so task lists are built once.
+const ownCache = new WeakMap<PlanDay['items'], TaskRef[]>()
 export function ownTasks(day: PlanDay): TaskRef[] {
-  return day.items.flatMap((item) =>
-    item.topicList.map((text, i) => ({ key: `${day.date}:${item.itemIdx}:${i}`, date: day.date, itemIdx: item.itemIdx, i, text, item })),
-  )
+  let out = ownCache.get(day.items)
+  if (!out) {
+    out = day.items.flatMap((item) =>
+      item.topicList.map((text, i) => ({ key: `${day.date}:${item.itemIdx}:${i}`, date: day.date, itemIdx: item.itemIdx, i, text, item })),
+    )
+    ownCache.set(day.items, out)
+  }
+  return out
+}
+
+/* Per-state cache: one pass builds "tasks moved onto date X" and each day's progress is computed once per
+ * change instead of once per row per render (the plan list asks for all 76 days, each scanning every row). */
+interface Memo {
+  r: Reader
+  v: number
+  rows: Row[]
+  inbound: Map<string, TaskRef[]> | null
+  progress: Map<string, DayProgress>
+}
+let memo: Memo | null = null
+function memoFor(r: Reader, rows: Row[]): Memo | null {
+  const v = r.version?.()
+  if (v === undefined) return null
+  if (!memo || memo.r !== r || memo.v !== v || memo.rows !== rows) memo = { r, v, rows, inbound: null, progress: new Map() }
+  return memo
 }
 export function taskState(r: Reader, t: TaskRef): TaskState {
   if (r.get<boolean>(K.task(t.date, t.itemIdx, t.i))) return 'done'
@@ -32,6 +56,18 @@ export const movedTo = (r: Reader, t: TaskRef): string | undefined => {
 
 /** Tasks from other days that were moved onto this (catch-up) day, keyed by their *effective* target date. */
 export function movedIn(r: Reader, rows: Row[], targetDate: string): TaskRef[] {
+  const m = memoFor(r, rows)
+  if (m) {
+    if (!m.inbound) {
+      m.inbound = new Map()
+      for (const row of rows)
+        for (const t of ownTasks(row)) {
+          const to = movedTo(r, t)
+          if (to && to !== row.date) m.inbound.set(to, [...(m.inbound.get(to) ?? []), t])
+        }
+    }
+    return m.inbound.get(targetDate) ?? []
+  }
   const out: TaskRef[] = []
   for (const row of rows) {
     if (row.date === targetDate) continue
@@ -53,6 +89,14 @@ export interface DayProgress {
   status: DayStatus
 }
 export function dayProgress(r: Reader, row: Row, rows: Row[]): DayProgress {
+  const m = memoFor(r, rows)
+  const hit = m?.progress.get(row.date)
+  if (hit) return hit
+  const p = computeDayProgress(r, row, rows)
+  m?.progress.set(row.date, p)
+  return p
+}
+function computeDayProgress(r: Reader, row: Row, rows: Row[]): DayProgress {
   const own = ownTasks(row)
   const inbound = row.eff ? movedIn(r, rows, row.eff) : []
   const tasks = [...own, ...inbound]

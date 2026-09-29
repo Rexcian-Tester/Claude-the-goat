@@ -12,6 +12,7 @@ import { href } from '../router'
 import { BehindBanner } from './BehindBanner'
 import { DayBody, DayMini, ItemHeader, OverdueJump, OverdueList } from './day'
 import { EndgameView } from './Endgame'
+import { Accountability, RemindersCard } from './Habits'
 
 const RECALL_MIN = 'mist-recall-minutes'
 function YesterdayCard({ row }: { row: Row }) {
@@ -68,7 +69,7 @@ export function TodayView() {
   return (
     <div className="view">
       <div className="page-h">
-        <div className="eyebrow">Today · Asia/Dhaka</div>
+        <div className="eyebrow">Today · Bangladesh time</div>
         <h1>{WD_BN[weekdayIndex(today)]}বার, {dateLongBn(today)}</h1>
         <p className="small">
           {dateEn(today)}
@@ -78,6 +79,11 @@ export function TodayView() {
       </div>
 
       <Countdown target={ENDGAME_START} from={PLAN_START} title={`Countdown to ${dateBn(ENDGAME_START)}`} sub="Study plan ends · endgame begins" />
+
+      <div className="grid2 habits">
+        <RemindersCard />
+        <Accountability sched={sched} />
+      </div>
 
       <BehindBanner sched={sched} today={today} />
       <OverdueJump sched={sched} today={today} />

@@ -172,7 +172,7 @@ export function MapView() {
   return (
     <div className="view">
       <div className="page-h">
-        <div className="eyebrow">MIST Unit-A · বিগত বছরের প্রশ্ন বিশ্লেষণ</div>
+        <div className="eyebrow">MIST Unit-A · <span className="eb-bn">বিগত বছরের প্রশ্ন বিশ্লেষণ</span></div>
         <h1>MIST অধ্যায়ভিত্তিক গুরুত্ব তালিকা</h1>
         <p className="small">২০১৫-১৬ থেকে ২০২৩-২৪ সালের প্রশ্ন এবং ৫টি মডেল টেস্ট। প্রতিটি অধ্যায়ের পাশে পরিকল্পনার তারিখ ও অগ্রগতি দেখানো আছে।</p>
       </div>

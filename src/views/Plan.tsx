@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { memo, useCallback, useState } from 'react'
 import { bn, dateBn, dateEn, WD_BN } from '../data/bn'
 import { addDays, weekdayIndex } from '../data/dhaka'
 import { studyPlan } from '../data/load'
@@ -158,26 +158,38 @@ function DaySheet({ date, sched, today }: { date: string; sched: Schedule; today
   )
 }
 
+type Layout = 'list' | 'month'
+
 export function PlanView() {
   const today = useToday()
   const sched = useSchedule()
-  const r = useReader()
   const route = useRoute()
-  const [view, setViewState] = useState<'list' | 'month'>(() => {
+  const [view, setViewState] = useState<Layout>(() => {
     try {
       return localStorage.getItem('mist-plan-view') === 'month' ? 'month' : 'list'
     } catch {
       return 'list'
     }
   })
-  const setView = (v: 'list' | 'month') => {
+  const setView = useCallback((v: Layout) => {
     setViewState(v)
     try {
       localStorage.setItem('mist-plan-view', v)
     } catch {
       /* ignore */
     }
-  }
+  }, [])
+  return (
+    <div className="view">
+      <PlanBody today={today} sched={sched} view={view} setView={setView} />
+      {route.param && <DaySheet date={route.param} sched={sched} today={today} />}
+    </div>
+  )
+}
+
+/** Everything under the sheet. Memoised so opening or closing a day doesn't rebuild the whole plan. */
+const PlanBody = memo(function PlanBody({ today, sched, view, setView }: { today: string; sched: Schedule; view: Layout; setView: (v: Layout) => void }) {
+  const r = useReader()
   const info = behindInfo(today, sched.rows, r)
   const counts = {
     days: planDays.length,
@@ -191,7 +203,7 @@ export function PlanView() {
   const day0 = sched.rows[0]
 
   return (
-    <div className="view">
+    <>
       <div className="page-h">
         <div className="eyebrow">Study plan · 30 Sep – 19 Dec 2026</div>
         <h1>Plan</h1>
@@ -280,9 +292,7 @@ export function PlanView() {
           </table>
         </div>
       </Panel>
-
-      {route.param && <DaySheet date={route.param} sched={sched} today={today} />}
-    </div>
+    </>
   )
-}
+})
 export { addDays }

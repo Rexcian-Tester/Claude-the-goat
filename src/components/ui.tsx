@@ -98,6 +98,9 @@ export function QuestionRow({ q, focus }: { q: Question; focus?: string | null }
 }
 
 /* ---------- sheet (modal) ---------- */
+// open sheets, newest last: Escape and the focus trap belong to the top one only
+const openSheets: object[] = []
+let bodyOverflow = ''
 export function Sheet({ title, onClose, children, bare, label, routed }: { title: ReactNode; onClose: () => void; children: ReactNode; bare?: boolean; label?: string; routed?: boolean }) {
   const ref = useRef<HTMLDivElement>(null)
   // Parents pass a fresh closure every render; keep the setup effect from re-running (it would steal focus
@@ -110,11 +113,14 @@ export function Sheet({ title, onClose, children, bare, label, routed }: { title
   }, [routed])
   useEffect(() => (routed ? undefined : pushSheetEntry(() => close.current())), [routed])
   useEffect(() => {
+    const me = {}
+    if (!openSheets.length) bodyOverflow = document.body.style.overflow
+    openSheets.push(me)
     const prev = document.activeElement as HTMLElement | null
-    const body = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     ref.current?.focus({ preventScroll: true })
     const key = (e: KeyboardEvent) => {
+      if (openSheets[openSheets.length - 1] !== me) return
       if (e.key === 'Escape') close.current()
       if (e.key === 'Tab' && ref.current) {
         const f = [...ref.current.querySelectorAll<HTMLElement>('a[href],button:not([disabled]),input,textarea,select,summary,[tabindex]:not([tabindex="-1"])')].filter((x) => x.offsetParent !== null)
@@ -127,8 +133,9 @@ export function Sheet({ title, onClose, children, bare, label, routed }: { title
     }
     document.addEventListener('keydown', key)
     return () => {
+      openSheets.splice(openSheets.indexOf(me), 1)
       document.removeEventListener('keydown', key)
-      document.body.style.overflow = body
+      if (!openSheets.length) document.body.style.overflow = bodyOverflow
       prev?.focus?.({ preventScroll: true })
     }
   }, [])

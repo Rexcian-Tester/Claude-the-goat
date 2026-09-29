@@ -1,9 +1,9 @@
-import { useEffect, useLayoutEffect } from 'react'
+import { useEffect, useLayoutEffect, useMemo } from 'react'
 import { bn } from './data/bn'
 import { behindInfo, lagLabel, phaseOf } from './logic/behind'
 import { PLAN_START } from './data/plan'
 import { diffDays } from './data/dhaka'
-import { href, rememberScroll, restoredScroll, useRoute } from './router'
+import { cameBack, href, rememberScroll, restoredScroll, useRoute } from './router'
 import { useReader, useSchedule, useToday } from './hooks'
 import { useSyncState } from './store/syncClient'
 import { openSearch, useSearchOpen } from './ui-state'
@@ -15,20 +15,20 @@ import { ChapterView } from './views/Chapter'
 import { ProgressView } from './views/Progress'
 import { SettingsView } from './views/Settings'
 import { SearchSheet } from './views/Search'
+import { FocusView } from './views/Focus'
+import { ReminderPopup } from './views/Habits'
 
-/** The "one shot" mark: one gold 1, one winning arc out of countless dashed timelines. Same art as the favicon. */
+/** The mark: a single gold numeral 1 in a thin gold frame. Same art as the favicon. */
 function Logo() {
   return (
     <svg className="logo" viewBox="0 0 512 512" aria-hidden="true">
       <defs>
-        <linearGradient id="lg-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#1f3b2a" /><stop offset="1" stopColor="#0b1510" /></linearGradient>
-        <linearGradient id="lg-gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#ffe7a8" /><stop offset=".55" stopColor="#eab54c" /><stop offset="1" stopColor="#b97a1f" /></linearGradient>
+        <linearGradient id="lg-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#15241b" /><stop offset="1" stopColor="#0a120d" /></linearGradient>
+        <linearGradient id="lg-gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#e6cf95" /><stop offset="1" stopColor="#b8904a" /></linearGradient>
       </defs>
-      <rect width="512" height="512" rx="120" fill="url(#lg-bg)" />
-      <circle cx="256" cy="264" r="184" fill="none" stroke="#e8efe6" strokeOpacity=".14" strokeWidth="8" strokeDasharray="14 18" />
-      <path d="M256 50 A214 214 0 0 1 437 150" fill="none" stroke="url(#lg-gold)" strokeWidth="18" strokeLinecap="round" />
-      <path d="M437 112 L446 141 L475 150 L446 159 L437 188 L428 159 L399 150 L428 141 Z" fill="#fff4d2" />
-      <path d="M232 120 H304 V372 H346 V410 H190 V372 H232 V186 L190 214 L168 178 Z" fill="url(#lg-gold)" />
+      <rect width="512" height="512" rx="104" fill="url(#lg-bg)" />
+      <rect x="40" y="40" width="432" height="432" rx="74" fill="none" stroke="#c9a45c" strokeOpacity=".6" strokeWidth="14" />
+      <path d="M288 104V364H340V404H172V364H224V178L176 200V160L260 104Z" fill="url(#lg-gold)" />
     </svg>
   )
 }
@@ -42,11 +42,12 @@ function TopBar() {
   const info = behindInfo(today, sched.rows, r)
   const phase = phaseOf(today)
   const mac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform)
-  const nav: { name: string; label: string; to: string; cur: boolean }[] = [
+  const nav: { name: string; label: string; short?: string; to: string; cur: boolean }[] = [
     { name: 'today', label: 'Today', to: href.today(), cur: route.name === 'today' },
     { name: 'plan', label: 'Plan', to: href.plan(), cur: route.name === 'plan' },
-    { name: 'map', label: 'Priority Map', to: href.map(), cur: route.name === 'map' || route.name === 'chapter' },
+    { name: 'map', label: 'Priority Map', short: 'Map', to: href.map(), cur: route.name === 'map' || route.name === 'chapter' },
     { name: 'progress', label: 'Progress', to: href.progress(), cur: route.name === 'progress' },
+    { name: 'focus', label: 'Focus', to: href.focus(), cur: route.name === 'focus' },
   ]
   const lagCls = info.lag > 2 ? 'bad' : info.lag > 0 ? 'warn' : 'ok'
   const syncTxt = { off: 'Local only', synced: 'Synced', syncing: 'Syncing…', offline: `Offline${sync.pending ? ` · ${sync.pending}` : ''}`, conflict: 'Conflict resolved', auth: 'Wrong passcode', error: 'Sync error' }[sync.status]
@@ -79,7 +80,9 @@ function TopBar() {
           {nav.map((n, i) => (
             <span key={n.name} style={{ display: 'contents' }}>
               {(i === 1 || i === 3) && <span className="sep" aria-hidden="true" />}
-              <a href={n.to} aria-current={n.cur ? 'page' : undefined}>{n.label}</a>
+              <a href={n.to} aria-current={n.cur ? 'page' : undefined} aria-label={n.short ? n.label : undefined}>
+                {n.short ? <><span className="lg-only" aria-hidden="true">{n.label}</span><span className="sm-only" aria-hidden="true">{n.short}</span></> : n.label}
+              </a>
             </span>
           ))}
         </nav>
@@ -91,6 +94,9 @@ function TopBar() {
 export function App() {
   const route = useRoute()
   const searchOpen = useSearchOpen()
+  // decided once per page: flipping it later (e.g. opening a day) would replay the entrance animation
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const returning = useMemo(() => cameBack(), [route.name])
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement | null)?.tagName
@@ -122,15 +128,17 @@ export function App() {
     <div className="app">
       <a href="#main" className="sr-only" onClick={(e) => { e.preventDefault(); document.getElementById('main')?.focus() }}>Skip to content</a>
       <TopBar />
-      <main className="main" id="main" tabIndex={-1}>
+      <main className={`main ${returning ? 'returning' : ''}`} id="main" tabIndex={-1}>
         {route.name === 'today' && <TodayView />}
         {route.name === 'plan' && <PlanView />}
         {route.name === 'map' && <MapView />}
         {route.name === 'chapter' && <ChapterView />}
         {route.name === 'progress' && <ProgressView />}
+        {route.name === 'focus' && <FocusView />}
         {route.name === 'settings' && <SettingsView />}
       </main>
       {searchOpen && <SearchSheet />}
+      <ReminderPopup />
       <Toast />
     </div>
   )

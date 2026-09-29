@@ -75,7 +75,7 @@ export function Countdown({ target, from, title, sub }: { target: string; from: 
         <i style={{ transform: `scaleX(${pct})` }} />
       </div>
       <div className="cd-foot">
-        <span>{bn(Math.round(pct * 100))}% of the study window gone</span>
+        <span>{Math.round(pct * 100)}% of the study window gone</span>
         <span>Every second counts. One shot.</span>
       </div>
     </section>
