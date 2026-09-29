@@ -151,7 +151,7 @@ export function EndgameView({ today }: { today: string }) {
       </div>
       <div className="card accent">
         <h2>Timed model test</h2>
-        <Timer minutes={minutes} onMinutes={(m) => store.set(K.exam('minutes'), m)} label="Pens down. Now mark it and fix every mistake." big />
+        <Timer id="model-test" minutes={minutes} onMinutes={(m) => store.set(K.exam('minutes'), m)} label="Pens down. Now mark it and fix every mistake." big />
       </div>
       <PaperChecklist />
       <RevisionListCard />

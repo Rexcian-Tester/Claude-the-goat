@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { SHORT_SYLLABUS_YEARS, YEARS } from '../data/catalog'
 import { extras } from '../data/load'
 import { bn, SUBJ_BN, TIER_BN, yearBn, qnBn } from '../data/bn'
 import type { Chapter, Question, Tier } from '../data/types'
 import { K, Q_STATUSES, type QStatus } from '../logic/keys'
 import { store, useField } from '../store/store'
+import { pushSheetEntry, restoredScroll } from '../router'
 
 export const TierPill = ({ tier }: { tier: Tier }) => <span className={`pill ${tier}`}>{TIER_BN[tier]}</span>
 export const SubjectChip = ({ s }: { s: string }) => <span className={`chip ${s}`}>{SUBJ_BN[s]}</span>
@@ -97,15 +98,24 @@ export function QuestionRow({ q, focus }: { q: Question; focus?: string | null }
 }
 
 /* ---------- sheet (modal) ---------- */
-export function Sheet({ title, onClose, children, bare, label }: { title: ReactNode; onClose: () => void; children: ReactNode; bare?: boolean; label?: string }) {
+export function Sheet({ title, onClose, children, bare, label, routed }: { title: ReactNode; onClose: () => void; children: ReactNode; bare?: boolean; label?: string; routed?: boolean }) {
   const ref = useRef<HTMLDivElement>(null)
+  // Parents pass a fresh closure every render; keep the setup effect from re-running (it would steal focus
+  // from whatever you are typing in and flicker the scroll lock) by reading the latest one through a ref.
+  const close = useRef(onClose)
+  close.current = onClose
+  useLayoutEffect(() => {
+    const s = routed ? restoredScroll() : null
+    if (s?.sheet && ref.current) ref.current.scrollTop = s.sheet
+  }, [routed])
+  useEffect(() => (routed ? undefined : pushSheetEntry(() => close.current())), [routed])
   useEffect(() => {
     const prev = document.activeElement as HTMLElement | null
     const body = document.body.style.overflow
     document.body.style.overflow = 'hidden'
-    ref.current?.focus()
+    ref.current?.focus({ preventScroll: true })
     const key = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') close.current()
       if (e.key === 'Tab' && ref.current) {
         const f = [...ref.current.querySelectorAll<HTMLElement>('a[href],button:not([disabled]),input,textarea,select,summary,[tabindex]:not([tabindex="-1"])')].filter((x) => x.offsetParent !== null)
         if (!f.length) return
@@ -119,15 +129,17 @@ export function Sheet({ title, onClose, children, bare, label }: { title: ReactN
     return () => {
       document.removeEventListener('keydown', key)
       document.body.style.overflow = body
-      prev?.focus?.()
+      prev?.focus?.({ preventScroll: true })
     }
-  }, [onClose])
+  }, [])
   return (
-    <div className="scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="scrim" onMouseDown={(e) => e.target === e.currentTarget && close.current()}>
       <div className="sheet" role="dialog" aria-modal="true" aria-label={label ?? (typeof title === 'string' ? title : undefined)} ref={ref} tabIndex={-1}>
         <div className="sheet-h">
           {bare ? <div className="grow row-flex" style={{ flexWrap: 'nowrap' }}>{title}</div> : <h2 className="grow" style={{ fontSize: 18 }}>{title}</h2>}
-          <button type="button" className="icon-btn" onClick={onClose} aria-label="Close">✕</button>
+          <button type="button" className="icon-btn sheet-x" onClick={() => close.current()} aria-label="Close">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
+          </button>
         </div>
         <div className="sheet-b">{children}</div>
       </div>

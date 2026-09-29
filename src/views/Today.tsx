@@ -2,18 +2,35 @@ import { useState } from 'react'
 import { dateBn, dateEn, dateLongBn, WD_BN } from '../data/bn'
 import { addDays, diffDays, weekdayIndex } from '../data/dhaka'
 import { studyPlan } from '../data/load'
-import { PLAN_START, endgameKind } from '../data/plan'
+import { ENDGAME_START, PLAN_START, endgameKind } from '../data/plan'
 import { isEndgame, phaseOf } from '../logic/behind'
 import type { Row } from '../logic/schedule'
 import { useSchedule, useToday } from '../hooks'
+import { Countdown } from '../components/Countdown'
 import { Timer } from '../components/Timer'
 import { href } from '../router'
 import { BehindBanner } from './BehindBanner'
 import { DayBody, DayMini, ItemHeader, OverdueJump, OverdueList } from './day'
 import { EndgameView } from './Endgame'
 
+const RECALL_MIN = 'mist-recall-minutes'
 function YesterdayCard({ row }: { row: Row }) {
-  const [minutes, setMinutes] = useState(15)
+  const [minutes, setMinutesState] = useState(() => {
+    try {
+      const n = Number(localStorage.getItem(RECALL_MIN))
+      return n >= 1 && n <= 300 ? n : 15
+    } catch {
+      return 15
+    }
+  })
+  const setMinutes = (n: number) => {
+    setMinutesState(n)
+    try {
+      localStorage.setItem(RECALL_MIN, String(n))
+    } catch {
+      /* ignore */
+    }
+  }
   return (
     <div className="card">
       <div className="card-h">
@@ -30,7 +47,7 @@ function YesterdayCard({ row }: { row: Row }) {
           </div>
         </div>
       ))}
-      <Timer minutes={minutes} onMinutes={setMinutes} label="Recall time is up. Check your rewrite against your formula sheet." />
+      <Timer id="recall" minutes={minutes} onMinutes={setMinutes} label="Recall time is up. Check your rewrite against your formula sheet." />
     </div>
   )
 }
@@ -59,6 +76,8 @@ export function TodayView() {
           {phase === 'before' && ` · plan starts ${dateEn(PLAN_START)} (in ${diffDays(today, PLAN_START)} day${diffDays(today, PLAN_START) === 1 ? '' : 's'})`}
         </p>
       </div>
+
+      <Countdown target={ENDGAME_START} from={PLAN_START} title={`Countdown to ${dateBn(ENDGAME_START)}`} sub="Study plan ends · endgame begins" />
 
       <BehindBanner sched={sched} today={today} />
       <OverdueJump sched={sched} today={today} />

@@ -44,8 +44,10 @@ export function ProgressView() {
     { name: 'Planned (original)', color: 'var(--muted)', dash: '5 4', values: burn.map((b) => b.planned) },
     { name: 'Actual', color: 'var(--accent)', values: burn.map((b) => b.actual) },
   ]
-  const hours = dates.map((d) => r.get<number>(K.refl(d, 'hours')))
-  const focus = dates.map((d) => r.get<number>(K.refl(d, 'focus')))
+  // reflections are stored under a day's original date; plot them on the date it actually ran (after a shift)
+  const reflDate = (d: string) => sched.byEff.get(d)?.date ?? d
+  const hours = dates.map((d) => r.get<number>(K.refl(reflDate(d), 'hours')))
+  const focus = dates.map((d) => r.get<number>(K.refl(reflDate(d), 'focus')))
   const hoursSeries: Series[] = [
     { name: 'Hours studied', color: 'var(--accent)', kind: 'bar', values: hours },
     { name: '7-day average', color: 'var(--warn)', values: movingAvg(hours) },

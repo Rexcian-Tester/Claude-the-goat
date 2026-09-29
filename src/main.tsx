@@ -27,7 +27,18 @@ async function boot() {
   await store.init()
   loadTodayOverride()
   startSync()
-  registerSW({ immediate: true })
+  // A new deploy takes over in the background; reload into it only once the app is out of sight,
+  // never under your fingers while you are ticking or typing.
+  let reloadPending = false
+  const reloadIfHidden = () => reloadPending && document.visibilityState === 'hidden' && location.reload()
+  document.addEventListener('visibilitychange', reloadIfHidden)
+  registerSW({
+    immediate: true,
+    onNeedReload() {
+      reloadPending = true
+      reloadIfHidden()
+    },
+  })
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
       <App />

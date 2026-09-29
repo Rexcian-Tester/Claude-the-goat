@@ -2,7 +2,7 @@ import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { bn, fmt2, SUBJ_BN } from '../data/bn'
 import { search, type SearchResult } from '../search'
 import { closeSearch, searchInitial } from '../ui-state'
-import { href, go } from '../router'
+import { goFromSheet, href } from '../router'
 import { useReader, useSchedule } from '../hooks'
 import { FullTag, Sheet, TierPill } from '../components/ui'
 import { chapterProgressFor } from './chapterInfo'
@@ -16,6 +16,14 @@ function hl(text: string, q: string) {
 }
 const TYPE_LABEL = { topic: 'Topic', sub: 'Subtopic', question: 'Question', chapter: 'Chapter' } as const
 
+/** Follow a result link in place of the sheet's history entry, so Back returns to the page you searched from. */
+function follow(e: React.MouseEvent<HTMLAnchorElement>) {
+  if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+  e.preventDefault()
+  goFromSheet(e.currentTarget.getAttribute('href')!)
+  closeSearch()
+}
+
 function Card({ res, q }: { res: SearchResult; q: string }) {
   const r = useReader()
   const sched = useSchedule()
@@ -24,7 +32,7 @@ function Card({ res, q }: { res: SearchResult; q: string }) {
   const subs = c.topics.flatMap((t) => t.subs).slice(0, 3)
   return (
     <div className="stack" style={{ gap: 6 }}>
-      <a className="result" href={href.chapter(c.id)} onClick={closeSearch}>
+      <a className="result" href={href.chapter(c.id)} onClick={follow}>
         <div className="top">
           <span className={`chip ${c.subject}`}>{SUBJ_BN[c.subject]}</span>
           <span className="small">{c.p}</span>
@@ -44,7 +52,7 @@ function Card({ res, q }: { res: SearchResult; q: string }) {
         {subs.length > 0 && <ol>{subs.map((s) => <li key={s.id}>{s.n}</li>)}</ol>}
       </a>
       {res.hits.slice(0, 3).map((h) => (
-        <a key={h.id} className="hitrow" href={href.chapter(c.id, h.id)} onClick={closeSearch}>
+        <a key={h.id} className="hitrow" href={href.chapter(c.id, h.id)} onClick={follow}>
           <span className="ty">{TYPE_LABEL[h.type]}</span>
           <span>{hl(h.text, q)}</span>
         </a>
@@ -77,7 +85,9 @@ export function SearchSheet() {
           onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && results[0]) {
-              go(href.chapter(results[0].chapter.id, results[0].direct ? undefined : results[0].hits[0]?.id))
+              // otherwise the key's default action lands on the search button focus returns to, and reopens search
+              e.preventDefault()
+              goFromSheet(href.chapter(results[0].chapter.id, results[0].direct ? undefined : results[0].hits[0]?.id))
               closeSearch()
             }
           }}

@@ -9,7 +9,7 @@ import { K } from '../logic/keys'
 import type { Reader } from '../logic/reader'
 import type { Row, Schedule } from '../logic/schedule'
 import { itemTier } from '../logic/stats'
-import { go, href, useRoute } from '../router'
+import { closeTo, href, useRoute } from '../router'
 import { store } from '../store/store'
 import { useReader, useSchedule, useToday } from '../hooks'
 import { Panel, Sheet, SubjectChip, TierPill } from '../components/ui'
@@ -138,19 +138,19 @@ function MonthGrid({ sched, today }: { sched: Schedule; today: string }) {
 
 function DaySheet({ date, sched, today }: { date: string; sched: Schedule; today: string }) {
   const row = sched.byOrig.get(date)
-  const close = () => go(href.plan())
+  const close = () => closeTo(href.plan())
   if (!row) {
     const eg = endgameKind(date)
     const what = studyPlan.meta.endgame.find((e) => e.date.includes(date) || (e.date.includes('..') && date >= e.date.split('..')[0] && date <= e.date.split('..')[1]))
     return (
-      <Sheet title={`${dateBn(date)} · ${eg === 'exam' ? 'MIST exam' : eg === 'rest' ? 'Rest day' : 'Revision'}`} onClose={close}>
+      <Sheet routed title={`${dateBn(date)} · ${eg === 'exam' ? 'MIST exam' : eg === 'rest' ? 'Rest day' : 'Revision'}`} onClose={close}>
         <p>{what?.what ?? 'Nothing scheduled.'}</p>
         <a className="btn" href={href.today()}>Open Today</a>
       </Sheet>
     )
   }
   return (
-    <Sheet title={<>দিন {bn(row.dayNo)} · {row.eff ? dateBn(row.eff) : 'Unscheduled'} <span className="small">{row.eff ? dateEn(row.eff) : ''}</span></>} onClose={close}>
+    <Sheet routed title={<>দিন {bn(row.dayNo)} · {row.eff ? dateBn(row.eff) : 'Unscheduled'} <span className="small">{row.eff ? dateEn(row.eff) : ''}</span></>} onClose={close}>
       {row.eff !== row.date && <div className="banner info">Originally planned for {dateBn(row.date)}.</div>}
       {row.eff === null && <div className="banner bad">This day no longer fits before 15 December. Decide what to cut using the "If you fall behind" rules.</div>}
       <DayBody row={row} sched={sched} today={today} />
