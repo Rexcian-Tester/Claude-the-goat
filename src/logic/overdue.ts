@@ -23,6 +23,6 @@ export function overdueTasks(r: Reader, rows: Row[], today: string): TaskRef[] {
 /** next catch-up (buffer) row at or after today */
 export function nextCatchUp(rows: Row[], today: string): Row | undefined {
   return rows
-    .filter((x) => x.isBuffer && x.eff !== null && x.eff >= today)
+    .filter((x) => x.isBuffer && !x.isFree && x.eff !== null && x.eff >= today)
     .sort((a, b) => a.eff!.localeCompare(b.eff!))[0]
 }

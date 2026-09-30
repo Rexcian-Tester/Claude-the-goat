@@ -41,7 +41,8 @@ describe('behind / ahead', () => {
     const r = ticked(['2026-09-30', '2026-10-01'], { 'day:2026-10-02:done': true })
     expect(behindInfo(today, sched.rows, r).lag).toBe(0)
     const partial = mapReader({ 'task:2026-10-02:0:0': true })
-    expect(behindInfo(today, sched.rows, partial).lag).toBe(3)
+    // 30 Sep is a free day (its work moved to 1 Oct), so only 1 and 2 Oct are owed
+    expect(behindInfo(today, sched.rows, partial).lag).toBe(2)
   })
 
   it('catch-up days are never owed', () => {

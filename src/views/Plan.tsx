@@ -25,6 +25,7 @@ function rowStatus(r: Reader, row: Row, rows: Row[], today: string) {
 const STATUS_LABEL: Record<St, string> = { done: 'Done', partial: 'In progress', overdue: 'Overdue', todo: '' }
 
 function ItemLine({ row }: { row: Row }) {
+  if (row.isFree) return <div className="topics-t muted">খালি দিন · এই দিনের কাজ অন্য দিনে সরানো হয়েছে</div>
   return (
     <>
       {row.items.map((it) => {
@@ -62,8 +63,8 @@ function DayRow({ row, today, sched }: { row: Row; today: string; sched: Schedul
       </div>
       <div className="body"><ItemLine row={row} /></div>
       <div className="ratio">
-        <span className="num">{bn(p.ticked)}/{bn(p.total)}</span>
-        {STATUS_LABEL[st] && <span className={`status ${st}`}>{STATUS_LABEL[st]}</span>}
+        {!row.isFree && <span className="num">{bn(p.ticked)}/{bn(p.total)}</span>}
+        {!row.isFree && STATUS_LABEL[st] && <span className={`status ${st}`}>{STATUS_LABEL[st]}</span>}
       </div>
     </a>
   )
@@ -198,7 +199,7 @@ const PlanBody = memo(function PlanBody({ today, sched, view, setView }: { today
     study: planDays.filter((d) => !d.isBuffer).length,
     cls: planDays.reduce((n, d) => n + d.items.filter((i) => i.k === 'cls').length, 0),
     half: planDays.filter((d) => d.items.some((i) => i.k === 'half')).length,
-    buf: planDays.filter((d) => d.isBuffer).length,
+    buf: planDays.filter((d) => d.isBuffer && !d.isFree).length,
   }
   const inPhase = (name: string) => sched.rows.filter((x) => x.phase === name && x.eff).sort((a, b) => a.eff!.localeCompare(b.eff!))
   const phases = studyPlan.meta.phases

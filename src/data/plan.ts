@@ -17,6 +17,8 @@ export interface PlanDay {
   phase: string
   items: PlanItem[]
   isBuffer: boolean
+  /** nothing scheduled (work moved elsewhere): never owed, never a catch-up target */
+  isFree: boolean
   taskCount: number
 }
 
@@ -41,7 +43,8 @@ export const planDays: PlanDay[] = studyPlan.days.map((d, i) => {
     wd: d.wd,
     phase: d.phase,
     items,
-    isBuffer: items.every((x) => x.k === 'buf'),
+    isBuffer: items.every((x) => x.k === 'buf'), // an empty (free) day counts like a buffer: nothing is owed
+    isFree: items.length === 0,
     taskCount: items.reduce((n, x) => n + x.topicList.length, 0),
   }
 })

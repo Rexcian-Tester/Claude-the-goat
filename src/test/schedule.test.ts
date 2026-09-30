@@ -15,8 +15,8 @@ describe('day progress', () => {
     const all = ticked(['2026-10-10'])
     expect(dayProgress(all, row, sched.rows).complete).toBe(true)
     expect(dayProgress(mapReader({ 'day:2026-10-10:done': true }), row, sched.rows).complete).toBe(true)
-    const t = ownTasks(planDays.find((d) => d.date === '2026-09-30')!)
-    expect(dayProgress(mapReader({ [`task:2026-09-30:0:0`]: true }), sched.byOrig.get('2026-09-30')!, sched.rows).status).toBe('partial')
+    const t = ownTasks(planDays.find((d) => d.date === '2026-10-01')!)
+    expect(dayProgress(mapReader({ [`task:2026-10-01:0:0`]: true }), sched.byOrig.get('2026-10-01')!, sched.rows).status).toBe('partial')
     expect(t.length).toBeGreaterThan(1)
   })
 })
@@ -106,5 +106,16 @@ describe('shift preview (never automatic)', () => {
     expect(p.moves.find((m) => m.row.date === '2026-10-22')).toBeUndefined()
     const s = buildSchedule(p.shifts)
     expect(s.byOrig.get('2026-10-22')!.eff).toBe('2026-10-22')
+  })
+})
+
+describe('free day', () => {
+  it('30 Sep has nothing scheduled: never owed, never a catch-up target', async () => {
+    const { nextCatchUp } = await import('../logic/overdue')
+    const free = sched.byOrig.get('2026-09-30')!
+    expect(free.isFree).toBe(true)
+    expect(free.items).toHaveLength(0)
+    expect(nextCatchUp(sched.rows, '2026-09-30')?.date).not.toBe('2026-09-30')
+    expect(planDays.filter((d) => d.isBuffer && !d.isFree).map((d) => d.date)).toEqual(['2026-11-16', '2026-12-14'])
   })
 })

@@ -101,7 +101,7 @@ export function TodayView() {
           <div className="card accent">
             <div className="card-h">
               <span className="today-when">Today · Day {row.dayNo} · {row.phase}</span>
-              {row.isBuffer && <span className="badge buf">ধরা-পড়ার দিন</span>}
+              {row.isFree ? <span className="badge">খালি দিন</span> : row.isBuffer && <span className="badge buf">ধরা-পড়ার দিন</span>}
             </div>
             <DayBody row={row} sched={sched} today={today} />
           </div>
