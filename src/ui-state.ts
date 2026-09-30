@@ -35,3 +35,13 @@ export function applyTheme(t: Theme) {
   if (t === 'system') document.documentElement.removeAttribute('data-theme')
   else document.documentElement.setAttribute('data-theme', t)
 }
+
+/* A newer deploy has taken over in the background. Shown as a bar so an old saved copy is never mistaken for the
+   live site; tapping it (or leaving the app) loads the new version. */
+let updateReady = false
+const ul = new Set<() => void>()
+export const markUpdateReady = () => {
+  updateReady = true
+  ul.forEach((l) => l())
+}
+export const useUpdateReady = () => useSyncExternalStore((fn) => (ul.add(fn), () => ul.delete(fn)), () => updateReady)

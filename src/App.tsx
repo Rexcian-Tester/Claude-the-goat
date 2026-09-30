@@ -6,7 +6,7 @@ import { diffDays } from './data/dhaka'
 import { cameBack, href, rememberScroll, restoredScroll, useRoute } from './router'
 import { useReader, useSchedule, useToday } from './hooks'
 import { useSyncState } from './store/syncClient'
-import { openSearch, useSearchOpen } from './ui-state'
+import { openSearch, useSearchOpen, useUpdateReady } from './ui-state'
 import { Toast } from './components/ui'
 import { TodayView } from './views/Today'
 import { PlanView } from './views/Plan'
@@ -96,6 +96,7 @@ function TopBar() {
 export function App() {
   const route = useRoute()
   const searchOpen = useSearchOpen()
+  const updateReady = useUpdateReady()
   // decided once per page: flipping it later (e.g. opening a day) would replay the entrance animation
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const returning = useMemo(() => cameBack(), [route.name])
@@ -142,6 +143,11 @@ export function App() {
       </main>
       {searchOpen && <SearchSheet />}
       <ReminderPopup />
+      {updateReady && (
+        <button type="button" className="update-bar" onClick={() => location.reload()}>
+          New version ready · <b>Tap to reload</b>
+        </button>
+      )}
       <Toast />
     </div>
   )

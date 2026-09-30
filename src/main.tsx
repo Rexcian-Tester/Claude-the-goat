@@ -22,6 +22,7 @@ import { App } from './App'
 import { loadTodayOverride } from './hooks'
 import { store } from './store/store'
 import { startSync } from './store/syncClient'
+import { markUpdateReady } from './ui-state'
 
 async function boot() {
   // ask the browser not to clear this site's saved progress when storage runs low (weeks of offline use)
@@ -38,6 +39,7 @@ async function boot() {
     immediate: true,
     onNeedReload() {
       reloadPending = true
+      markUpdateReady()
       reloadIfHidden()
     },
   })
