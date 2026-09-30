@@ -190,7 +190,7 @@ export function DayBody({ row, sched, today }: { row: Row; sched: Schedule; toda
   if (row.isFree)
     return (
       <div className="stack">
-        <p className="muted">খালি দিন। এই দিনের কাজ অন্য দিনে সরানো হয়েছে, আজ কিছু নির্ধারিত নেই।</p>
+        {row.note ? <div className="free-note">✓ {row.note}</div> : <p className="muted">খালি দিন। এই দিনের কাজ অন্য দিনে সরানো হয়েছে, আজ কিছু নির্ধারিত নেই।</p>}
         {row.eff && row.eff <= today && (
           <div className="card">
             <h3>End-of-day reflection · 30 seconds</h3>

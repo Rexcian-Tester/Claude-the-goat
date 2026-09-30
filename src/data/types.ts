@@ -37,7 +37,7 @@ export interface RawPlanItem {
   topicList: string[]
   info?: { tier: Tier; rate: number; rank: number; en: string; full: boolean; q: number } | null
 }
-export interface RawPlanDay { date: string; wd: string; phase: string; items: RawPlanItem[] }
+export interface RawPlanDay { date: string; wd: string; phase: string; items: RawPlanItem[]; /** what was done on a free day */ note?: string }
 export interface StudyPlanJson {
   _readme: string
   meta: {

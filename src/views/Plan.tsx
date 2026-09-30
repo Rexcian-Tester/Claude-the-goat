@@ -25,7 +25,7 @@ function rowStatus(r: Reader, row: Row, rows: Row[], today: string) {
 const STATUS_LABEL: Record<St, string> = { done: 'Done', partial: 'In progress', overdue: 'Overdue', todo: '' }
 
 function ItemLine({ row }: { row: Row }) {
-  if (row.isFree) return <div className="topics-t muted">খালি দিন · এই দিনের কাজ অন্য দিনে সরানো হয়েছে</div>
+  if (row.isFree) return row.note ? <div className="free-note">✓ {row.note}</div> : <div className="topics-t muted">খালি দিন · এই দিনের কাজ অন্য দিনে সরানো হয়েছে</div>
   return (
     <>
       {row.items.map((it) => {
