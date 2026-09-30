@@ -2,8 +2,21 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import { execSync } from 'node:child_process'
+
+// Which commit this build is (Cloudflare Pages sets CF_PAGES_COMMIT_SHA), shown in Settings so you can tell
+// whether your screen runs the latest deploy or an older saved copy.
+function commit() {
+  if (process.env.CF_PAGES_COMMIT_SHA) return process.env.CF_PAGES_COMMIT_SHA.slice(0, 7)
+  try {
+    return execSync('git rev-parse --short=7 HEAD').toString().trim()
+  } catch {
+    return 'local'
+  }
+}
 
 export default defineConfig({
+  define: { __APP_VERSION__: JSON.stringify(commit()), __BUILD_TIME__: JSON.stringify(new Date().toISOString()) },
   plugins: [
     react(),
     VitePWA({

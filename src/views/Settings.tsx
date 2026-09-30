@@ -92,7 +92,7 @@ export function SettingsView() {
 
       <div className="card">
         <h2>This device</h2>
-        <p className="small">Device id <code>{store.deviceId}</code>. To install: on iPhone use Share → Add to Home Screen; on Android use the browser menu → Install app; on Mac Chrome/Edge use the install icon in the address bar.</p>
+        <p className="small">App version <code>{__APP_VERSION__}</code>, built {new Date(__BUILD_TIME__).toLocaleString('en-GB', { timeZone: 'Asia/Dhaka', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })} (Dhaka). Device id <code>{store.deviceId}</code>. To install: on iPhone use Share → Add to Home Screen; on Android use the browser menu → Install app; on Mac Chrome/Edge use the install icon in the address bar.</p>
         <div><button className="btn danger" onClick={async () => { if (confirm('Delete all progress stored on THIS device? If sync is on, it will download again from the server.')) { await store.wipeLocal(); toast('Local data cleared.') } }}>Clear local data</button></div>
       </div>
     </div>
