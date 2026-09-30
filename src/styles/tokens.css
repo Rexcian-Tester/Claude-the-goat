@@ -3,8 +3,12 @@
    Dark: near-black green with a lime accent.
    --accent is the brand/interactive colour; --ok marks "done / yes"; tiers run hot (T1) to quiet (T4). */
 
-/* Bangla digits in headings: the serif face draws ১ with a heavy hook, so digits come from Hind Siliguri */
-@font-face{font-family:"Bangla Digits";font-style:normal;font-weight:600 800;font-display:swap;src:url("@fontsource/hind-siliguri/files/hind-siliguri-bengali-700-normal.woff2") format("woff2");unicode-range:U+09E6-09EF}
+/* Bangla digits everywhere come from Noto Sans Bengali: Hind Siliguri draws ১ as a small hook and the serif face a
+   heavy one. unicode-range limits these faces to the ten digits, so every letter keeps its own font. */
+@font-face{font-family:"Bangla Digits";font-style:normal;font-weight:400;font-display:swap;src:url("@fontsource/noto-sans-bengali/files/noto-sans-bengali-bengali-400-normal.woff2") format("woff2");unicode-range:U+09E6-09EF}
+@font-face{font-family:"Bangla Digits";font-style:normal;font-weight:500;font-display:swap;src:url("@fontsource/noto-sans-bengali/files/noto-sans-bengali-bengali-500-normal.woff2") format("woff2");unicode-range:U+09E6-09EF}
+@font-face{font-family:"Bangla Digits";font-style:normal;font-weight:600;font-display:swap;src:url("@fontsource/noto-sans-bengali/files/noto-sans-bengali-bengali-600-normal.woff2") format("woff2");unicode-range:U+09E6-09EF}
+@font-face{font-family:"Bangla Digits";font-style:normal;font-weight:700;font-display:swap;src:url("@fontsource/noto-sans-bengali/files/noto-sans-bengali-bengali-700-normal.woff2") format("woff2");unicode-range:U+09E6-09EF}
 
 :root{
   --bg:#FDF6E3; --panel:#FFFCF5; --ink:#1F1D1A; --muted:#6B665C; --line:#EADFC8;
@@ -17,7 +21,7 @@
   --gold:#9C6A12; --gold-soft:#F6E9C6;
   /* dark "hero" panels (countdown, focus timer) */
   --hero-1:#2B2622; --hero-2:#151311; --hero-hi:#FBE3B5; --hero-acc:#E3A857; --hero-ink:#F7EFDF;
-  --display:"Bangla Digits","Noto Serif Bengali","Hind Siliguri",serif; --body:"Hind Siliguri",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+  --display:"Bangla Digits","Noto Serif Bengali","Hind Siliguri",serif; --body:"Bangla Digits","Hind Siliguri",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
   --radius:10px; --radius-lg:14px; --tap:44px;
   --shadow-1:0 1px 2px rgba(60,45,20,.05),0 1px 3px rgba(60,45,20,.05);
   --shadow-2:0 10px 30px -12px rgba(60,45,20,.2),0 3px 8px -2px rgba(60,45,20,.06);
