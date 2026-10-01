@@ -6,6 +6,10 @@ import { useField, useStoreVersion } from '../store/store'
 import { blockAt } from '../views/Routine'
 import { actions, clock12, dhakaMinute, fmtDur, loggedMs, setConfig, targetMs, usePomo } from './engine'
 import { pickQuote, QUOTES } from './quotes'
+import { useSchedule, useToday } from '../hooks'
+import { isEndgame, phaseOf } from '../logic/behind'
+import { href } from '../router'
+import { DayTasks } from '../views/day'
 
 /** re-render every `ms` (the clock, the countdown) */
 export function useTick(ms = 1000) {
@@ -174,6 +178,39 @@ function Settings() {
   )
 }
 
+/** Today's study day from the Plan, with the same tick boxes (ticks here and in Plan / Today are the same). */
+function TodayTasks() {
+  const today = useToday()
+  const sched = useSchedule()
+  const phase = phaseOf(today)
+  const row = sched.byEff.get(today)
+  return (
+    <div className="card accent sb-tasks">
+      <div className="card-h">
+        <h2>Today's tasks</h2>
+        <span className="small">
+          {row ? <>Day {row.dayNo} · {row.phase} · </> : null}
+          <a href={href.plan(today)}>Open in Plan</a>
+        </span>
+      </div>
+      {isEndgame(today) || phase === 'after' ? (
+        <p className="muted">The study plan is over: revision list and model tests. See <a href={href.today()}>Today</a>.</p>
+      ) : phase === 'before' ? (
+        <p className="muted">The plan hasn't started yet.</p>
+      ) : !row ? (
+        <p className="muted">No study day sits on today's date (the plan was shifted). Check the <a href={href.plan()}>Plan</a>.</p>
+      ) : row.isFree ? (
+        row.note ? <div className="free-note">✓ {row.note}</div> : <p className="muted">খালি দিন। আজ কিছু নির্ধারিত নেই।</p>
+      ) : (
+        <div className="stack">
+          {row.isBuffer && <span className="badge buf" style={{ alignSelf: 'flex-start' }}>ধরা-পড়ার দিন</span>}
+          <DayTasks row={row} sched={sched} />
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function StudyBlocks() {
   const now = useTick(1000)
   const { s, c } = usePomo()
@@ -210,6 +247,7 @@ export function StudyBlocks() {
         </div>
       )}
       <blockquote className="sb-quote">“{q.text}” <cite>{q.by}</cite></blockquote>
+      <TodayTasks />
       <Settings />
     </div>
   )

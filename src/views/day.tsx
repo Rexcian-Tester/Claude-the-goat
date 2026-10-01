@@ -185,25 +185,13 @@ export function chaptersEndingOn(row: Row, sched: Schedule): Chapter[] {
 }
 
 /** Full day content used by Today and by the Plan day sheet. */
-export function DayBody({ row, sched, today }: { row: Row; sched: Schedule; today: string }) {
+/** A study day's topics and micro-tasks (plus tasks moved in from earlier days) with its progress bar. */
+export function DayTasks({ row, sched }: { row: Row; sched: Schedule }) {
   const r = useReader()
-  if (row.isFree)
-    return (
-      <div className="stack">
-        {row.note ? <div className="free-note">✓ {row.note}</div> : <p className="muted">খালি দিন। এই দিনের কাজ অন্য দিনে সরানো হয়েছে, আজ কিছু নির্ধারিত নেই।</p>}
-        {row.eff && row.eff <= today && (
-          <div className="card">
-            <h3>End-of-day reflection · 30 seconds</h3>
-            <Reflection date={row.date} />
-          </div>
-        )}
-      </div>
-    )
   const p = dayProgress(r, row, sched.rows)
   const inbound = p.tasks.filter((t) => t.date !== row.date)
-  const dayDone = K.dayDone(row.date)
   return (
-    <div className="stack">
+    <>
       {row.items.map((item) => (
         <div key={item.key} className="stack" style={{ gap: 6 }}>
           <ItemHeader item={item} />
@@ -217,6 +205,27 @@ export function DayBody({ row, sched, today }: { row: Row; sched: Schedule; toda
         </div>
       )}
       <DayProgressBar row={row} rows={sched.rows} />
+    </>
+  )
+}
+
+export function DayBody({ row, sched, today }: { row: Row; sched: Schedule; today: string }) {
+  if (row.isFree)
+    return (
+      <div className="stack">
+        {row.note ? <div className="free-note">✓ {row.note}</div> : <p className="muted">খালি দিন। এই দিনের কাজ অন্য দিনে সরানো হয়েছে, আজ কিছু নির্ধারিত নেই।</p>}
+        {row.eff && row.eff <= today && (
+          <div className="card">
+            <h3>End-of-day reflection · 30 seconds</h3>
+            <Reflection date={row.date} />
+          </div>
+        )}
+      </div>
+    )
+  const dayDone = K.dayDone(row.date)
+  return (
+    <div className="stack">
+      <DayTasks row={row} sched={sched} />
       <FieldCheck k={dayDone}>Mark this day done (even if some micro-tasks are unticked)</FieldCheck>
       {chaptersEndingOn(row, sched).map((c) => <ChapterEnd key={c.id} chapter={c} />)}
       <LeftNote date={row.date} />
