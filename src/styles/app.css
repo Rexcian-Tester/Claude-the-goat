@@ -608,7 +608,6 @@ ol.find li::marker{font-weight:700;color:var(--accent)}
 @media (max-width:560px){.late-r{grid-template-columns:auto 1fr auto}.late-why{grid-column:1/-1}.sb-now{align-items:flex-start;text-align:left}}
 
 /* ---------- polish: Apple-style details (pill switches, system numerals, softer edges) ---------- */
-:root{--sys:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,system-ui,sans-serif}
 .seg{border-radius:999px;padding:3px;border-color:color-mix(in srgb,var(--line) 70%,transparent);background:color-mix(in srgb,var(--ink) 6%,var(--bg))}
 .seg button{border-radius:999px;transition:background .25s var(--ease),color .2s,box-shadow .25s var(--ease)}
 .seg button[aria-pressed="true"]{background:var(--panel);box-shadow:0 1px 2px rgba(0,0,0,.08),0 3px 10px -2px rgba(0,0,0,.12)}
@@ -621,21 +620,18 @@ ol.find li::marker{font-weight:700;color:var(--accent)}
 .fc-b{border-radius:999px}
 .fc-done{border-radius:999px}
 .dlg{border-radius:26px}
-.fc-spent{font-family:var(--sys);font-weight:200;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 /* focus page: centred switches */
 .focus-tabs,.sb-mode{align-self:center}
 .focus-tabs button{min-width:132px}
 .sb-mode button{font-size:13.5px}
 .sb-mode-h{text-align:center;max-width:52ch;margin:-8px auto 0}
 .sb-clock{flex-direction:column;justify-content:center;text-align:center;gap:4px;padding:16px}
-.sb-time{font:200 52px/1 var(--sys);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
-.sb-time small{font-size:24px;font-weight:300;color:var(--muted)}
-.sb-time span{font:500 15px var(--sys);letter-spacing:0}
+.sb-time{font:600 44px/1 var(--mono);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.sb-time small{font-size:24px;color:var(--muted)}
+.sb-time span{font:600 15px var(--body);letter-spacing:0}
 .sb-now{align-items:center;text-align:center}
-.sb-mini b{font-family:var(--sys);font-weight:500}
 .sb-mini{border-radius:999px;padding:10px 18px}
 .start-day{border-radius:22px}
-.sb-row-h .num{font-family:var(--sys);font-weight:600}
 .sb-quote{border-left:none;border-radius:var(--radius-lg);text-align:center;padding:16px 20px;background:color-mix(in srgb,var(--accent-soft) 45%,var(--panel));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 14%,transparent)}
 /* today's tasks on Study Blocks: just the chapters */
 .sb-task-list{display:flex;flex-direction:column;border-radius:var(--radius);overflow:hidden;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--line) 80%,transparent)}
@@ -645,12 +641,56 @@ ol.find li::marker{font-weight:700;color:var(--accent)}
 .sb-task-n{display:flex;flex-direction:column;min-width:0}
 .sb-task-n b{font-weight:700;font-size:16px;line-height:1.35}
 .sb-task-n small{font-size:13px;color:var(--muted)}
-.sb-task-st{font:600 13px var(--sys);font-variant-numeric:tabular-nums;color:var(--muted);padding:3px 10px;border-radius:999px;background:color-mix(in srgb,var(--ink) 6%,transparent)}
+.sb-task-st{font:600 13px var(--mono);font-variant-numeric:tabular-nums;color:var(--muted);padding:3px 10px;border-radius:999px;background:color-mix(in srgb,var(--ink) 6%,transparent)}
 .sb-task.done .sb-task-st{color:var(--panel);background:var(--ok)}
 .sb-task.done .sb-task-n b{color:var(--muted)}
 .sb-row-h{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center}
 .sb-row-l{display:flex;flex-direction:column;line-height:1.35}
-.sb-row-l .tag{margin-left:8px}
 .sb-row-h .num{margin-left:0}
-.sb-hero .fc-sub{font:500 13px var(--sys);letter-spacing:.01em}
 .sb-stack{width:100%;max-width:680px;margin:0 auto}
+
+/* ---------- motion ---------- */
+/* segmented switches with a sliding pill */
+.seg.slide{position:relative;display:inline-grid;grid-template-columns:repeat(var(--n),1fr);gap:0;max-width:100%}
+.seg.slide::before{content:"";position:absolute;top:3px;bottom:3px;left:3px;width:calc((100% - 6px) / var(--n));transform:translateX(calc(var(--i) * 100%));border-radius:999px;background:var(--panel);box-shadow:0 1px 2px rgba(0,0,0,.08),0 4px 12px -3px rgba(0,0,0,.14);transition:transform .45s var(--spring)}
+:root[data-theme="dark"] .seg.slide::before{background:color-mix(in srgb,var(--ink) 14%,var(--panel))}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .seg.slide::before{background:color-mix(in srgb,var(--ink) 14%,var(--panel))}}
+.seg.slide button{position:relative;z-index:1;background:none!important;box-shadow:none!important;padding:0 12px}
+.seg.slide button:active{transform:scale(.96)}
+/* switching tabs / modes */
+.tab-pane{display:flex;flex-direction:column;gap:18px;animation:fade-up .4s var(--ease) backwards}
+.sb-mode-h{animation:fade .35s ease-out}
+/* timer */
+.sb-hero .fc-center{animation:digits-in .5s var(--spring)}
+@keyframes digits-in{from{opacity:0;transform:scale(.92)}}
+.sb-hero.run .fc-ring .val{animation:glow 2.8s ease-in-out infinite}
+@keyframes glow{50%{filter:drop-shadow(0 0 7px color-mix(in srgb,var(--hero-acc) 70%,transparent))}}
+.sb-hero .fc-done{position:relative;overflow:hidden}
+.sb-hero .fc-done::after{content:"";position:absolute;inset:0;width:40%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);transform:translateX(-120%);animation:sheen 4.5s ease-in-out 1.2s infinite}
+@keyframes sheen{0%,70%{transform:translateX(-120%)}100%{transform:translateX(320%)}}
+.sb-dots i{transition:background .3s,border-color .3s}
+.sb-dots i.on{animation:pop .45s var(--spring)}
+.sb-hero .fc-b,.fc-done{transition:transform .18s var(--spring),background .15s,filter .15s}
+/* progress fills in */
+.sb-total i,.sb-row .bar i,.sb-tasks .bar i{transform-origin:left;animation:bar-in 1s var(--ease) .15s backwards}
+@keyframes bar-in{from{transform:scaleX(0)}}
+/* rows arrive one after another */
+.sb-row,.sb-task{animation:fade-up .45s var(--ease) backwards}
+.sb-row:nth-of-type(2),.sb-task:nth-child(2){animation-delay:.06s}
+.sb-row:nth-of-type(3),.sb-task:nth-child(3){animation-delay:.12s}
+.sb-row:nth-of-type(4),.sb-task:nth-child(n+4){animation-delay:.18s}
+.sb-task{transition:background .15s,transform .2s var(--spring)}
+.sb-task:active{transform:scale(.985)}
+.sb-task.done .sb-task-st{animation:pop .45s var(--spring)}
+.start-day svg{transition:transform .25s var(--spring)}
+.start-day:hover svg{transform:translateX(4px)}
+.sb-mini{animation:fade-up .35s var(--ease) backwards}
+/* pop-ups: icon springs in, content follows */
+.dlg-ic{animation:ic-in .6s var(--spring) .05s backwards}
+@keyframes ic-in{from{opacity:0;transform:scale(.4) rotate(-14deg)}}
+.dlg>*:not(.dlg-ic){animation:fade-up .4s var(--ease) backwards}
+.dlg>*:nth-child(2){animation-delay:.08s}.dlg>*:nth-child(3){animation-delay:.12s}.dlg>*:nth-child(4){animation-delay:.16s}.dlg>*:nth-child(n+5){animation-delay:.2s}
+.seg.slide button{white-space:nowrap}
+@media (max-width:400px){.sb-mode.slide button{font-size:12.5px;padding:0 8px}}
+.sb-row-l b{display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px}
+.sb-row-l .tag{font-weight:600}

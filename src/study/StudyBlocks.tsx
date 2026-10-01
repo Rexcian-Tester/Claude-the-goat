@@ -78,7 +78,7 @@ function Timer({ now }: { now: number }) {
   const brk = s.phase === 'break'
   const label = brk ? (s.breakKind === 'long' ? 'Long break' : s.breakKind === 'custom' ? 'Break' : 'Short break') : PHASE[s.phase]
   return (
-    <div className={`focus-hero sb-hero ${brk ? 'brk' : ''} ${s.phase === 'flow' ? 'flow' : ''} ${paused ? 'paused' : ''}`}>
+    <div className={`focus-hero sb-hero ${brk ? 'brk' : ''} ${s.phase === 'flow' ? 'flow' : ''} ${paused ? 'paused' : ''} ${counting && !paused ? 'run' : ''}`}>
       <div className="fc-top">
         <span className="fc-q">{label}{s.mode === 'study' && s.block && (counting || s.phase === 'ask') && <span> · {P.studyBlock(s.block).label}</span>}</span>
         {paused && <span className="fc-paused">Paused</span>}
@@ -88,7 +88,7 @@ function Timer({ now }: { now: number }) {
           <circle className="trk" cx="120" cy="120" r={R} />
           <circle className="val" cx="120" cy="120" r={R} strokeDasharray={C} strokeDashoffset={C * (1 - v.frac)} />
         </svg>
-        <div className="fc-center">
+        <div key={s.phase} className="fc-center">
           <span className="fc-spent" role="timer" aria-live="off">{counting ? v.big : mmss(c.focus * 60000)}</span>
           <span className="fc-sub">{counting ? v.sub : `${c.focus} min focus · ${c.short} min break`}</span>
         </div>
@@ -129,8 +129,8 @@ function BlockRow({ id, date, live }: { id: P.StudyBlockId; date: string; live: 
     <div className={`sb-row ${pct >= 1 ? 'done' : ''}`}>
       <div className="sb-row-h">
         <span className="sb-row-l">
-          <b>{b.label}</b>
-          <span className="small">{clock12(b.from)} – {clock12(b.to)}{late && <span className="tag" title={late.reason}>{late.min} min late</span>}</span>
+          <b>{b.label}{late && <span className="tag" title={late.reason}>{late.min} min late</span>}</b>
+          <span className="small">{clock12(b.from)} – {clock12(b.to)}</span>
         </span>
         <span className="num">{fmtDur(done)} / {fmtDur(target)}{pct >= 1 && ' ✓'}</span>
       </div>
@@ -256,11 +256,11 @@ export function StudyBlocks() {
   const busy = s.phase === 'focus' || s.phase === 'flow' || s.phase === 'break'
   return (
     <div className="stack sb-stack">
-      <div className="seg sb-mode" role="group" aria-label="Timer mode">
+      <div className="seg sb-mode slide" role="group" aria-label="Timer mode" style={{ ['--i' as string]: study ? 0 : 1, ['--n' as string]: 2 }}>
         <button type="button" aria-pressed={study} disabled={busy && !study} onClick={() => actions.setMode('study')}>Study Focus Pomodoro</button>
         <button type="button" aria-pressed={!study} disabled={busy && study} onClick={() => actions.setMode('normal')}>Normal Pomodoro</button>
       </div>
-      <p className="small sb-mode-h">
+      <p key={s.mode} className="small sb-mode-h">
         {study ? 'Follows your Routine: time counts toward the study block you are in, late starts are logged and a block ticks itself in Routine when you hit its target.' : 'A plain 25 / 5 timer. Nothing is logged against your study blocks.'}
       </p>
       <Clock now={now} study={study} />

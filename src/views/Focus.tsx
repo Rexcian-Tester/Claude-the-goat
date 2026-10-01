@@ -386,11 +386,11 @@ export function FocusView() {
         <h1>{tab === 'blocks' ? 'Study Blocks' : 'Question timer'}</h1>
         <p className="small">Discipline over motivation. Stay locked in.</p>
       </div>
-      <div className="seg focus-tabs" role="tablist" aria-label="Focus tools">
+      <div className="seg focus-tabs slide" role="tablist" aria-label="Focus tools" style={{ ['--i' as string]: tab === 'blocks' ? 0 : 1, ['--n' as string]: 2 }}>
         <button type="button" role="tab" aria-selected={tab === 'blocks'} aria-pressed={tab === 'blocks'} onClick={() => pick('blocks')}>Study Blocks</button>
         <button type="button" role="tab" aria-selected={tab === 'questions'} aria-pressed={tab === 'questions'} onClick={() => pick('questions')}>Question timer</button>
       </div>
-      {tab === 'blocks' ? <StudyBlocks /> : <><StudyMini /><QuestionTimer /></>}
+      <div key={tab} className="tab-pane">{tab === 'blocks' ? <StudyBlocks /> : <><StudyMini /><QuestionTimer /></>}</div>
     </div>
   )
 }
