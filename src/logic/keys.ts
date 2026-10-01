@@ -23,8 +23,17 @@ export const K = {
   rem: (date: string, id: string) => `day:${date}:rem:${id}`,
   /** calendar date: a block of the daily routine ticked off */
   routine: (date: string, id: string) => `day:${date}:routine:${id}`,
+  /** calendar date: ms of Study Blocks focus time counted towards a study block */
+  focusMs: (date: string, block: string) => `day:${date}:focus:${block}`,
+  /** calendar date: a late start of a study block, { min, reason, at } */
+  late: (date: string, block: string) => `day:${date}:late:${block}`,
 }
 export type GoalAnswer = 'yes' | 'close' | 'no'
+export interface LateStart {
+  min: number
+  reason: string
+  at: number
+}
 export type QStatus = 'unsolved' | 'solved' | 'wrong' | 'revisit'
 export const Q_STATUSES: QStatus[] = ['unsolved', 'solved', 'wrong', 'revisit']
 export type ReflField = 'hours' | 'focus' | 'well' | 'blocked' | 'first'

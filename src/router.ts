@@ -30,6 +30,7 @@ export const href = {
   chapter: (id: string, focus?: string) => `#/chapter/${encodeURIComponent(id)}${focus ? `?focus=${encodeURIComponent(focus)}` : ''}`,
   progress: () => '#/progress',
   focus: () => '#/focus',
+  focusTab: (tab: 'blocks' | 'questions') => `#/focus/${tab}`,
   routine: () => '#/routine',
   settings: () => '#/settings',
 }

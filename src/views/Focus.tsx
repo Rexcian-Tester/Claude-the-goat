@@ -2,7 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 import { dateEn } from '../data/bn'
 import { dhakaDate } from '../data/dhaka'
 import * as F from '../logic/focus'
+import { beep, unlockAudio, useWakeLock } from '../components/alarm'
 import type { FocusConfig, FocusSession } from '../logic/focus'
+import * as P from '../logic/pomo'
+import { go, href, useRoute } from '../router'
+import { usePomo } from '../study/engine'
+import { StudyBlocks, timerView, useTick } from '../study/StudyBlocks'
 
 /* Everything here lives on this device only (localStorage): a session survives page changes and reloads. */
 const LS_SESSION = 'mist-focus'
@@ -87,60 +92,6 @@ const PUSH = [
 const FINISH = ["Finish strong. Champions perform when it's hardest.", 'The last one matters as much as the first. Close it out.', 'Pressure is a privilege. Finish this.']
 const pick = (a: string[]) => a[Math.floor(Math.random() * a.length)]
 
-/* ---------- sound / vibration / screen ---------- */
-let audio: AudioContext | null = null
-function unlockAudio() {
-  try {
-    audio ??= new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
-    void audio.resume()
-  } catch {
-    /* ignore */
-  }
-}
-function beep() {
-  try {
-    if (!audio) return
-    for (const [at, f] of [[0, 880], [0.28, 880], [0.56, 1175]] as const) {
-      const o = audio.createOscillator()
-      const g = audio.createGain()
-      o.connect(g)
-      g.connect(audio.destination)
-      o.frequency.value = f
-      const t = audio.currentTime + at
-      g.gain.setValueAtTime(0.0001, t)
-      g.gain.exponentialRampToValueAtTime(0.18, t + 0.02)
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22)
-      o.start(t)
-      o.stop(t + 0.24)
-    }
-  } catch {
-    /* ignore */
-  }
-  try {
-    navigator.vibrate?.([250, 120, 250])
-  } catch {
-    /* ignore */
-  }
-}
-/** keep the phone screen awake while a session runs */
-function useWakeLock(on: boolean) {
-  useEffect(() => {
-    if (!on || !('wakeLock' in navigator)) return
-    let lock: { release: () => Promise<void> } | null = null
-    let live = true
-    const get = () => {
-      if (document.visibilityState !== 'visible') return
-      navigator.wakeLock.request('screen').then((l) => (live ? (lock = l) : void l.release())).catch(() => {})
-    }
-    get()
-    document.addEventListener('visibilitychange', get)
-    return () => {
-      live = false
-      document.removeEventListener('visibilitychange', get)
-      void lock?.release().catch(() => {})
-    }
-  }, [on])
-}
 function useNow(active: boolean) {
   const [now, setNow] = useState(Date.now)
   useEffect(() => {
@@ -382,7 +333,7 @@ function Report({ s, onNew }: { s: FocusSession; onNew: () => void }) {
   )
 }
 
-export function FocusView() {
+function QuestionTimer() {
   const [s, setS] = useState<FocusSession | null>(() => read<FocusSession | null>(LS_SESSION, null))
   const save = useRef((n: FocusSession | null) => {
     setS(n)
@@ -396,20 +347,50 @@ export function FocusView() {
     const r = F.report(s)
     write(LS_HISTORY, [{ at: s.startedAt, n: r.n, total: r.total, avg: r.avg, from: s.startQ, to: s.laps[s.laps.length - 1].q, cycleMs: s.cycleMs, laps: s.laps }, ...h].slice(0, 20))
   }, [s])
+  return !s ? (
+    <Setup onStart={(c) => { unlockAudio(); save(F.start(c, Date.now())) }} />
+  ) : s.done ? (
+    <Report s={s} onNew={() => save(null)} />
+  ) : (
+    <Running s={s} save={(n) => { unlockAudio(); save(n) }} />
+  )
+}
+
+/** The study timer, shown small on the question timer tab while it runs. */
+function StudyMini() {
+  const now = useTick(1000)
+  const { s } = usePomo()
+  if (s.phase === 'idle' || (s.phase === 'ready' && !s.len)) return null
+  const v = timerView(s, now)
+  const what = s.phase === 'break' ? 'Break' : s.phase === 'flow' ? 'Flow state' : s.phase === 'focus' ? 'Study timer' : s.phase === 'ready' ? 'Break over' : 'Session done'
+  return (
+    <a className="sb-mini" href={href.focusTab('blocks')} onClick={(e) => { e.preventDefault(); go(href.focusTab('blocks'), true) }}>
+      <span className={`sb-mini-dot ${P.running(s) ? 'on' : ''}`} aria-hidden="true" />
+      <span>{what}{s.mode === 'study' && s.block && ` · ${P.studyBlock(s.block).label}`}</span>
+      {(s.phase === 'focus' || s.phase === 'flow' || s.phase === 'break') && <b>{v.big}{s.phase !== 'flow' && ' left'}</b>}
+    </a>
+  )
+}
+
+const LS_TAB = 'mist-focus-tab'
+export function FocusView() {
+  const route = useRoute()
+  const remembered = read<string>(LS_TAB, 'blocks')
+  const tab = route.param === 'questions' || route.param === 'blocks' ? route.param : remembered === 'questions' ? 'questions' : 'blocks'
+  useEffect(() => write(LS_TAB, tab), [tab])
+  const pick = (t: 'blocks' | 'questions') => go(href.focusTab(t), true)
   return (
     <div className="view">
       <div className="page-h">
         <div className="eyebrow">Focus mode</div>
-        <h1>Question timer</h1>
+        <h1>{tab === 'blocks' ? 'Study Blocks' : 'Question timer'}</h1>
         <p className="small">Discipline over motivation. Stay locked in.</p>
       </div>
-      {!s ? (
-        <Setup onStart={(c) => { unlockAudio(); save(F.start(c, Date.now())) }} />
-      ) : s.done ? (
-        <Report s={s} onNew={() => save(null)} />
-      ) : (
-        <Running s={s} save={(n) => { unlockAudio(); save(n) }} />
-      )}
+      <div className="seg focus-tabs" role="tablist" aria-label="Focus tools">
+        <button type="button" role="tab" aria-selected={tab === 'blocks'} aria-pressed={tab === 'blocks'} onClick={() => pick('blocks')}>Study Blocks</button>
+        <button type="button" role="tab" aria-selected={tab === 'questions'} aria-pressed={tab === 'questions'} onClick={() => pick('questions')}>Question timer</button>
+      </div>
+      {tab === 'blocks' ? <StudyBlocks /> : <><StudyMini /><QuestionTimer /></>}
     </div>
   )
 }

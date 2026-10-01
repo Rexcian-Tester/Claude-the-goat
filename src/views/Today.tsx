@@ -13,6 +13,8 @@ import { BehindBanner } from './BehindBanner'
 import { DayBody, DayMini, ItemHeader, OverdueJump, OverdueList } from './day'
 import { EndgameView } from './Endgame'
 import { Accountability, RemindersCard } from './Habits'
+import { usePomo } from '../study/engine'
+import { timerView, useTick } from '../study/StudyBlocks'
 
 const RECALL_MIN = 'mist-recall-minutes'
 function YesterdayCard({ row }: { row: Row }) {
@@ -53,6 +55,20 @@ function YesterdayCard({ row }: { row: Row }) {
   )
 }
 
+/** Into Study Blocks; shows the study timer instead while one is going. */
+function StartDay() {
+  const { s } = usePomo()
+  const now = useTick(1000)
+  const going = s.phase === 'focus' || s.phase === 'flow' || s.phase === 'break'
+  return (
+    <a className="start-day" href={href.focusTab('blocks')}>
+      <span className="start-day-t">{going ? (s.phase === 'break' ? 'On a break' : s.phase === 'flow' ? 'Flow state' : 'Studying') : 'Start Your Day'}</span>
+      <span className="start-day-s">{going ? `${timerView(s, now).big}${s.phase === 'flow' ? '' : ' left'} · open Study Blocks` : 'Study Blocks · Pomodoro on your Routine'}</span>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+    </a>
+  )
+}
+
 export function TodayView() {
   const today = useToday()
   const sched = useSchedule()
@@ -77,6 +93,8 @@ export function TodayView() {
           {phase === 'before' && ` · plan starts ${dateEn(PLAN_START)} (in ${diffDays(today, PLAN_START)} day${diffDays(today, PLAN_START) === 1 ? '' : 's'})`}
         </p>
       </div>
+
+      <StartDay />
 
       <Countdown target={ENDGAME_START} from={PLAN_START} title={`Countdown to ${dateBn(ENDGAME_START)}`} sub="Study plan ends · endgame begins" />
 

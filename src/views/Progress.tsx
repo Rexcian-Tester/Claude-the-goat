@@ -17,6 +17,57 @@ import { RevisionListCard } from './Endgame'
 import type { Tier } from '../data/types'
 import { EXAM_DATE } from '../data/plan'
 import { store } from '../store/store'
+import type { LateStart } from '../logic/keys'
+import { STUDY_BLOCKS, studyBlock, type StudyBlockId } from '../logic/pomo'
+
+const LATE_RE = /^day:(\d{4}-\d{2}-\d{2}):late:(study-a|study-b|revision)$/
+/** Late starts of study blocks, newest first, with a per-block summary, to see which block you put off most. */
+function LateStarts({ today }: { today: string }) {
+  const rows: (LateStart & { date: string; block: StudyBlockId })[] = []
+  for (const k of store.fields.keys()) {
+    const m = LATE_RE.exec(k)
+    const v = m && store.get<LateStart>(k)
+    if (m && v) rows.push({ ...v, date: m[1], block: m[2] as StudyBlockId })
+  }
+  rows.sort((a, b) => b.date.localeCompare(a.date) || b.at - a.at)
+  const week = new Set(Array.from({ length: 7 }, (_, i) => addDays(today, -i)))
+  return (
+    <div className="card">
+      <div className="card-h">
+        <h2>Late starts</h2>
+        <span className="small">From Study Blocks · logged per block</span>
+      </div>
+      <div className="late-sum">
+        {STUDY_BLOCKS.map((b) => {
+          const mine = rows.filter((r) => r.block === b.id)
+          const avg = mine.length ? Math.round(mine.reduce((n, r) => n + r.min, 0) / mine.length) : 0
+          const studied = [...week].reduce((n, d) => n + (store.get<number>(K.focusMs(d, b.id)) ?? 0), 0)
+          return (
+            <div key={b.id} className="stat">
+              <b>{mine.length}</b>
+              <span>{b.label}</span>
+              <small>{mine.length ? `avg ${avg} min late` : 'never late'} · {Math.round(studied / 60000)} min studied this week</small>
+            </div>
+          )
+        })}
+      </div>
+      {rows.length === 0 ? (
+        <div className="empty">No late starts yet. When you start a study block more than a few minutes after it begins, Study Blocks asks why and it shows up here.</div>
+      ) : (
+        <div className="late-list">
+          {rows.slice(0, 40).map((r) => (
+            <div key={`${r.date}-${r.block}`} className="late-r">
+              <span className="num">{dateEn(r.date)}</span>
+              <b>{studyBlock(r.block).label}</b>
+              <span className="status partial">{r.min} min late</span>
+              <span className="late-why">{r.reason}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 function Meter({ label, pct, sub }: { label: React.ReactNode; pct: number; sub?: string }) {
   return (
@@ -60,7 +111,6 @@ export function ProgressView() {
   const rev = revisionList(r)
   const anyRefl = hours.some((h) => h !== undefined) || focus.some((f) => f !== undefined)
   const fmtL = (l: string) => dateBn(l)
-  void store
 
   return (
     <div className="view">
@@ -134,6 +184,8 @@ export function ProgressView() {
           {anyRefl ? <Chart title="Focus rating per day" labels={dates} series={focusSeries} yMax={5} yTicks={5} yLabel="rating" fmtLabel={fmtL} /> : <div className="empty">Fill the end-of-day reflection to see this.</div>}
         </div>
       </div>
+
+      <LateStarts today={today} />
 
       <div className="card">
         <h2>Weakest chapters</h2>

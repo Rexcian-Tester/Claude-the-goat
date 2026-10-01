@@ -18,6 +18,7 @@ import { SearchSheet } from './views/Search'
 import { FocusView } from './views/Focus'
 import { RoutineView } from './views/Routine'
 import { ReminderPopup } from './views/Habits'
+import { StudyEngineHost } from './study/engine'
 
 /** The mark: a single gold numeral 1 in a thin gold frame. Same art as the favicon. */
 function Logo() {
@@ -143,6 +144,7 @@ export function App() {
       </main>
       {searchOpen && <SearchSheet />}
       <ReminderPopup />
+      <StudyEngineHost />
       {updateReady && (
         <button type="button" className="update-bar" onClick={() => location.reload()}>
           New version ready · <b>Tap to reload</b>
