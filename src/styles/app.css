@@ -546,3 +546,8 @@ ol.find li::marker{font-weight:700;color:var(--accent)}
 @media (max-width:400px){.nav{gap:0}.nav .sep{margin:8px 1px}.nav a{font-size:13.5px;padding:0 5px}}
 .free-note{font-size:15px;line-height:1.7;color:var(--ok);background:var(--ok-soft);border-radius:var(--radius);padding:10px 14px;max-width:72ch}
 .update-bar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0));z-index:58;border:none;border-radius:99px;padding:10px 18px;background:var(--accent);color:var(--panel);font:600 14px var(--body);box-shadow:var(--shadow-3);animation:toast-in .35s var(--spring);max-width:92vw}
+.dlg-times{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:4px 0 2px}
+.dlg-times div{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 6px;border-radius:12px;background:rgba(255,255,255,.06)}
+.dlg-times b{font:600 24px var(--mono);font-variant-numeric:tabular-nums;color:var(--hero-hi)}
+.dlg-times .over b{color:#ff8a80}
+.dlg-times span{font-size:12px;color:color-mix(in srgb,var(--hero-ink) 65%,transparent)}

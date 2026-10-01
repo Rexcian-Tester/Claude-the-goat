@@ -314,6 +314,10 @@ function Running({ s, save }: { s: FocusSession; save: (n: FocusSession | null) 
           <div className="dlg" role="alertdialog" aria-modal="true" aria-labelledby="fc-dlg-t">
             <div className="dlg-ic" aria-hidden="true">⏰</div>
             <p id="fc-dlg-t" className="dlg-t">{isLast ? 'Time is up. That was the last question.' : `Time is up for Q${q}. Start the next one.`}</p>
+            <div className="dlg-times" role="timer" aria-live="off" aria-label={`Over time ${F.mmss(v.spent - s.cycleMs)}, time taken ${F.mmss(v.spent)}`}>
+              <div className="over"><b>+{F.mmss(v.spent - s.cycleMs)}</b><span>Over time</span></div>
+              <div><b>{F.mmss(v.spent)}</b><span>Time taken · target {F.mmss(s.cycleMs)}</span></div>
+            </div>
             <p className="dlg-s">{line || pick(PUSH)}</p>
             <button type="button" className="fc-done" autoFocus onClick={nextQ}>{isLast ? 'Finish' : `Next: Q${q + 1}`}</button>
             <button type="button" className="fc-b ghost" onClick={() => setKept(s.laps.length)}>Keep working on Q{q}</button>
