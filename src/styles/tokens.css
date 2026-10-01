@@ -22,7 +22,7 @@
   /* dark "hero" panels (countdown, focus timer) */
   --hero-1:#2B2622; --hero-2:#151311; --hero-hi:#FBE3B5; --hero-acc:#E3A857; --hero-ink:#F7EFDF;
   --display:"Bangla Digits","Noto Serif Bengali","Hind Siliguri",serif; --body:"Bangla Digits","Hind Siliguri",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
-  --radius:10px; --radius-lg:14px; --tap:44px;
+  --radius:12px; --radius-lg:18px; --tap:44px;
   --shadow-1:0 1px 2px rgba(60,45,20,.05),0 1px 3px rgba(60,45,20,.05);
   --shadow-2:0 10px 30px -12px rgba(60,45,20,.2),0 3px 8px -2px rgba(60,45,20,.06);
   --shadow-3:0 24px 60px -18px rgba(40,28,12,.35),0 8px 20px -8px rgba(40,28,12,.16);

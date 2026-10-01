@@ -6,10 +6,13 @@ import { useField, useStoreVersion } from '../store/store'
 import { blockAt } from '../views/Routine'
 import { actions, clock12, dhakaMinute, fmtDur, loggedMs, setConfig, targetMs, usePomo } from './engine'
 import { pickQuote, QUOTES } from './quotes'
-import { useSchedule, useToday } from '../hooks'
+import { useReader, useSchedule, useToday } from '../hooks'
 import { isEndgame, phaseOf } from '../logic/behind'
 import { href } from '../router'
-import { DayTasks } from '../views/day'
+import { DayProgressBar } from '../views/day'
+import { SubjectChip } from '../components/ui'
+import { dayProgress, taskState } from '../logic/dayStatus'
+import type { Row, Schedule } from '../logic/schedule'
 
 /** re-render every `ms` (the clock, the countdown) */
 export function useTick(ms = 1000) {
@@ -125,9 +128,10 @@ function BlockRow({ id, date, live }: { id: P.StudyBlockId; date: string; live: 
   return (
     <div className={`sb-row ${pct >= 1 ? 'done' : ''}`}>
       <div className="sb-row-h">
-        <b>{b.label}</b>
-        <span className="small">{clock12(b.from)} – {clock12(b.to)}</span>
-        {late && <span className="tag" title={late.reason}>{late.min} min late</span>}
+        <span className="sb-row-l">
+          <b>{b.label}</b>
+          <span className="small">{clock12(b.from)} – {clock12(b.to)}{late && <span className="tag" title={late.reason}>{late.min} min late</span>}</span>
+        </span>
         <span className="num">{fmtDur(done)} / {fmtDur(target)}{pct >= 1 && ' ✓'}</span>
       </div>
       <span className="bar"><i style={{ width: `${pct * 100}%` }} /></span>
@@ -178,6 +182,35 @@ function Settings() {
   )
 }
 
+/** Just the day's chapters (subject + chapter + part) with how many of each one's micro-tasks are ticked. */
+function TaskNames({ row, sched }: { row: Row; sched: Schedule }) {
+  const r = useReader()
+  const p = dayProgress(r, row, sched.rows)
+  const inbound = p.tasks.filter((t) => t.date !== row.date)
+  return (
+    <>
+      {row.isBuffer && <span className="badge buf" style={{ alignSelf: 'flex-start' }}>ধরা-পড়ার দিন</span>}
+      <div className="sb-task-list">
+        {row.items.map((item) => {
+          const mine = p.tasks.filter((t) => t.date === row.date && t.itemIdx === item.itemIdx)
+          const done = mine.filter((t) => taskState(r, t) === 'done').length
+          const all = mine.length > 0 && done === mine.length
+          const first = item.chapters[0]
+          return (
+            <a key={item.key} className={`sb-task ${all ? 'done' : ''}`} href={first ? href.chapter(first.id) : href.plan(row.date)}>
+              <SubjectChip s={item.s} />
+              <span className="sb-task-n"><b>{item.ch}</b><small>{item.part}</small></span>
+              <span className="sb-task-st">{all ? '✓' : `${done}/${mine.length}`}</span>
+            </a>
+          )
+        })}
+      </div>
+      {inbound.length > 0 && <p className="small">+ {inbound.length} task{inbound.length === 1 ? '' : 's'} moved here from earlier days</p>}
+      <DayProgressBar row={row} rows={sched.rows} />
+    </>
+  )
+}
+
 /** Today's study day from the Plan, with the same tick boxes (ticks here and in Plan / Today are the same). */
 function TodayTasks() {
   const today = useToday()
@@ -202,10 +235,7 @@ function TodayTasks() {
       ) : row.isFree ? (
         row.note ? <div className="free-note">✓ {row.note}</div> : <p className="muted">খালি দিন। আজ কিছু নির্ধারিত নেই।</p>
       ) : (
-        <div className="stack">
-          {row.isBuffer && <span className="badge buf" style={{ alignSelf: 'flex-start' }}>ধরা-পড়ার দিন</span>}
-          <DayTasks row={row} sched={sched} />
-        </div>
+        <TaskNames row={row} sched={sched} />
       )}
     </div>
   )
@@ -225,7 +255,7 @@ export function StudyBlocks() {
   const q = pickQuote(QUOTES, Math.floor(frac * 10) + Number(date.slice(8)))
   const busy = s.phase === 'focus' || s.phase === 'flow' || s.phase === 'break'
   return (
-    <div className="stack">
+    <div className="stack sb-stack">
       <div className="seg sb-mode" role="group" aria-label="Timer mode">
         <button type="button" aria-pressed={study} disabled={busy && !study} onClick={() => actions.setMode('study')}>Study Focus Pomodoro</button>
         <button type="button" aria-pressed={!study} disabled={busy && study} onClick={() => actions.setMode('normal')}>Normal Pomodoro</button>

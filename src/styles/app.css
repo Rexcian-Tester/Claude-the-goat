@@ -606,3 +606,51 @@ ol.find li::marker{font-weight:700;color:var(--accent)}
 .late-r:last-child{border-bottom:none}
 .late-why{color:var(--muted)}
 @media (max-width:560px){.late-r{grid-template-columns:auto 1fr auto}.late-why{grid-column:1/-1}.sb-now{align-items:flex-start;text-align:left}}
+
+/* ---------- polish: Apple-style details (pill switches, system numerals, softer edges) ---------- */
+:root{--sys:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,system-ui,sans-serif}
+.seg{border-radius:999px;padding:3px;border-color:color-mix(in srgb,var(--line) 70%,transparent);background:color-mix(in srgb,var(--ink) 6%,var(--bg))}
+.seg button{border-radius:999px;transition:background .25s var(--ease),color .2s,box-shadow .25s var(--ease)}
+.seg button[aria-pressed="true"]{background:var(--panel);box-shadow:0 1px 2px rgba(0,0,0,.08),0 3px 10px -2px rgba(0,0,0,.12)}
+:root[data-theme="dark"] .seg button[aria-pressed="true"]{background:color-mix(in srgb,var(--ink) 14%,var(--panel))}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .seg button[aria-pressed="true"]{background:color-mix(in srgb,var(--ink) 14%,var(--panel))}}
+.card{border-color:color-mix(in srgb,var(--line) 75%,transparent)}
+.btn{border-radius:12px}
+.btn:active{transform:scale(.97)}
+.focus-hero{border-radius:28px}
+.fc-b{border-radius:999px}
+.fc-done{border-radius:999px}
+.dlg{border-radius:26px}
+.fc-spent{font-family:var(--sys);font-weight:200;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+/* focus page: centred switches */
+.focus-tabs,.sb-mode{align-self:center}
+.focus-tabs button{min-width:132px}
+.sb-mode button{font-size:13.5px}
+.sb-mode-h{text-align:center;max-width:52ch;margin:-8px auto 0}
+.sb-clock{flex-direction:column;justify-content:center;text-align:center;gap:4px;padding:16px}
+.sb-time{font:200 52px/1 var(--sys);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.sb-time small{font-size:24px;font-weight:300;color:var(--muted)}
+.sb-time span{font:500 15px var(--sys);letter-spacing:0}
+.sb-now{align-items:center;text-align:center}
+.sb-mini b{font-family:var(--sys);font-weight:500}
+.sb-mini{border-radius:999px;padding:10px 18px}
+.start-day{border-radius:22px}
+.sb-row-h .num{font-family:var(--sys);font-weight:600}
+.sb-quote{border-left:none;border-radius:var(--radius-lg);text-align:center;padding:16px 20px;background:color-mix(in srgb,var(--accent-soft) 45%,var(--panel));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 14%,transparent)}
+/* today's tasks on Study Blocks: just the chapters */
+.sb-task-list{display:flex;flex-direction:column;border-radius:var(--radius);overflow:hidden;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--line) 80%,transparent)}
+.sb-task{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px 14px;color:inherit;text-decoration:none;background:var(--panel);transition:background .15s}
+.sb-task+.sb-task{border-top:1px solid color-mix(in srgb,var(--line) 80%,transparent)}
+.sb-task:hover{background:color-mix(in srgb,var(--accent-soft) 40%,var(--panel))}
+.sb-task-n{display:flex;flex-direction:column;min-width:0}
+.sb-task-n b{font-weight:700;font-size:16px;line-height:1.35}
+.sb-task-n small{font-size:13px;color:var(--muted)}
+.sb-task-st{font:600 13px var(--sys);font-variant-numeric:tabular-nums;color:var(--muted);padding:3px 10px;border-radius:999px;background:color-mix(in srgb,var(--ink) 6%,transparent)}
+.sb-task.done .sb-task-st{color:var(--panel);background:var(--ok)}
+.sb-task.done .sb-task-n b{color:var(--muted)}
+.sb-row-h{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center}
+.sb-row-l{display:flex;flex-direction:column;line-height:1.35}
+.sb-row-l .tag{margin-left:8px}
+.sb-row-h .num{margin-left:0}
+.sb-hero .fc-sub{font:500 13px var(--sys);letter-spacing:.01em}
+.sb-stack{width:100%;max-width:680px;margin:0 auto}
