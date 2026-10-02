@@ -50,7 +50,8 @@ Checklist:
 1. Push **`main` first, once** (`git push origin HEAD:main`); sync the working branch only after `main`.
 2. Confirm the build: `npm run deploy:status -- --wait` (reads the "Cloudflare Pages" check GitHub stores on
    the commit; exit 0 = deployed). If GitHub rate-limits, say so and ask the owner to check instead of guessing.
-3. Tell the owner the short commit id. **Settings → This device** shows "App version <id>", so they can see
+3. Tell the owner the short commit id. **Settings → This device** shows "App version <release name> <id>" (release
+   name `RELEASE` in `src/views/Settings.tsx`, currently CR7), so they can see
    whether a screen runs the latest build. When a newer build takes over, the app shows a
    "New version ready · Tap to reload" bar.
 4. If the site looks old: compare the Settings version with the newest commit on `main`. If Cloudflare's
