@@ -10,7 +10,8 @@ import type { Row, Schedule } from '../logic/schedule'
 import { itemTier } from '../logic/stats'
 import { href } from '../router'
 import { store, useField } from '../store/store'
-import { useReader } from '../hooks'
+import { useReader, useToday } from '../hooks'
+import { TopicControls } from '../planner/PlanTools'
 import { Check, FieldCheck, Panel, QuestionRow, Rating, SubjectChip, TierPill } from '../components/ui'
 import type { Chapter } from '../data/types'
 
@@ -188,13 +189,16 @@ export function chaptersEndingOn(row: Row, sched: Schedule): Chapter[] {
 /** A study day's topics and micro-tasks (plus tasks moved in from earlier days) with its progress bar. */
 export function DayTasks({ row, sched }: { row: Row; sched: Schedule }) {
   const r = useReader()
+  const today = useToday()
   const p = dayProgress(r, row, sched.rows)
   const inbound = p.tasks.filter((t) => t.date !== row.date)
+  const editable = row.eff !== null && row.eff <= today
   return (
     <>
       {row.items.map((item) => (
         <div key={item.key} className="stack" style={{ gap: 6 }}>
           <ItemHeader item={item} />
+          {editable && item.k !== 'buf' && <TopicControls row={row} item={item} sched={sched} today={today} />}
           <ItemTasks row={row} item={item} />
         </div>
       ))}

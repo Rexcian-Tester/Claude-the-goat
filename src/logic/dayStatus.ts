@@ -16,6 +16,15 @@ export interface TaskRef {
 }
 export type TaskState = 'done' | 'moved' | 'cleared' | 'open'
 
+/** Your own Due / Done for a topic (a chapter on a day). It wins over the topic's ticks and the day's
+ *  "mark this day done": a topic you mark Due stays due even with every micro-task ticked. */
+export type TopicMark = 'due' | 'done'
+export const topicMarkKey = (item: PlanItem) => `task:${item.src ?? item.key}${item.pid && item.pid !== '0' ? `#${item.pid}` : ''}:status`
+export function topicMark(r: Reader, item: PlanItem): TopicMark | undefined {
+  const v = r.get<string>(topicMarkKey(item))
+  return v === 'due' || v === 'done' ? v : undefined
+}
+
 // Plan days are static, and schedule rows share their day's items array, so task lists are built once.
 const ownCache = new WeakMap<PlanDay['items'], TaskRef[]>()
 export function ownTasks(day: PlanDay): TaskRef[] {
@@ -121,7 +130,13 @@ function computeDayProgress(r: Reader, row: Row, rows: Row[]): DayProgress {
   }
   const manual = !!r.get<boolean>(K.dayDone(row.date))
   const total = tasks.length
-  const complete = manual || (total > 0 && resolved === total)
+  const marks = row.items.map((it) => topicMark(r, it))
+  const settled = (s: TaskState) => s === 'done' || s === 'moved' || s === 'cleared'
+  const complete = marks.every((m) => m === undefined)
+    ? manual || (total > 0 && resolved === total)
+    : // with your own marks, the day is done when every topic is done (a marked one by its mark)
+      row.items.every((it, k) => (marks[k] ? marks[k] === 'done' : manual || own.filter((t) => t.item === it).every((t) => settled(taskState(r, t))))) &&
+      (manual || inbound.every((t) => taskState(r, t) === 'done'))
   return {
     tasks,
     own,

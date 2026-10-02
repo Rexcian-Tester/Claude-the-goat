@@ -1,6 +1,6 @@
 import { addDays } from '../data/dhaka'
 import type { PlanItem } from '../data/plan'
-import { dayProgress, ownTasks, taskState, type TaskRef } from './dayStatus'
+import { dayProgress, ownTasks, taskState, topicMark, type TaskRef, type TopicMark } from './dayStatus'
 import type { Reader } from './reader'
 import type { Row } from './schedule'
 
@@ -13,6 +13,8 @@ export interface Due {
   done: boolean
   /** finished because the whole day was marked done, not by ticks */
   byDay: boolean
+  /** your own Due / Done, if you set one */
+  mark?: TopicMark
 }
 
 /** One topic on one day: its micro-tasks and whether it is finished (all ticked or cleared, or the day marked done). */
@@ -21,8 +23,9 @@ export function topicOn(r: Reader, row: Row, item: PlanItem, rows: Row[]): Due {
   const states = tasks.map((t) => taskState(r, t))
   const ticked = states.filter((s) => s === 'done').length
   const byDay = dayProgress(r, row, rows).manual
-  const done = byDay || (tasks.length > 0 && states.every((s) => s === 'done' || s === 'cleared'))
-  return { row, item, tasks, ticked, total: tasks.length, done, byDay }
+  const mark = topicMark(r, item)
+  const auto = byDay || (tasks.length > 0 && states.every((s) => s === 'done' || s === 'cleared'))
+  return { row, item, tasks, ticked, total: tasks.length, done: mark ? mark === 'done' : auto, byDay, mark }
 }
 
 export interface DuesList {

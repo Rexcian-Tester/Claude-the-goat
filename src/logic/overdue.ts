@@ -1,4 +1,4 @@
-import { dayProgress, movedTo, ownTasks, taskState, type TaskRef } from './dayStatus'
+import { dayProgress, movedTo, ownTasks, taskState, topicMark, type TaskRef } from './dayStatus'
 import type { Reader } from './reader'
 import type { Row } from './schedule'
 
@@ -10,8 +10,10 @@ export function overdueTasks(r: Reader, rows: Row[], today: string): TaskRef[] {
   const out: TaskRef[] = []
   for (const row of rows) {
     if (row.eff === null || row.eff >= today) continue
-    if (dayProgress(r, row, rows).manual) continue
+    const manual = dayProgress(r, row, rows).manual
     for (const t of ownTasks(row)) {
+      const mark = topicMark(r, t.item)
+      if (mark === 'done' || (manual && mark !== 'due')) continue
       const s = taskState(r, t)
       if (s === 'open') out.push(t)
       else if (s === 'moved' && (movedTo(r, t) ?? '9999') < today) out.push(t) // catch-up day passed, still not done

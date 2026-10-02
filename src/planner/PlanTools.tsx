@@ -3,7 +3,7 @@ import { dateBn, dateEn, WD_BN } from '../data/bn'
 import { addDays, weekdayIndex } from '../data/dhaka'
 import { itemByKey, PLAN_LAST, type PlanItem } from '../data/plan'
 import { duesList, topicOn, type Due } from '../logic/dues'
-import { K } from '../logic/keys'
+import { topicMarkKey } from '../logic/dayStatus'
 import { evenSplit, movePart, resetTopic, splitPart, undoTarget, versionBefore, type PlanEdits } from '../logic/planEdits'
 import type { Row, Schedule } from '../logic/schedule'
 import { go, href } from '../router'
@@ -194,13 +194,38 @@ export function TopicSheet({ row, item, sched, today, mode: initial = 'move', on
 }
 
 /* ---------- Dues ---------- */
-function DueRow({ d, can, onReschedule }: { d: Due; can: boolean; onReschedule: () => void }) {
+/** Due / Done for one topic on one day. Your choice wins over its ticks, and the ticks are left as they are. */
+export function StatusSwitch({ row, item, rows }: { row: Row; item: PlanItem; rows: Row[] }) {
+  const r = useReader()
+  const d = topicOn(r, row, item, rows)
+  const set = (m: 'due' | 'done') => store.set(topicMarkKey(item), m)
+  return (
+    <div className={`seg slide due-seg ${d.done ? 'is-done' : 'is-due'}`} role="group" aria-label={`${item.ch}: due or done`} style={{ ['--i' as string]: d.done ? 1 : 0, ['--n' as string]: 2 }}>
+      <button type="button" aria-pressed={!d.done} onClick={() => d.done && set('due')}>Due</button>
+      <button type="button" aria-pressed={d.done} onClick={() => !d.done && set('done')}>Done</button>
+    </div>
+  )
+}
+
+/** Due / Done plus Reschedule, for a topic in the Plan list or inside a day. */
+export function TopicControls({ row, item, sched, today }: { row: Row; item: PlanItem; sched: Schedule; today: string }) {
+  const can = useCanEdit()
+  const [open, setOpen] = useState(false)
+  const live = open ? sched.rows.find((x) => x.date === row.date)?.items.find((x) => x.key === item.key) : undefined
+  return (
+    <div className="topic-ctl">
+      <StatusSwitch row={row} item={item} rows={sched.rows} />
+      <button type="button" className="btn sm ghost-btn" disabled={!can.ok} title={can.ok ? 'Move, split or add a note' : can.why} onClick={() => setOpen(true)}>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 12h12M12 6l6 6-6 6" /><path d="M20 5v14" /></svg>
+        Reschedule
+      </button>
+      {open && live && <TopicSheet row={row} item={live} sched={sched} today={today} onClose={() => setOpen(false)} />}
+    </div>
+  )
+}
+
+function DueRow({ d, can, rows, onReschedule }: { d: Due; can: boolean; rows: Row[]; onReschedule: () => void }) {
   const { row, item } = d
-  const markDone = () => store.setMany(d.tasks.map((t) => [t.tk, true]))
-  const markDue = () => {
-    if (d.byDay) return store.set(K.dayDone(row.date), false)
-    if (confirm(`Mark ${item.ch} as due again? Its ${d.total} micro-task${d.total === 1 ? '' : 's'} will be unticked.`)) store.setMany(d.tasks.map((t) => [t.tk, false]))
-  }
   return (
     <div className={`due ${d.done ? 'done' : ''}`}>
       <div className="due-main">
@@ -212,22 +237,19 @@ function DueRow({ d, can, onReschedule }: { d: Due; can: boolean; onReschedule: 
         <EditNote item={item} />
       </div>
       <div className="due-act">
-        <div className="seg slide due-seg" role="group" aria-label="Status" style={{ ['--i' as string]: d.done ? 1 : 0, ['--n' as string]: 2 }}>
-          <button type="button" aria-pressed={!d.done} onClick={() => d.done && markDue()}>Due</button>
-          <button type="button" aria-pressed={d.done} onClick={() => !d.done && markDone()}>Done</button>
-        </div>
+        <StatusSwitch row={row} item={item} rows={rows} />
         {!d.done && <button type="button" className="btn sm" disabled={!can} title={can ? undefined : 'Editing needs you online and synced'} onClick={onReschedule}>Reschedule</button>}
       </div>
     </div>
   )
 }
 
-function DueGroup({ title, sub, list, can, open }: { title: string; sub: string; list: Due[]; can: boolean; open: (d: Due) => void }) {
+function DueGroup({ title, sub, list, can, rows, open }: { title: string; sub: string; list: Due[]; can: boolean; rows: Row[]; open: (d: Due) => void }) {
   if (!list.length) return null
   return (
     <section className="card due-g">
       <div className="card-h"><h2>{title} · {list.length}</h2><span className="small">{sub}</span></div>
-      <div className="due-list">{list.map((d) => <DueRow key={d.item.key} d={d} can={can} onReschedule={() => open(d)} />)}</div>
+      <div className="due-list">{list.map((d) => <DueRow key={d.item.key} d={d} can={can} rows={rows} onReschedule={() => open(d)} />)}</div>
     </section>
   )
 }
@@ -243,16 +265,16 @@ export function DuesView({ sched, today }: { sched: Schedule; today: string }) {
   const live = sel && sched.rows.find((x) => x.date === sel.row.date)?.items.find((x) => x.key === sel.item.key)
   return (
     <div className="stack pe-view">
-      <p className="small pe-intro">Every topic you haven't finished from past days, and every topic you moved or split, stays here until it's done. Mark <b>Done</b> when you've finished it; it fades in Plan and counts in Progress.</p>
+      <p className="small pe-intro">Every topic you haven't finished from past days, and every topic you moved or split, stays here until it's done. Mark <b>Done</b> when you've finished it; it fades in Plan and counts in Progress. Your Due / Done choice wins over the ticks.</p>
       {!can.ok && <div className="banner warn"><span>🔒 Rescheduling: {can.why}</span></div>}
       {n === 0 && <div className="empty">Nothing due. Every past topic is done. 💪</div>}
-      <DueGroup title="Overdue" sub="from days that have passed" list={d.overdue} can={can.ok} open={setSel} />
-      <DueGroup title="Rescheduled" sub="moved or split, still to do" list={d.rescheduled} can={can.ok} open={setSel} />
-      <DueGroup title="Unscheduled" sub="days that no longer fit before 15 Dec" list={d.unscheduled} can={can.ok} open={setSel} />
+      <DueGroup title="Overdue" sub="from days that have passed" list={d.overdue} can={can.ok} rows={sched.rows} open={setSel} />
+      <DueGroup title="Rescheduled" sub="moved or split, still to do" list={d.rescheduled} can={can.ok} rows={sched.rows} open={setSel} />
+      <DueGroup title="Unscheduled" sub="days that no longer fit before 15 Dec" list={d.unscheduled} can={can.ok} rows={sched.rows} open={setSel} />
       {d.recentDone.length > 0 && (
         <details className="panel">
           <summary>Done in the last week · {d.recentDone.length}</summary>
-          <div className="panel-b due-list">{d.recentDone.map((x) => <DueRow key={x.item.key} d={x} can={can.ok} onReschedule={() => setSel(x)} />)}</div>
+          <div className="panel-b due-list">{d.recentDone.map((x) => <DueRow key={x.item.key} d={x} can={can.ok} rows={sched.rows} onReschedule={() => setSel(x)} />)}</div>
         </details>
       )}
       {sel && live && <TopicSheet row={sel.row} item={live} sched={sched} today={today} onClose={() => setSel(null)} />}

@@ -190,7 +190,7 @@ a.ch:hover{text-decoration:underline}
 .day:last-child{border-bottom:none}
 .day:hover{background:color-mix(in srgb,var(--accent-soft) 40%,transparent)}
 .day.is-today{background:color-mix(in srgb,var(--accent-soft) 70%,var(--panel));box-shadow:inset 4px 0 0 var(--accent)}
-.day.st-done .body{opacity:.6}
+.day.st-done .body .item>:not(.topic-ctl){opacity:.55}
 .day.st-overdue{box-shadow:inset 4px 0 0 var(--bad)}
 .day.st-partial{box-shadow:inset 4px 0 0 var(--warn)}
 .date{display:flex;flex-direction:column;line-height:1.3;gap:2px}
@@ -703,7 +703,7 @@ ol.find li::marker{font-weight:700;color:var(--accent)}
 .edit-note{font-size:14px;color:var(--ink);background:color-mix(in srgb,var(--gold-soft) 70%,var(--panel));border-left:3px solid var(--gold);border-radius:0 8px 8px 0;padding:5px 10px;margin-top:2px}
 .edit-note-s{color:var(--gold)!important}
 .moved-from{color:var(--mt)}
-.item.it-done{opacity:.5}
+.item.it-done>:not(.topic-ctl){opacity:.5}
 .bad-t{color:var(--bad)}
 /* dues */
 .due-list{display:flex;flex-direction:column}
@@ -761,3 +761,36 @@ ol.find li::marker{font-weight:700;color:var(--accent)}
 .pe-has{display:flex;flex-direction:column;gap:4px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.06)}
 .pe-has b{color:var(--hero-hi)}
 .pe-has-r{display:flex;align-items:center;gap:6px;font-size:14.5px}
+
+/* topic Due / Done + Reschedule */
+.day{cursor:pointer}
+.day>.date{color:inherit;text-decoration:none}
+.day>.date:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:6px}
+.topic-ctl{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px;cursor:default}
+.ghost-btn{background:transparent;box-shadow:none;color:var(--muted);gap:6px}
+.ghost-btn:hover:not(:disabled){color:var(--ink);border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+.ghost-btn:disabled{opacity:.45;cursor:not-allowed}
+.due-seg.is-due button[aria-pressed="true"]{color:var(--warn)}
+.due-seg.is-done button[aria-pressed="true"]{color:var(--ok)}
+
+/* ---------- final polish: calmer surfaces, clearer edges, smoother feedback ---------- */
+body{text-rendering:optimizeLegibility;font-kerning:normal}
+::selection{background:color-mix(in srgb,var(--accent) 28%,transparent)}
+html{scrollbar-color:color-mix(in srgb,var(--muted) 45%,transparent) transparent}
+/* the bar stays readable over whatever scrolls under it */
+.topbar{background:color-mix(in srgb,var(--bg) 97%,transparent)}
+/* consistent keyboard focus */
+a:focus-visible,button:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* smoother, quieter feedback on everything you tap */
+.btn,.seg button,.pe-topic,.sb-task,.rt-row,.day,.chip-s,.icon-btn{transition:background-color .2s var(--ease),border-color .2s var(--ease),color .2s var(--ease),box-shadow .25s var(--ease),transform .18s var(--ease)}
+.day:hover{background:color-mix(in srgb,var(--accent-soft) 32%,transparent)}
+/* list controls: a bit smaller than page buttons */
+.topic-ctl .due-seg button{min-height:32px;min-width:58px;font-size:13px}
+.topic-ctl .btn.sm{min-height:34px;font-size:13px;padding:0 12px}
+/* dark: surfaces get a faint top edge so cards read as layers on the near-black page */
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) :is(.card,.days,.rt-list,.sb-clock,.pe-days,.panel,.stat,.sb-task-list){box-shadow:inset 0 1px 0 rgba(255,255,255,.035),var(--shadow-1)}}
+:root[data-theme="dark"] :is(.card,.days,.rt-list,.sb-clock,.pe-days,.panel,.stat,.sb-task-list){box-shadow:inset 0 1px 0 rgba(255,255,255,.035),var(--shadow-1)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .card.accent{box-shadow:inset 0 3px 0 var(--accent),var(--shadow-2)}}
+:root[data-theme="dark"] .card.accent{box-shadow:inset 0 3px 0 var(--accent),var(--shadow-2)}
+/* finished days fade without turning Bangla text muddy */
+.day.st-done .body .item>:not(.topic-ctl),.item.it-done>:not(.topic-ctl){opacity:.62;filter:saturate(.7)}

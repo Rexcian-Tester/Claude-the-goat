@@ -26,6 +26,8 @@ Progress syncs through a Pages Function + KV (`functions/api/sync.ts`). See `REA
   `plan:hist:<ms>`. Ticks belong to the topic (`PlanItem.tks`), so moved/split topics keep them. Editing is locked
   unless the device has a passcode and a live sync (`src/planner/actions.ts`). If you change the plan JSON, existing
   edits still point at `<original date>:<item index>`, so check `plan:edits` before reordering a day's items.
+- A topic's own Due / Done (`task:<topic key>:status`, `topicMark` in `src/logic/dayStatus.ts`) wins over its ticks and
+  the day's "mark done"; with any mark on a day, the day is done only when every topic is done.
 - Study Blocks (Focus): one app-wide timer in `src/study/engine.tsx`; logged study time and late starts are synced
   under `day:<date>:focus:*` / `day:<date>:late:*`.
 - Tests: `npm test` (vitest). Build: `npm run build`. Always run both before pushing.

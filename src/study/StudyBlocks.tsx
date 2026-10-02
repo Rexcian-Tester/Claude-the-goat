@@ -12,6 +12,7 @@ import { href } from '../router'
 import { DayProgressBar } from '../views/day'
 import { SubjectChip } from '../components/ui'
 import { dayProgress, taskState } from '../logic/dayStatus'
+import { topicOn } from '../logic/dues'
 import type { Row, Schedule } from '../logic/schedule'
 
 /** re-render every `ms` (the clock, the countdown) */
@@ -194,7 +195,7 @@ function TaskNames({ row, sched }: { row: Row; sched: Schedule }) {
         {row.items.map((item) => {
           const mine = p.tasks.filter((t) => t.item === item)
           const done = mine.filter((t) => taskState(r, t) === 'done').length
-          const all = mine.length > 0 && done === mine.length
+          const all = topicOn(r, row, item, sched.rows).done
           const first = item.chapters[0]
           return (
             <a key={item.key} className={`sb-task ${all ? 'done' : ''}`} href={first ? href.chapter(first.id) : href.plan(row.date)}>

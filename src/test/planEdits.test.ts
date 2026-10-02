@@ -145,3 +145,35 @@ describe('undo', () => {
     expect(undoTarget([v(1), v(2, 'restore')])?.at).toBe(2)
   })
 })
+
+describe('topic Due / Done marks', () => {
+  it('Due wins over ticks and the day mark; Done wins over missing ticks', async () => {
+    const { topicMarkKey } = await import('../logic/dayStatus')
+    const { duesList, topicOn } = await import('../logic/dues')
+    const { behindInfo } = await import('../logic/behind')
+    const sched = buildSchedule(undefined)
+    const row = sched.byOrig.get('2026-10-01')!
+    const [a, b] = row.items
+    const allTicked = Object.fromEntries(row.items.flatMap((i) => i.tks).map((k) => [k, true]))
+    // everything ticked: the day is done
+    expect(dayProgress(mapReader(allTicked), row, sched.rows).complete).toBe(true)
+    // mark one chapter Due: ticks stay, but the chapter and the day are not done, and it shows in Dues
+    const due = mapReader({ ...allTicked, [topicMarkKey(a)]: 'due' })
+    expect(topicOn(due, row, a, sched.rows)).toMatchObject({ done: false, ticked: a.tks.length, mark: 'due' })
+    expect(dayProgress(due, row, sched.rows).complete).toBe(false)
+    expect(duesList(due, sched.rows, '2026-10-02').overdue.map((x) => x.item)).toEqual([a])
+    expect(behindInfo('2026-10-02', sched.rows, due).lag).toBe(1)
+    // Due also beats "mark this day done"
+    expect(dayProgress(mapReader({ 'day:2026-10-01:done': true, [topicMarkKey(a)]: 'due' }), row, sched.rows).complete).toBe(false)
+    // Done with nothing ticked: done; the day needs both chapters
+    const done = mapReader({ [topicMarkKey(a)]: 'done', [topicMarkKey(b)]: 'done' })
+    expect(dayProgress(done, row, sched.rows).complete).toBe(true)
+    expect(dayProgress(mapReader({ [topicMarkKey(a)]: 'done' }), row, sched.rows).complete).toBe(false)
+  })
+
+  it('a moved topic keeps its mark (part 0 shares the key)', async () => {
+    const { topicMarkKey } = await import('../logic/dayStatus')
+    const moved = applyEdits(planDays, movePart(undefined, chem.key, n, '0', '2026-10-03', '')).find((d) => d.date === '2026-10-03')!.items.at(-1)!
+    expect(topicMarkKey(moved)).toBe(topicMarkKey(chem))
+  })
+})

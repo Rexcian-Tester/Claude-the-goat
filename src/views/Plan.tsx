@@ -9,14 +9,14 @@ import { K } from '../logic/keys'
 import type { Reader } from '../logic/reader'
 import type { Row, Schedule } from '../logic/schedule'
 import { itemTier } from '../logic/stats'
-import { closeTo, href, useRoute } from '../router'
+import { closeTo, go, href, useRoute } from '../router'
 import { store } from '../store/store'
 import { useReader, useSchedule, useToday } from '../hooks'
 import { Panel, Sheet, SubjectChip, TierPill } from '../components/ui'
 import { BehindBanner } from './BehindBanner'
 import { DayBody, KindBadges, Methods } from './day'
 import { topicOn } from '../logic/dues'
-import { DuesView, EditNote, EditorView, PartTag, PlanTabs, type PlanTab } from '../planner/PlanTools'
+import { DuesView, EditNote, EditorView, PartTag, PlanTabs, TopicControls, type PlanTab } from '../planner/PlanTools'
 
 type St = 'done' | 'partial' | 'overdue' | 'todo'
 function rowStatus(r: Reader, row: Row, rows: Row[], today: string) {
@@ -26,8 +26,10 @@ function rowStatus(r: Reader, row: Row, rows: Row[], today: string) {
 }
 const STATUS_LABEL: Record<St, string> = { done: 'Done', partial: 'In progress', overdue: 'Overdue', todo: '' }
 
-function ItemLine({ row, rows }: { row: Row; rows: Row[] }) {
+function ItemLine({ row, sched, today }: { row: Row; sched: Schedule; today: string }) {
   const r = useReader()
+  const rows = sched.rows
+  const editable = row.eff !== null && row.eff <= today
   if (row.isFree) return row.note ? <div className="free-note">✓ {row.note}</div> : <div className="topics-t muted">খালি দিন · এই দিনের কাজ অন্য দিনে সরানো হয়েছে</div>
   return (
     <>
@@ -49,6 +51,7 @@ function ItemLine({ row, rows }: { row: Row; rows: Row[] }) {
             {it.m && <div className="note">{it.m}</div>}
             {it.src && it.date !== row.date && <div className="small moved-from">↪ planned for {dateBn(it.date)}</div>}
             <EditNote item={it} />
+            {editable && it.k !== 'buf' && <TopicControls row={row} item={it} sched={sched} today={today} />}
           </div>
         )
       })}
@@ -60,19 +63,25 @@ function DayRow({ row, today, sched }: { row: Row; today: string; sched: Schedul
   const r = useReader()
   const { p, st } = rowStatus(r, row, sched.rows, today)
   const eff = row.eff
+  const to = href.plan(row.date)
+  // the whole row opens the day, except its own controls (and the sheets they open)
+  const open = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('a,button,input,label,.topic-ctl,.scrim,.dlg-scrim')) return
+    go(to)
+  }
   return (
-    <a className={`day st-${st} ${eff === today ? 'is-today' : ''}`} href={href.plan(row.date)} aria-label={`${eff ? dateBn(eff) : 'Unscheduled'}, day ${row.dayNo}, ${row.items.map((i) => i.ch).join(', ')}`}>
-      <div className="date">
+    <div className={`day st-${st} ${eff === today ? 'is-today' : ''}`} onClick={open}>
+      <a className="date" href={to} aria-label={`Open ${eff ? dateBn(eff) : 'Unscheduled'}, day ${row.dayNo}, ${row.items.map((i) => i.ch).join(', ')}`}>
         <span className="dd">{eff ? bn(Number(eff.slice(8))) : '—'}</span>
         <span className="mm">{eff ? `${MONTH_BN[Number(eff.slice(5, 7)) - 1]} · ${WD_BN[weekdayIndex(eff)]}বার` : 'Unscheduled'}</span>
         <span className="ix">Day {row.dayNo}{eff === today ? ' · today' : ''}{eff && eff !== row.date ? ` · was ${dateEn(row.date)}` : ''}</span>
-      </div>
-      <div className="body"><ItemLine row={row} rows={sched.rows} /></div>
+      </a>
+      <div className="body"><ItemLine row={row} sched={sched} today={today} /></div>
       <div className="ratio">
         {!row.isFree && <span className="num">{bn(p.ticked)}/{bn(p.total)}</span>}
         {!row.isFree && STATUS_LABEL[st] && <span className={`status ${st}`}>{STATUS_LABEL[st]}</span>}
       </div>
-    </a>
+    </div>
   )
 }
 
