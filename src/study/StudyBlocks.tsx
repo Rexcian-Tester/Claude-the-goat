@@ -192,14 +192,18 @@ function TaskNames({ row, sched }: { row: Row; sched: Schedule }) {
       {row.isBuffer && <span className="badge buf" style={{ alignSelf: 'flex-start' }}>ধরা-পড়ার দিন</span>}
       <div className="sb-task-list">
         {row.items.map((item) => {
-          const mine = p.tasks.filter((t) => t.date === row.date && t.itemIdx === item.itemIdx)
+          const mine = p.tasks.filter((t) => t.item === item)
           const done = mine.filter((t) => taskState(r, t) === 'done').length
           const all = mine.length > 0 && done === mine.length
           const first = item.chapters[0]
           return (
             <a key={item.key} className={`sb-task ${all ? 'done' : ''}`} href={first ? href.chapter(first.id) : href.plan(row.date)}>
               <SubjectChip s={item.s} />
-              <span className="sb-task-n"><b>{item.ch}</b><small>{item.part}</small></span>
+              <span className="sb-task-n">
+                <b>{item.ch}{item.parts ? <span className="tag part-tag">Part {item.partNo}/{item.parts}</span> : null}</b>
+                <small>{item.part}</small>
+                {item.editNote && <small className="edit-note-s">📝 {item.editNote}</small>}
+              </span>
               <span className="sb-task-st">{all ? '✓' : `${done}/${mine.length}`}</span>
             </a>
           )

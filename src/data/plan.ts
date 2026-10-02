@@ -5,10 +5,23 @@ import type { Chapter, Kind, RawPlanItem } from './types'
 import { addDays } from './dhaka'
 
 export interface PlanItem extends RawPlanItem {
-  key: string // `${date}:${itemIdx}` (original date; stable identity)
-  date: string
+  key: string // `${date}:${itemIdx}` (original date; stable identity); a moved/split part adds `#<part id>`
+  date: string // the topic's original date
   itemIdx: number
   chapters: Chapter[]
+  /** tick key per topicList entry. Ticks belong to the topic, not the day, so they travel when it moves. */
+  tks: string[]
+  /* set on a topic you moved or split in the planner (src/logic/planEdits.ts) */
+  /** key of the original topic */
+  src?: string
+  pid?: string
+  /** "Part partNo of parts" (only when split) */
+  partNo?: number
+  parts?: number
+  /** the note you wrote when moving or splitting it */
+  editNote?: string
+  /** original subtopic index of each topicList entry */
+  subs?: number[]
 }
 export interface PlanDay {
   date: string
@@ -38,6 +51,7 @@ export const planDays: PlanDay[] = studyPlan.days.map((d, i) => {
     date: d.date,
     itemIdx: ii,
     chapters: chaptersForItem(it),
+    tks: it.topicList.map((_, i) => `task:${d.date}:${ii}:${i}`),
   }))
   return {
     date: d.date,

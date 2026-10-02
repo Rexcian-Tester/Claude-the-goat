@@ -12,6 +12,10 @@ export const K = {
   conf: (chId: string) => `ch:${chId}:confidence`,
   formula: (chId: string) => `ch:${chId}:formula`,
   shift: 'plan:shift',
+  /** your moves and splits of plan topics (src/logic/planEdits.ts) */
+  edits: 'plan:edits',
+  /** a saved earlier version of `edits`, { at, label, edits } */
+  planVersion: (at: number) => `plan:hist:${at}`,
   paper: (id: string) => `endgame:papers:${id}`,
   exam: (id: string) => `endgame:exam:${id}`,
   rev: (id: string) => `endgame:rev:${id}`,

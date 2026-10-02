@@ -3,6 +3,7 @@ import { msUntilDhakaMidnight, setTodayOverride, todayISO } from './data/dhaka'
 import { K } from './logic/keys'
 import { storeReader, type Reader } from './logic/reader'
 import { scheduleFor, type Schedule, type Shifts } from './logic/schedule'
+import type { PlanEdits } from './logic/planEdits'
 import { store, useField, useStoreVersion } from './store/store'
 
 /* ----- "today" (Asia/Dhaka), refreshed at midnight / on focus / when the test date changes ----- */
@@ -50,7 +51,8 @@ export function changeTodayOverride(iso: string | null) {
 
 export function useSchedule(): Schedule {
   const shifts = useField<Shifts | undefined>(K.shift, undefined)
-  return scheduleFor(shifts)
+  const edits = useField<PlanEdits | undefined>(K.edits, undefined)
+  return scheduleFor(shifts, edits)
 }
 /** Re-renders on any progress change. Logic functions are pure over this reader. */
 export function useReader(): Reader {

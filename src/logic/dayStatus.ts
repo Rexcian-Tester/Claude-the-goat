@@ -5,11 +5,14 @@ import type { Row } from './schedule'
 
 export interface TaskRef {
   key: string
-  date: string // original row date
+  date: string // the plan day (row) it sits on, by that row's original date
   itemIdx: number
-  i: number
+  i: number // subtopic index in the original topic
   text: string
   item: PlanItem
+  /** tick key, and the key of its "moved to a catch-up day / cleared" state */
+  tk: string
+  mk: string
 }
 export type TaskState = 'done' | 'moved' | 'cleared' | 'open'
 
@@ -19,7 +22,10 @@ export function ownTasks(day: PlanDay): TaskRef[] {
   let out = ownCache.get(day.items)
   if (!out) {
     out = day.items.flatMap((item) =>
-      item.topicList.map((text, i) => ({ key: `${day.date}:${item.itemIdx}:${i}`, date: day.date, itemIdx: item.itemIdx, i, text, item })),
+      item.topicList.map((text, j) => {
+        const tk = item.tks[j]
+        return { key: tk.slice(5), date: day.date, itemIdx: item.itemIdx, i: item.subs?.[j] ?? j, text, item, tk, mk: `task-moved:${tk.slice(5)}` }
+      }),
     )
     ownCache.set(day.items, out)
   }
@@ -43,14 +49,14 @@ function memoFor(r: Reader, rows: Row[]): Memo | null {
   return memo
 }
 export function taskState(r: Reader, t: TaskRef): TaskState {
-  if (r.get<boolean>(K.task(t.date, t.itemIdx, t.i))) return 'done'
-  const m = r.get<string>(K.moved(t.date, t.itemIdx, t.i))
+  if (r.get<boolean>(t.tk)) return 'done'
+  const m = r.get<string>(t.mk)
   if (m === 'cleared') return 'cleared'
   if (m) return 'moved'
   return 'open'
 }
 export const movedTo = (r: Reader, t: TaskRef): string | undefined => {
-  const m = r.get<string>(K.moved(t.date, t.itemIdx, t.i))
+  const m = r.get<string>(t.mk)
   return m && m !== 'cleared' ? m : undefined
 }
 

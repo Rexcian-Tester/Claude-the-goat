@@ -15,6 +15,8 @@ import { useReader, useSchedule, useToday } from '../hooks'
 import { Panel, Sheet, SubjectChip, TierPill } from '../components/ui'
 import { BehindBanner } from './BehindBanner'
 import { DayBody, KindBadges, Methods } from './day'
+import { topicOn } from '../logic/dues'
+import { DuesView, EditNote, EditorView, PartTag, PlanTabs, type PlanTab } from '../planner/PlanTools'
 
 type St = 'done' | 'partial' | 'overdue' | 'todo'
 function rowStatus(r: Reader, row: Row, rows: Row[], today: string) {
@@ -24,17 +26,19 @@ function rowStatus(r: Reader, row: Row, rows: Row[], today: string) {
 }
 const STATUS_LABEL: Record<St, string> = { done: 'Done', partial: 'In progress', overdue: 'Overdue', todo: '' }
 
-function ItemLine({ row }: { row: Row }) {
+function ItemLine({ row, rows }: { row: Row; rows: Row[] }) {
+  const r = useReader()
   if (row.isFree) return row.note ? <div className="free-note">✓ {row.note}</div> : <div className="topics-t muted">খালি দিন · এই দিনের কাজ অন্য দিনে সরানো হয়েছে</div>
   return (
     <>
       {row.items.map((it) => {
         const tier = itemTier(it)
         return (
-          <div key={it.key} className="item">
+          <div key={it.key} className={`item ${row.eff && topicOn(r, row, it, rows).done ? 'it-done' : ''}`}>
             <div className="top">
               <SubjectChip s={it.s} />
               <span className="ch">{it.ch}</span>
+              <PartTag item={it} />
             </div>
             <div className="meta">
               {tier && <TierPill tier={tier} />}
@@ -43,6 +47,8 @@ function ItemLine({ row }: { row: Row }) {
             </div>
             <div className="topics-t">{it.t}</div>
             {it.m && <div className="note">{it.m}</div>}
+            {it.src && it.date !== row.date && <div className="small moved-from">↪ planned for {dateBn(it.date)}</div>}
+            <EditNote item={it} />
           </div>
         )
       })}
@@ -61,7 +67,7 @@ function DayRow({ row, today, sched }: { row: Row; today: string; sched: Schedul
         <span className="mm">{eff ? `${MONTH_BN[Number(eff.slice(5, 7)) - 1]} · ${WD_BN[weekdayIndex(eff)]}বার` : 'Unscheduled'}</span>
         <span className="ix">Day {row.dayNo}{eff === today ? ' · today' : ''}{eff && eff !== row.date ? ` · was ${dateEn(row.date)}` : ''}</span>
       </div>
-      <div className="body"><ItemLine row={row} /></div>
+      <div className="body"><ItemLine row={row} rows={sched.rows} /></div>
       <div className="ratio">
         {!row.isFree && <span className="num">{bn(p.ticked)}/{bn(p.total)}</span>}
         {!row.isFree && STATUS_LABEL[st] && <span className={`status ${st}`}>{STATUS_LABEL[st]}</span>}
@@ -182,16 +188,25 @@ export function PlanView() {
       /* ignore */
     }
   }, [])
+  const v = route.query.get('v')
+  const tab: PlanTab = !route.param && (v === 'dues' || v === 'edit') ? v : 'plan'
   return (
     <div className="view">
-      <PlanBody today={today} sched={sched} view={view} setView={setView} />
+      <PlanHead today={today} sched={sched} />
+      <PlanTabs tab={tab} />
+      {tab === 'dues' ? (
+        <DuesView sched={sched} today={today} />
+      ) : tab === 'edit' ? (
+        <EditorView sched={sched} today={today} />
+      ) : (
+        <PlanBody today={today} sched={sched} view={view} setView={setView} />
+      )}
       {route.param && <DaySheet date={route.param} sched={sched} today={today} />}
     </div>
   )
 }
 
-/** Everything under the sheet. Memoised so opening or closing a day doesn't rebuild the whole plan. */
-const PlanBody = memo(function PlanBody({ today, sched, view, setView }: { today: string; sched: Schedule; view: Layout; setView: (v: Layout) => void }) {
+function PlanHead({ today, sched }: { today: string; sched: Schedule }) {
   const r = useReader()
   const info = behindInfo(today, sched.rows, r)
   const counts = {
@@ -201,18 +216,23 @@ const PlanBody = memo(function PlanBody({ today, sched, view, setView }: { today
     half: planDays.filter((d) => d.items.some((i) => i.k === 'half')).length,
     buf: planDays.filter((d) => d.isBuffer && !d.isFree).length,
   }
+  return (
+    <div className="page-h">
+      <div className="eyebrow">Study plan · 30 Sep – 19 Dec 2026</div>
+      <h1>Plan</h1>
+      <p className="small">{counts.days} rows (Day 0 + 1 Oct–14 Dec) · {counts.study} study days · {counts.cls} class days · {counts.half} half days · {counts.buf} catch-up days · <b>{lagLabel(info.lag)}</b></p>
+    </div>
+  )
+}
+
+/** Everything under the sheet. Memoised so opening or closing a day doesn't rebuild the whole plan. */
+const PlanBody = memo(function PlanBody({ today, sched, view, setView }: { today: string; sched: Schedule; view: Layout; setView: (v: Layout) => void }) {
   const inPhase = (name: string) => sched.rows.filter((x) => x.phase === name && x.eff).sort((a, b) => a.eff!.localeCompare(b.eff!))
   const phases = studyPlan.meta.phases
   const day0 = sched.rows[0]
 
   return (
     <>
-      <div className="page-h">
-        <div className="eyebrow">Study plan · 30 Sep – 19 Dec 2026</div>
-        <h1>Plan</h1>
-        <p className="small">{counts.days} rows (Day 0 + 1 Oct–14 Dec) · {counts.study} study days · {counts.cls} class days · {counts.half} half days · {counts.buf} catch-up days · <b>{lagLabel(info.lag)}</b></p>
-      </div>
-
       <BehindBanner sched={sched} today={today} />
       {sched.shifted && (
         <div className="banner info">

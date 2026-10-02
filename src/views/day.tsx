@@ -3,7 +3,7 @@ import { bn, dateBn, dateEn, dayRangeBn, qnBn, SUBJ_BN, yearBn } from '../data/b
 import type { PlanItem } from '../data/plan'
 import { studyPlan } from '../data/load'
 import { addDays } from '../data/dhaka'
-import { dayProgress, movedTo, taskState, type TaskRef } from '../logic/dayStatus'
+import { dayProgress, movedTo, ownTasks, taskState, type TaskRef } from '../logic/dayStatus'
 import { K } from '../logic/keys'
 import { nextCatchUp, overdueTasks } from '../logic/overdue'
 import type { Row, Schedule } from '../logic/schedule'
@@ -32,6 +32,7 @@ export function ItemHeader({ item }: { item: PlanItem }) {
       <div className="top">
         <SubjectChip s={item.s} />
         {first ? <a className="ch" href={href.chapter(first.id)}>{item.ch}</a> : <span className="ch">{item.ch}</span>}
+        {item.parts && <span className="tag part-tag">Part {item.partNo}/{item.parts}</span>}
       </div>
       <div className="meta">
         {tier && <TierPill tier={tier} />}
@@ -44,13 +45,14 @@ export function ItemHeader({ item }: { item: PlanItem }) {
         </div>
       )}
       {item.m && <div className="note">{item.m}</div>}
+      {item.editNote && <div className="edit-note"><span aria-hidden="true">📝</span> {item.editNote}</div>}
     </div>
   )
 }
 
 export function TaskLine({ t, origin }: { t: TaskRef; origin?: boolean }) {
   const r = useReader()
-  const key = K.task(t.date, t.itemIdx, t.i)
+  const key = t.tk
   const checked = useField<boolean>(key, false)
   const state = taskState(r, t)
   const to = movedTo(r, t)
@@ -63,7 +65,7 @@ export function TaskLine({ t, origin }: { t: TaskRef; origin?: boolean }) {
         {state === 'cleared' && <span className="tag"> বাদ দেওয়া হয়েছে</span>}
       </Check>
       {(state === 'moved' || state === 'cleared') && !checked && (
-        <button className="btn sm" style={{ marginLeft: 40 }} onClick={() => store.set(K.moved(t.date, t.itemIdx, t.i), '')}>Undo</button>
+        <button className="btn sm" style={{ marginLeft: 40 }} onClick={() => store.set(t.mk, '')}>Undo</button>
       )}
     </div>
   )
@@ -73,9 +75,7 @@ export function TaskLine({ t, origin }: { t: TaskRef; origin?: boolean }) {
 export function ItemTasks({ row, item }: { row: Row; item: PlanItem }) {
   return (
     <div className="tasks">
-      {item.topicList.map((text, i) => (
-        <TaskLine key={i} t={{ key: `${row.date}:${item.itemIdx}:${i}`, date: row.date, itemIdx: item.itemIdx, i, text, item }} />
-      ))}
+      {ownTasks(row).filter((t) => t.item === item).map((t) => <TaskLine key={t.key} t={t} />)}
     </div>
   )
 }
@@ -246,8 +246,8 @@ export function OverdueList({ sched, today }: { sched: Schedule; today: string }
   if (!list.length) return null
   const byDate = new Map<string, TaskRef[]>()
   for (const t of list) byDate.set(t.date, [...(byDate.get(t.date) ?? []), t])
-  const move = (t: TaskRef) => catchUp && store.set(K.moved(t.date, t.itemIdx, t.i), catchUp.eff!)
-  const clear = (t: TaskRef) => store.set(K.moved(t.date, t.itemIdx, t.i), 'cleared')
+  const move = (t: TaskRef) => catchUp && store.set(t.mk, catchUp.eff!)
+  const clear = (t: TaskRef) => store.set(t.mk, 'cleared')
   return (
     <div className="card" id="overdue" style={{ borderColor: 'var(--warn)' }}>
       <div className="card-h">

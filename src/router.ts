@@ -26,6 +26,7 @@ export const useRoute = (): Route => useSyncExternalStore((fn) => (addEventListe
 export const href = {
   today: () => '#/today',
   plan: (date?: string) => (date ? `#/plan/${date}` : '#/plan'),
+  planTab: (tab: 'dues' | 'edit') => `#/plan?v=${tab}`,
   map: (tab?: string) => (tab ? `#/map/${tab}` : '#/map'),
   chapter: (id: string, focus?: string) => `#/chapter/${encodeURIComponent(id)}${focus ? `?focus=${encodeURIComponent(focus)}` : ''}`,
   progress: () => '#/progress',

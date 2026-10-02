@@ -1,6 +1,7 @@
 import { planDays, PLAN_LAST, type PlanDay, type PlanItem } from '../data/plan'
 import { allChapters } from '../data/catalog'
 import type { Kind } from '../data/types'
+import { applyEdits, type PlanEdits } from './planEdits'
 
 /** original date -> effective date, or 'unscheduled' (didn't fit before 15 Dec). Empty = original plan. */
 export type Shifts = Record<string, string>
@@ -28,9 +29,9 @@ export interface Schedule {
   shifted: boolean
 }
 
-export function buildSchedule(shifts: Shifts | undefined): Schedule {
+export function buildSchedule(shifts: Shifts | undefined, edits?: PlanEdits): Schedule {
   const sh = shifts ?? {}
-  const rows: Row[] = planDays.map((d) => {
+  const rows: Row[] = applyEdits(planDays, edits).map((d) => {
     const o = sh[d.date]
     return { ...d, eff: o === undefined ? d.date : o === 'unscheduled' ? null : o }
   })
@@ -46,12 +47,12 @@ export function buildSchedule(shifts: Shifts | undefined): Schedule {
   return { rows, byEff, byOrig, slots, unscheduled: rows.filter((r) => r.eff === null && !r.isBuffer), absorbed: rows.filter((r) => r.eff === null && r.isBuffer), shifted: Object.keys(sh).length > 0 }
 }
 
-let lastKey: Shifts | undefined | null = null
+let lastKey: [Shifts | undefined, PlanEdits | undefined] | null = null
 let lastVal: Schedule | null = null
-export function scheduleFor(shifts: Shifts | undefined): Schedule {
-  if (lastVal && lastKey === shifts) return lastVal
-  lastKey = shifts
-  lastVal = buildSchedule(shifts)
+export function scheduleFor(shifts: Shifts | undefined, edits?: PlanEdits): Schedule {
+  if (lastVal && lastKey && lastKey[0] === shifts && lastKey[1] === edits) return lastVal
+  lastKey = [shifts, edits]
+  lastVal = buildSchedule(shifts, edits)
   return lastVal
 }
 export const LAST_STUDY_DATE = PLAN_LAST

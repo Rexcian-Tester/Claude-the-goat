@@ -1,6 +1,6 @@
 import { addDays, diffDays } from '../data/dhaka'
 import { allChapters, chaptersBySubject, realQuestions, allQuestions } from '../data/catalog'
-import { PLAN_START, PLAN_LAST, type PlanItem } from '../data/plan'
+import { PLAN_START, PLAN_LAST, planDays, type PlanItem } from '../data/plan'
 import { repeats } from '../data/repeats'
 import type { Chapter, Subject, Tier } from '../data/types'
 import { dayProgress, ownTasks, taskState } from './dayStatus'
@@ -113,7 +113,7 @@ function completedOn(r: Reader, row: Row, rows: Row[]): string | null {
   const dp = dayProgress(r, row, rows)
   if (!dp.complete) return null
   let t = 0
-  for (const x of ownTasks(row)) t = Math.max(t, r.t(K.task(x.date, x.itemIdx, x.i)) ?? 0, r.t(K.moved(x.date, x.itemIdx, x.i)) ?? 0)
+  for (const x of ownTasks(row)) t = Math.max(t, r.t(x.tk) ?? 0, r.t(x.mk) ?? 0)
   t = Math.max(t, r.t(K.dayDone(row.date)) ?? 0)
   return t ? new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Dhaka' }).format(new Date(t)) : row.date
 }
@@ -127,13 +127,14 @@ export function burnUp(r: Reader, rows: Row[], today: string): BurnPoint[] {
   const study = rows.filter((x) => !x.isBuffer)
   const end = today < PLAN_LAST ? today : PLAN_LAST
   const done = study.map((x) => completedOn(r, x, rows)).filter((d): d is string => !!d)
+  const planned = planDays.filter((x) => !x.isBuffer)
   const out: BurnPoint[] = []
   const n = diffDays(PLAN_START, end)
   for (let i = 0; i <= n; i++) {
     const date = addDays(PLAN_START, i)
     out.push({
       date,
-      planned: study.filter((x) => x.date <= date).length, // original schedule
+      planned: planned.filter((x) => x.date <= date).length, // original schedule
       actual: done.filter((d) => d <= date).length,
     })
   }
