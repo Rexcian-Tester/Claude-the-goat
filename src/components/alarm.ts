@@ -33,7 +33,8 @@ export function beep(times = 1) {
     /* ignore */
   }
   try {
-    navigator.vibrate?.([250, 120, 250])
+    // browsers refuse (and log an error) before you have tapped the page once
+    if ((navigator as Navigator & { userActivation?: { hasBeenActive: boolean } }).userActivation?.hasBeenActive !== false) navigator.vibrate?.([250, 120, 250])
   } catch {
     /* ignore */
   }

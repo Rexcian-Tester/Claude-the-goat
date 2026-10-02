@@ -794,3 +794,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible,[tabindex]:focus-visi
 :root[data-theme="dark"] .card.accent{box-shadow:inset 0 3px 0 var(--accent),var(--shadow-2)}
 /* finished days fade without turning Bangla text muddy */
 .day.st-done .body .item>:not(.topic-ctl),.item.it-done>:not(.topic-ctl){opacity:.62;filter:saturate(.7)}
+.pe-when{align-self:center}
+.pe-when button{min-width:130px}
+.pe-check{display:flex;align-items:center;gap:8px;font-size:14.5px;cursor:pointer}
+.pe-check input{width:18px;height:18px;accent-color:var(--ok)}

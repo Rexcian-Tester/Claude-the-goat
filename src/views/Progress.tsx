@@ -18,9 +18,9 @@ import type { Tier } from '../data/types'
 import { EXAM_DATE } from '../data/plan'
 import { store } from '../store/store'
 import type { LateStart } from '../logic/keys'
-import { STUDY_BLOCKS, studyBlock, type StudyBlockId } from '../logic/pomo'
+import { BLOCK_LABEL, type StudyBlockId } from '../logic/pomo'
 
-const LATE_RE = /^day:(\d{4}-\d{2}-\d{2}):late:(study-a|study-b|revision)$/
+const LATE_RE = /^day:(\d{4}-\d{2}-\d{2}):late:(study-[abcd]|revision)$/
 /** Late starts of study blocks, newest first, with a per-block summary, to see which block you put off most. */
 function LateStarts({ today }: { today: string }) {
   const rows: (LateStart & { date: string; block: StudyBlockId })[] = []
@@ -38,7 +38,7 @@ function LateStarts({ today }: { today: string }) {
         <span className="small">From Study Blocks · logged per block</span>
       </div>
       <div className="late-sum">
-        {STUDY_BLOCKS.map((b) => {
+        {(['study-a', 'study-b', 'study-c', 'study-d'] as StudyBlockId[]).map((id) => ({ id, label: BLOCK_LABEL[id] })).map((b) => {
           const mine = rows.filter((r) => r.block === b.id)
           const avg = mine.length ? Math.round(mine.reduce((n, r) => n + r.min, 0) / mine.length) : 0
           const studied = [...week].reduce((n, d) => n + (store.get<number>(K.focusMs(d, b.id)) ?? 0), 0)
@@ -58,7 +58,7 @@ function LateStarts({ today }: { today: string }) {
           {rows.slice(0, 40).map((r) => (
             <div key={`${r.date}-${r.block}`} className="late-r">
               <span className="num">{dateEn(r.date)}</span>
-              <b>{studyBlock(r.block).label}</b>
+              <b>{BLOCK_LABEL[r.block]}</b>
               <span className="status partial">{r.min} min late</span>
               <span className="late-why">{r.reason}</span>
             </div>

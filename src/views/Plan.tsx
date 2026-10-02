@@ -29,7 +29,6 @@ const STATUS_LABEL: Record<St, string> = { done: 'Done', partial: 'In progress',
 function ItemLine({ row, sched, today }: { row: Row; sched: Schedule; today: string }) {
   const r = useReader()
   const rows = sched.rows
-  const editable = row.eff !== null && row.eff <= today
   if (row.isFree) return row.note ? <div className="free-note">✓ {row.note}</div> : <div className="topics-t muted">খালি দিন · এই দিনের কাজ অন্য দিনে সরানো হয়েছে</div>
   return (
     <>
@@ -51,7 +50,7 @@ function ItemLine({ row, sched, today }: { row: Row; sched: Schedule; today: str
             {it.m && <div className="note">{it.m}</div>}
             {it.src && it.date !== row.date && <div className="small moved-from">↪ planned for {dateBn(it.date)}</div>}
             <EditNote item={it} />
-            {editable && it.k !== 'buf' && <TopicControls row={row} item={it} sched={sched} today={today} />}
+            {it.k !== 'buf' && <TopicControls row={row} item={it} sched={sched} today={today} />}
           </div>
         )
       })}

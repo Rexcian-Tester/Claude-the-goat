@@ -6,7 +6,7 @@ import { beep, unlockAudio, useWakeLock } from '../components/alarm'
 import type { FocusConfig, FocusSession } from '../logic/focus'
 import * as P from '../logic/pomo'
 import { go, href, useRoute } from '../router'
-import { usePomo } from '../study/engine'
+import { dhakaMinute, usePomo } from '../study/engine'
 import { StudyBlocks, timerView, useTick } from '../study/StudyBlocks'
 
 /* Everything here lives on this device only (localStorage): a session survives page changes and reloads. */
@@ -366,7 +366,7 @@ function StudyMini() {
   return (
     <a className="sb-mini" href={href.focusTab('blocks')} onClick={(e) => { e.preventDefault(); go(href.focusTab('blocks'), true) }}>
       <span className={`sb-mini-dot ${P.running(s) ? 'on' : ''}`} aria-hidden="true" />
-      <span>{what}{s.mode === 'study' && s.block && ` · ${P.studyBlock(s.block).label}`}</span>
+      <span>{what}{s.mode === 'study' && s.block && ` · ${P.studyBlock(P.attributeBlock(dhakaMinute(now))).label}`}</span>
       {(s.phase === 'focus' || s.phase === 'flow' || s.phase === 'break') && <b>{v.big}{s.phase !== 'flow' && ' left'}</b>}
     </a>
   )

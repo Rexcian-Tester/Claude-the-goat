@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { dateBn, dateEn, WD_BN } from '../data/bn'
 import { addDays, weekdayIndex } from '../data/dhaka'
-import { itemByKey, PLAN_LAST, type PlanItem } from '../data/plan'
+import { itemByKey, PLAN_LAST, PLAN_START, type PlanItem } from '../data/plan'
 import { duesList, topicOn, type Due } from '../logic/dues'
-import { topicMarkKey } from '../logic/dayStatus'
-import { evenSplit, movePart, resetTopic, splitPart, undoTarget, versionBefore, type PlanEdits } from '../logic/planEdits'
+import { markKeyFor, topicMarkKey } from '../logic/dayStatus'
+import { evenSplit, movePart, partsOf, resetTopic, splitPart, undoTarget, versionBefore, type PlanEdits } from '../logic/planEdits'
 import type { Row, Schedule } from '../logic/schedule'
 import { go, href } from '../router'
 import { store, useStoreVersion } from '../store/store'
@@ -86,14 +86,25 @@ export function TopicSheet({ row, item, sched, today, mode: initial = 'move', on
     evenSplit(subs, k).map((s, j) => ({ date: j === 0 ? start : addDays(start, j) <= PLAN_LAST ? addDays(start, j) : PLAN_LAST, subs: s, note: j === 0 ? item.editNote ?? '' : '' }))
   const [parts, setParts] = useState<DraftPart[]>(() => draft(2))
   const [ask, setAsk] = useState<{ days: { date: string; items: PlanItem[] }[]; apply: () => void } | null>(null)
+  /** Move to an upcoming day, or send it to a past day (to record that you did it then) */
+  const [when, setWhen] = useState<'up' | 'past'>('up')
+  const [doneThen, setDoneThen] = useState(true)
+  const yesterday = addDays(today, -1)
 
   const rowFor = (d: string) => sched.byEff.get(d)
-  const dateError = (d: string) => (!d ? 'Pick a day.' : d < today ? 'Pick today or a later day.' : d > PLAN_LAST ? `The study plan ends on ${dateEn(PLAN_LAST)}.` : !rowFor(d) ? 'There is no plan day on that date.' : '')
+  const dateError = (d: string, allowPast = true) =>
+    !d ? 'Pick a day.'
+    : d < PLAN_START ? `The plan starts on ${dateEn(PLAN_START)}.`
+    : !allowPast && d < today ? 'Pick today or a later day.'
+    : d > PLAN_LAST ? `The study plan ends on ${dateEn(PLAN_LAST)}.`
+    : !rowFor(d) ? 'There is no plan day on that date.' : ''
+  const moveError = when === 'past' ? (date >= today ? 'Pick a day before today.' : dateError(date)) : dateError(date, false)
   /** other topics on a day (not this part itself) */
   const others = (d: string) => (rowFor(d)?.items ?? []).filter((x) => !(srcOf(x) === src && pidOf(x) === pid))
   const edits = () => currentEdits()
-  const save = (next: PlanEdits, label: string) => {
+  const save = (next: PlanEdits, label: string, marks: [string, unknown][] = []) => {
     if (!commitEdits(next, label)) return toast('Too many changes to save. Reset some topics first.')
+    if (marks.length) store.setMany(marks)
     toast('Saved. Undo it any time from Edit planner.')
     onClose()
   }
@@ -101,16 +112,30 @@ export function TopicSheet({ row, item, sched, today, mode: initial = 'move', on
   const doMove = () => {
     const target = rowFor(date)!
     const sameDay = target.date === row.date
-    const apply = () => save(movePart(edits(), src, nSubs, pid, target.date, note), sameDay ? `Note on ${item.ch}` : `Moved ${item.ch}${item.parts ? ` (Part ${item.partNo})` : ''} to ${dateEn(date)}`)
+    const past = when === 'past'
+    const apply = () =>
+      save(
+        movePart(edits(), src, nSubs, pid, target.date, note),
+        sameDay ? `Note on ${item.ch}` : `${past ? 'Sent' : 'Moved'} ${item.ch}${item.parts ? ` (Part ${item.partNo})` : ''} to ${dateEn(date)}`,
+        past && doneThen ? [[markKeyFor(src, pid), 'done']] : [],
+      )
     const has = sameDay ? [] : others(date)
     if (has.length) setAsk({ days: [{ date, items: has }], apply })
     else apply()
   }
   const missing = subs.filter((s) => !parts.some((p) => p.subs.includes(s)))
   const splitError = parts.some((p) => !p.subs.length) ? 'Every part needs at least one subtopic.' : missing.length ? `Not in any part yet: ${missing.map((s) => orig.topicList[s]).join(', ')}` : parts.map((p) => dateError(p.date)).find(Boolean) ?? ''
+  const anyPast = parts.some((p) => p.date && p.date < today)
   const doSplit = () => {
     const into = parts.map((p) => ({ row: rowFor(p.date)!.date, subs: p.subs, note: p.note }))
-    const apply = () => save(splitPart(edits(), src, nSubs, pid, into), `Split ${item.ch} into ${parts.length} parts`)
+    const apply = () => {
+      const before = partsOf(edits(), src, nSubs)
+      const next = splitPart(edits(), src, nSubs, pid, into)
+      // parts sent to a past day can be marked Done right away (you did them then)
+      const fresh = partsOf(next, src, nSubs).slice(before.findIndex((p) => p.id === pid))
+      const marks: [string, unknown][] = doneThen ? parts.flatMap((p, k) => (p.date < today && fresh[k] ? [[markKeyFor(src, fresh[k].id), 'done'] as [string, unknown]] : [])) : []
+      save(next, `Split ${item.ch} into ${parts.length} parts`, marks)
+    }
     const days = [...new Set(parts.map((p) => p.date))].filter((d) => d !== row.eff).map((d) => ({ date: d, items: others(d) })).filter((d) => d.items.length)
     if (days.length) setAsk({ days, apply })
     else apply()
@@ -120,7 +145,8 @@ export function TopicSheet({ row, item, sched, today, mode: initial = 'move', on
     const has = parts[k].subs.includes(s)
     setPart(k, { subs: has ? parts[k].subs.filter((x) => x !== s) : subs.filter((x) => x === s || parts[k].subs.includes(x)) })
   }
-  const quick = [0, 1, 2, 3].map((k) => addDays(start, k)).filter((d) => d <= PLAN_LAST)
+  const quick = when === 'past' ? [1, 2, 3].map((k) => addDays(today, -k)).filter((d) => d >= PLAN_START) : [0, 1, 2, 3].map((k) => addDays(start, k)).filter((d) => d <= PLAN_LAST)
+  const pickWhen = (w: 'up' | 'past') => (setWhen(w), setDate(w === 'past' ? (yesterday >= PLAN_START ? yesterday : PLAN_START) : start))
 
   return (
     <Sheet title="Edit topic" onClose={onClose}>
@@ -139,21 +165,29 @@ export function TopicSheet({ row, item, sched, today, mode: initial = 'move', on
 
       {mode === 'move' ? (
         <div className="stack pe-pane" key="move">
+          <div className="seg slide pe-when" role="group" aria-label="Upcoming or past day" style={{ ['--i' as string]: when === 'up' ? 0 : 1, ['--n' as string]: 2 }}>
+            <button type="button" aria-pressed={when === 'up'} onClick={() => pickWhen('up')}>Upcoming day</button>
+            <button type="button" aria-pressed={when === 'past'} disabled={today <= PLAN_START} onClick={() => pickWhen('past')}>Send to past</button>
+          </div>
+          {when === 'past' && <p className="small">Already did it on an earlier day? Send it there so the plan shows when you really studied it.</p>}
           <div className="field">
             <label htmlFor="pe-date">Day</label>
             <div className="pe-quick">
-              {quick.map((d) => <button key={d} type="button" className="btn sm" aria-pressed={d === date} onClick={() => setDate(d)}>{d === today ? 'Today' : d === addDays(today, 1) ? 'Tomorrow' : dateBn(d)}</button>)}
-              <input id="pe-date" className="input pe-date" type="date" min={today} max={PLAN_LAST} value={date} onChange={(e) => setDate(e.target.value)} />
+              {quick.map((d) => <button key={d} type="button" className="btn sm" aria-pressed={d === date} onClick={() => setDate(d)}>{d === today ? 'Today' : d === addDays(today, 1) ? 'Tomorrow' : d === yesterday ? 'Yesterday' : dateBn(d)}</button>)}
+              <input id="pe-date" className="input pe-date" type="date" min={when === 'past' ? PLAN_START : today} max={when === 'past' ? yesterday : PLAN_LAST} value={date} onChange={(e) => setDate(e.target.value)} />
             </div>
-            {date && !dateError(date) && <span className="small">{dayLabel(date)}{others(date).length ? ` · already has ${others(date).map((x) => x.ch).join(', ')}` : ' · nothing else that day'}</span>}
-            {dateError(date) && <span className="small bad-t">{dateError(date)}</span>}
+            {date && !moveError && <span className="small">{dayLabel(date)}{others(date).length ? ` · already has ${others(date).map((x) => x.ch).join(', ')}` : ' · nothing else that day'}</span>}
+            {moveError && <span className="small bad-t">{moveError}</span>}
           </div>
+          {when === 'past' && (
+            <label className="pe-check"><input type="checkbox" checked={doneThen} onChange={(e) => setDoneThen(e.target.checked)} /> I finished it that day (mark it Done)</label>
+          )}
           <div className="field">
             <label htmlFor="pe-note">Note for future you (optional)</label>
             <textarea id="pe-note" className="input" rows={2} maxLength={300} value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. only the velocity–time graph" />
           </div>
-          <button type="button" className="btn primary big" disabled={!can.ok || !!dateError(date)} onClick={doMove}>
-            {rowFor(date)?.date === row.date ? 'Save note' : `Move to ${date ? dateBn(date) : '…'}`}
+          <button type="button" className="btn primary big" disabled={!can.ok || !!moveError} onClick={doMove}>
+            {rowFor(date)?.date === row.date ? 'Save note' : `${when === 'past' ? 'Send' : 'Move'} to ${date ? dateBn(date) : '…'}`}
           </button>
         </div>
       ) : (
@@ -169,7 +203,7 @@ export function TopicSheet({ row, item, sched, today, mode: initial = 'move', on
           {parts.map((p, k) => (
             <div key={k} className="pe-part">
               <div className="pe-part-h"><b>Part {k + 1}</b>
-                <input className="input pe-date" type="date" aria-label={`Part ${k + 1} day`} min={today} max={PLAN_LAST} value={p.date} onChange={(e) => setPart(k, { date: e.target.value })} />
+                <input className="input pe-date" type="date" aria-label={`Part ${k + 1} day`} min={PLAN_START} max={PLAN_LAST} value={p.date} onChange={(e) => setPart(k, { date: e.target.value })} />
               </div>
               {p.date && !dateError(p.date) ? <span className="small">{dayLabel(p.date)}</span> : <span className="small bad-t">{dateError(p.date)}</span>}
               <div className="pe-chips">
@@ -178,6 +212,8 @@ export function TopicSheet({ row, item, sched, today, mode: initial = 'move', on
               <input className="input" maxLength={300} value={p.note} onChange={(e) => setPart(k, { note: e.target.value })} placeholder="Note for this part (optional)" aria-label={`Part ${k + 1} note`} />
             </div>
           ))}
+          <p className="small">A part can go on a past day too, for the bit you already did.</p>
+          {anyPast && <label className="pe-check"><input type="checkbox" checked={doneThen} onChange={(e) => setDoneThen(e.target.checked)} /> Mark parts on past days as Done</label>}
           {splitError && <p className="small bad-t">{splitError}</p>}
           <button type="button" className="btn primary big" disabled={!can.ok || !!splitError} onClick={doSplit}>Split into {parts.length} parts</button>
         </div>

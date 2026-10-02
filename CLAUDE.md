@@ -29,7 +29,11 @@ Progress syncs through a Pages Function + KV (`functions/api/sync.ts`). See `REA
 - A topic's own Due / Done (`task:<topic key>:status`, `topicMark` in `src/logic/dayStatus.ts`) wins over its ticks and
   the day's "mark done"; with any mark on a day, the day is done only when every topic is done.
 - Study Blocks (Focus): one app-wide timer in `src/study/engine.tsx`; logged study time and late starts are synced
-  under `day:<date>:focus:*` / `day:<date>:late:*`.
+  under `day:<date>:focus:*` / `day:<date>:late:*`. Blocks come from the day's routine (`routineFor(date)` in
+  `src/views/Routine.tsx`: weekdays A + "B & Revision"; Fridays A, B & Revision, C, D with Jumu'ah 12:30–2:30).
+  Study time is logged as you go and split by `splitStudy` (`src/logic/pomo.ts`): it counts to the block whose
+  window it is in, and once that block reaches its target the extra fills the earliest block still short.
+  `revision` ids only exist in data from before the merge.
 - Tests: `npm test` (vitest). Build: `npm run build`. Always run both before pushing.
 
 ## Deploying (read this before every push)

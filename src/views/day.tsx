@@ -192,13 +192,12 @@ export function DayTasks({ row, sched }: { row: Row; sched: Schedule }) {
   const today = useToday()
   const p = dayProgress(r, row, sched.rows)
   const inbound = p.tasks.filter((t) => t.date !== row.date)
-  const editable = row.eff !== null && row.eff <= today
   return (
     <>
       {row.items.map((item) => (
         <div key={item.key} className="stack" style={{ gap: 6 }}>
           <ItemHeader item={item} />
-          {editable && item.k !== 'buf' && <TopicControls row={row} item={item} sched={sched} today={today} />}
+          {item.k !== 'buf' && <TopicControls row={row} item={item} sched={sched} today={today} />}
           <ItemTasks row={row} item={item} />
         </div>
       ))}

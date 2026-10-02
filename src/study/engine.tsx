@@ -6,7 +6,7 @@ import { studyBlock, type StudyBlockId } from '../logic/pomo'
 import { store } from '../store/store'
 import { askNotify, beep, notify, unlockAudio, useWakeLock } from '../components/alarm'
 import { DONE_QUOTES, pickQuote, QUOTES } from './quotes'
-import { blockAt, ROUTINE } from '../views/Routine'
+import { blockAt, type RoutineBlock } from '../views/Routine'
 
 /* One Study Blocks timer for the whole app. It lives outside any page, so it keeps running (and its pop-ups
  * appear) while you use the question timer or anything else. Timer state is per device (localStorage); the study
@@ -43,17 +43,20 @@ interface DayInfo {
   celebrated: string[]
   ended: string[]
   started: string[]
+  /** blocks you were reminded about because they started and you hadn't */
+  nudged: string[]
 }
 type Dialog =
-  | { type: 'collide'; block: (typeof ROUTINE)[number] }
+  | { type: 'collide'; block: RoutineBlock }
   | { type: 'late'; block: StudyBlockId; min: number }
+  | { type: 'lateNudge'; block: StudyBlockId; min: number }
   | { type: 'celebrate'; block: StudyBlockId; quote: number }
   | { type: 'blockEnd'; block: StudyBlockId }
   | null
 
 let state: P.PomoState = read(LS, P.idle())
 let config: P.PomoConfig = read(LS_CFG, P.DEFAULT_CONFIG)
-let day: DayInfo = read(LS_DAY, { date: '', ok: [], celebrated: [], ended: [], started: [] })
+let day: DayInfo = read(LS_DAY, { date: '', ok: [], celebrated: [], ended: [], started: [], nudged: [] })
 let dialog: Dialog = null
 let pendingStart = false
 let version = 0
@@ -81,7 +84,8 @@ export function setConfig(c: P.PomoConfig) {
 }
 function today(): DayInfo {
   const d = todayISO()
-  if (day.date !== d) day = { date: d, ok: [], celebrated: [], ended: [], started: [] }
+  if (day.date !== d) day = { date: d, ok: [], celebrated: [], ended: [], started: [], nudged: [] }
+  day.nudged ??= []
   return day
 }
 function saveDay() {
@@ -93,23 +97,34 @@ const setDialog = (d: Dialog) => {
 }
 
 /* ---------- study time per block (synced) ---------- */
-export const targetMs = (id: StudyBlockId, c = config) => P.effectiveTarget(P.blockMinutes(studyBlock(id)), c) * 60000
+export const targetMs = (id: StudyBlockId, c = config, date = todayISO()) => P.effectiveTarget(P.blockMinutes(studyBlock(id, date)), c) * 60000
 export const loggedMs = (date: string, id: StudyBlockId) => store.get<number>(K.focusMs(date, id)) ?? 0
-function logStudy(ms: number) {
-  if (ms <= 0 || state.mode !== 'study' || !state.block) return
-  const date = todayISO()
-  const id = state.block
-  const total = loggedMs(date, id) + ms
-  store.set(K.focusMs(date, id), Math.round(total))
+/** Log the study time of [from, to): it counts to the block you were in, and once that block is full, back to
+ *  the earliest block still short (see P.splitStudy). */
+function logStudy(from: number, to: number) {
+  if (to <= from || state.mode !== 'study') return
+  const date = todayISO(to)
+  const pieces = P.splitStudy(from, to, date, (id) => loggedMs(date, id), (id) => targetMs(id, config, date))
+  if (!pieces.length) return
+  store.setMany(pieces.map(([id, ms]) => [K.focusMs(date, id), Math.round(loggedMs(date, id) + ms)]))
   const d = today()
-  if (total >= targetMs(id) && !d.celebrated.includes(id)) {
+  for (const [id] of pieces) {
+    if (loggedMs(date, id) < targetMs(id, config, date) || d.celebrated.includes(id)) continue
     d.celebrated.push(id)
     saveDay()
     store.set(K.routine(date, id), true) // tick the block in Routine
     beep(2)
-    notify(`${studyBlock(id).label} complete`, 'Target reached. Well done.')
+    notify(`${studyBlock(id, date).label} complete`, 'Target reached. Well done.')
     setDialog({ type: 'celebrate', block: id, quote: Math.floor(Math.random() * 1e6) })
+    break
   }
+}
+/** Log everything studied in the running session so far. */
+function flush(now = Date.now()) {
+  const unl = P.unlogged(state, now)
+  if (unl <= 0) return
+  logStudy(now - unl, now)
+  setState(P.markLogged(state, now))
 }
 
 /** is a question-timer session running right now (it lives in localStorage, see Focus.tsx) */
@@ -136,18 +151,19 @@ export const actions = {
     const min = dhakaMinute(now)
     if (state.mode === 'study') {
       const d = today()
-      const coll = P.collidingBlock(min)
+      const coll = P.collidingBlock(min, d.date)
       if (coll && !d.ok.includes(coll.id)) {
         pendingStart = true
         return setDialog({ type: 'collide', block: coll })
       }
-      const block = P.attributeBlock(min)
-      const late = P.minutesLate(block, min, config.grace)
-      if (late && loggedMs(d.date, block) === 0 && !store.get(K.late(d.date, block))) {
+      // late: starting a block's first session after its start (plus the grace minutes)
+      const win = P.blockIn(min, d.date)
+      const late = win ? P.minutesLate(win.id, min, config.grace, d.date) : 0
+      if (win && late && loggedMs(d.date, win.id) === 0 && !store.get(K.late(d.date, win.id))) {
         pendingStart = true
-        return setDialog({ type: 'late', block, min: late })
+        return setDialog({ type: 'late', block: win.id, min: late })
       }
-      return setState(P.startFocus(state, now, config, block))
+      return setState(P.startFocus(state, now, config, P.attributeBlock(min, d.date)))
     }
     setState(P.startFocus(state, now, config, null))
   },
@@ -172,14 +188,22 @@ export const actions = {
     setState(P.startFocus(state, Date.now(), config, block))
   },
   closeDialog: () => setDialog(null),
-  pause: () => setState(P.pause(state, Date.now())),
+  /** from the "block started, you're late" reminder */
+  startNow() {
+    setDialog(null)
+    actions.start()
+  },
+  pause() {
+    flush()
+    setState(P.pause(state, Date.now()))
+  },
   resume: () => setState(P.resume(state, Date.now())),
   takeBreak: () => setState(P.startBreak(state, Date.now(), config)),
   flow: () => setState(P.enterFlow(state, Date.now())),
   stopFlow() {
-    const r = P.stopFlow(state, Date.now(), config)
-    logStudy(r.studied)
-    setState(r.state)
+    const now = Date.now()
+    flush(now)
+    setState(P.stopFlow(state, now, config).state)
   },
   breakFor(minutes: number) {
     setState(P.startBreak(state, Date.now(), config, Math.max(1, Math.min(120, Math.round(minutes)))))
@@ -188,13 +212,12 @@ export const actions = {
   /** end the current study session early; the time done still counts */
   stop() {
     if (state.phase === 'flow') return actions.stopFlow()
-    const r = P.stopFocus(state, Date.now())
-    logStudy(r.studied)
-    setState({ ...r.state, len: 0 }) // len 0: no "break over" pop-up for a session you stopped yourself
+    const now = Date.now()
+    flush(now)
+    setState({ ...P.stopFocus(state, now).state, len: 0 }) // len 0: no "break over" pop-up for a session you stopped yourself
   },
   reset() {
-    if (state.phase === 'focus') logStudy(P.elapsed(state, Date.now()))
-    if (state.phase === 'flow') logStudy(P.unlogged(state, Date.now()))
+    flush()
     setState(P.idle(state.mode))
   },
 }
@@ -206,9 +229,8 @@ function tick() {
   if (due !== null && now >= due) {
     if (state.phase === 'focus') {
       const auto = questionRunning()
-      const r = P.endFocus(state, due, config, auto)
-      logStudy(r.studied)
-      setState(r.state)
+      flush(due)
+      setState(P.endFocus(state, due, config, auto).state)
       beep(auto ? 1 : 2)
       notify(auto ? 'Flow state on' : 'Session done', auto ? 'You are solving questions, so the study timer keeps counting.' : 'Take your break, or keep going in flow state.')
     } else if (state.phase === 'break') {
@@ -217,16 +239,26 @@ function tick() {
       notify('Break over', 'Back to it: start the next session.')
     }
   }
+  // log as you go, so progress, the block it counts to and the target pop-up are always current
+  else if (P.running(state) && P.unlogged(state, now) >= 15000) flush(now)
   // block start reminders and block-end summaries (study mode only)
   if (state.mode !== 'study') return
   const d = today()
   const min = dhakaMinute(now)
   let changed = false
-  for (const b of P.STUDY_BLOCKS) {
+  for (const b of P.studyBlocks(d.date)) {
     if (min >= b.from && min < b.from + 5 && !d.started.includes(b.id)) {
       d.started.push(b.id)
       changed = true
       notify(`${b.label} starts now`, 'Open MIST Prep and start your first session.')
+    }
+    // the block started a while ago and you haven't: remind you (once), and the start asks why
+    if (min >= b.from + config.grace && min < b.to && !d.nudged.includes(b.id) && !dialog && !P.isStudy(state) && loggedMs(d.date, b.id) === 0 && !store.get(K.late(d.date, b.id))) {
+      d.nudged.push(b.id)
+      changed = true
+      beep(1)
+      notify(`${b.label} started at ${clock12(b.from)}`, `You're ${min - b.from} min late. Open MIST Prep and start.`)
+      setDialog({ type: 'lateNudge', block: b.id, min: min - b.from })
     }
     // the block is over: say so once the session running into it has finished (it runs its natural course)
     if (min >= b.to && min < b.to + 60 && !d.ended.includes(b.id) && !dialog && !P.isStudy(state) && loggedMs(d.date, b.id) > 0) {
@@ -255,10 +287,10 @@ export const clock12 = (min: number) => {
   return `${h % 12 || 12}:${String(min % 60).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`
 }
 /** what comes after a study block ends: the routine block now, and the next study block */
-export function afterBlock(id: StudyBlockId) {
-  const b = studyBlock(id)
-  const nowBlock = blockAt(b.to)
-  const next = P.STUDY_BLOCKS.find((x) => x.from >= b.to)
+export function afterBlock(id: StudyBlockId, date = todayISO()) {
+  const b = studyBlock(id, date)
+  const nowBlock = blockAt(b.to, date)
+  const next = P.studyBlocks(date).find((x) => x.from >= b.to)
   return { nowBlock, next }
 }
 
@@ -333,6 +365,18 @@ export function StudyEngineHost() {
       </Dlg>
     )
   if (dlg?.type === 'late') return <LateForm block={dlg.block} min={dlg.min} />
+  if (dlg?.type === 'lateNudge') {
+    const b = studyBlock(dlg.block)
+    return (
+      <Dlg label="Study block started">
+        <div className="dlg-ic" aria-hidden="true">⏰</div>
+        <p className="dlg-t">{b.label} started at {clock12(b.from)}.</p>
+        <p className="dlg-s">You're {dlg.min} min late. Start now; it will ask what happened and log it under Progress → Late starts.</p>
+        <button type="button" className="fc-done" autoFocus onClick={actions.startNow}>Start now</button>
+        <button type="button" className="fc-b ghost" onClick={actions.closeDialog}>Later</button>
+      </Dlg>
+    )
+  }
   if (dlg?.type === 'celebrate') {
     const q = pickQuote(DONE_QUOTES, dlg.quote)
     const { nowBlock, next } = afterBlock(dlg.block)

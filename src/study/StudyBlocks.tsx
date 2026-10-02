@@ -50,9 +50,10 @@ function Clock({ now, study }: { now: number; study: boolean }) {
   const t = new Date(now + 6 * 3600000)
   const h = t.getUTCHours()
   const min = dhakaMinute(now)
-  const cur = blockAt(min)
+  const date = todayISO(now)
+  const cur = blockAt(min, date)
   const left = (cur.to - min + 1440) % 1440
-  const next = P.STUDY_BLOCKS.find((b) => b.from > min)
+  const next = P.studyBlocks(date).find((b) => b.from > min)
   return (
     <div className="sb-clock">
       <div className="sb-time" aria-label="Bangladesh time">
@@ -81,7 +82,7 @@ function Timer({ now }: { now: number }) {
   return (
     <div className={`focus-hero sb-hero ${brk ? 'brk' : ''} ${s.phase === 'flow' ? 'flow' : ''} ${paused ? 'paused' : ''}`}>
       <div className="fc-top">
-        <span className="fc-q">{label}{s.mode === 'study' && s.block && (counting || s.phase === 'ask') && <span> · {P.studyBlock(s.block).label}</span>}</span>
+        <span className="fc-q">{label}{s.mode === 'study' && (counting || s.phase === 'ask') && s.phase !== 'break' && <span> · {P.studyBlock(P.attributeBlock(dhakaMinute(now))).label}</span>}</span>
         {paused && <span className="fc-paused">Paused</span>}
       </div>
       <div className="fc-dial">
@@ -121,9 +122,9 @@ function Timer({ now }: { now: number }) {
 }
 
 function BlockRow({ id, date, live }: { id: P.StudyBlockId; date: string; live: number }) {
-  const b = P.studyBlock(id)
+  const b = P.studyBlock(id, date)
   const done = loggedMs(date, id) + live
-  const target = targetMs(id)
+  const target = targetMs(id, undefined, date)
   const late = useField<LateStart | undefined>(K.late(date, id), undefined)
   const pct = Math.min(1, done / target)
   return (
@@ -173,7 +174,7 @@ function Settings() {
           {field('every', 'Long break after (sessions)', 1, 12)}
           {field('grace', 'Late after (min)', 0, 60)}
         </div>
-        <p className="small">Targets with these settings: {P.STUDY_BLOCKS.map((b) => `${b.label} ${fmtDur(targetMs(b.id, c))}`).join(' · ')}. Changes apply from the next session.</p>
+        <p className="small">Targets with these settings: {P.studyBlocks().map((b) => `${b.label} ${fmtDur(targetMs(b.id, c))}`).join(' · ')}{P.studyBlocks().length < 4 && ' (Fridays have Study Blocks C and D as well)'}. Changes apply from the next session.</p>
         <button type="button" className="btn sm" onClick={() => {
           setConfig(P.DEFAULT_CONFIG)
           setRaw(Object.fromEntries(Object.entries(P.DEFAULT_CONFIG).map(([k, v]) => [k, String(v)])) as Record<keyof P.PomoConfig, string>)
@@ -252,9 +253,12 @@ export function StudyBlocks() {
   useStoreVersion()
   const date = todayISO(now)
   const study = s.mode === 'study'
-  const live = (id: P.StudyBlockId) => (study && s.block === id ? P.unlogged(s, now) : 0)
-  const total = P.STUDY_BLOCKS.reduce((n, b) => n + loggedMs(date, b.id) + live(b.id), 0)
-  const target = P.STUDY_BLOCKS.reduce((n, b) => n + targetMs(b.id), 0)
+  const blocks = P.studyBlocks(date)
+  // the few seconds not logged yet show on the block they will count to
+  const liveBlock = study && P.isStudy(s) ? P.attributeBlock(dhakaMinute(now), date) : null
+  const live = (id: P.StudyBlockId) => (id === liveBlock ? P.unlogged(s, now) : 0)
+  const total = blocks.reduce((n, b) => n + loggedMs(date, b.id) + live(b.id), 0)
+  const target = blocks.reduce((n, b) => n + targetMs(b.id, undefined, date), 0)
   const frac = Math.min(1, total / target)
   // a new line every 10% of the day's target, so it changes as you go
   const q = pickQuote(QUOTES, Math.floor(frac * 10) + Number(date.slice(8)))
@@ -277,8 +281,8 @@ export function StudyBlocks() {
             <span className="num">{fmtDur(total)} / {fmtDur(target)}</span>
           </div>
           <span className="bar sb-total"><i style={{ width: `${frac * 100}%` }} /></span>
-          {P.STUDY_BLOCKS.map((b) => <BlockRow key={b.id} id={b.id} date={date} live={live(b.id)} />)}
-          <p className="small">Targets are the study time a block allows with {c.focus}-min sessions and the breaks between them.</p>
+          {blocks.map((b) => <BlockRow key={b.id} id={b.id} date={date} live={live(b.id)} />)}
+          <p className="small">Targets are the study time a block allows with {c.focus}-min sessions and the breaks between them. Time counts to the block you're in; once a block is full, extra time fills the earliest block still short.</p>
         </div>
       )}
       <blockquote className="sb-quote">“{q.text}” <cite>{q.by}</cite></blockquote>

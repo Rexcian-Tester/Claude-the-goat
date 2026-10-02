@@ -19,7 +19,8 @@ export type TaskState = 'done' | 'moved' | 'cleared' | 'open'
 /** Your own Due / Done for a topic (a chapter on a day). It wins over the topic's ticks and the day's
  *  "mark this day done": a topic you mark Due stays due even with every micro-task ticked. */
 export type TopicMark = 'due' | 'done'
-export const topicMarkKey = (item: PlanItem) => `task:${item.src ?? item.key}${item.pid && item.pid !== '0' ? `#${item.pid}` : ''}:status`
+export const markKeyFor = (src: string, pid: string = '0') => `task:${src}${pid !== '0' ? `#${pid}` : ''}:status`
+export const topicMarkKey = (item: PlanItem) => markKeyFor(item.src ?? item.key, item.pid ?? '0')
 export function topicMark(r: Reader, item: PlanItem): TopicMark | undefined {
   const v = r.get<string>(topicMarkKey(item))
   return v === 'due' || v === 'done' ? v : undefined
