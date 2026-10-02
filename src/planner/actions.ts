@@ -1,5 +1,5 @@
 import { K } from '../logic/keys'
-import { EMPTY_EDITS, HISTORY_KEEP, type PlanEdits, type PlanVersion } from '../logic/planEdits'
+import { EDITS_MAX_CHARS, EMPTY_EDITS, HISTORY_KEEP, HISTORY_MAX_CHARS, undoTarget, type PlanEdits, type PlanVersion } from '../logic/planEdits'
 import { store } from '../store/store'
 import { useSyncState } from '../store/syncClient'
 
@@ -19,27 +19,41 @@ export function planHistory(): PlanVersion[] {
 }
 
 /** Save new edits; `label` says what changed (shown in the version history). False if too big to sync. */
-export function commitEdits(next: PlanEdits, label: string): boolean {
-  if (JSON.stringify(next).length > 150_000) return false
-  const now = Math.max(Date.now(), (planHistory()[0]?.at ?? 0) + 1)
+export function commitEdits(next: PlanEdits, label: string, kind: PlanVersion['kind'] = 'edit'): boolean {
+  if (JSON.stringify(next).length > EDITS_MAX_CHARS) return false
+  const hist = planHistory()
+  const now = Math.max(Date.now(), (hist[0]?.at ?? 0) + 1)
   const prev = currentEdits() ?? EMPTY_EDITS
+  const version: PlanVersion = { at: now, label, edits: prev, kind }
   const entries: [string, unknown][] = [
-    [K.planVersion(now), { at: now, label, edits: prev } satisfies PlanVersion],
+    [K.planVersion(now), version],
     [K.edits, Object.keys(next.topics).length ? next : null],
   ]
-  for (const old of planHistory().slice(HISTORY_KEEP - 1)) entries.push([K.planVersion(old.at), null])
+  // keep the newest versions within both the count and the size budget
+  let size = JSON.stringify(version).length
+  hist.forEach((h, i) => {
+    size += JSON.stringify(h).length
+    if (i >= HISTORY_KEEP - 1 || size > HISTORY_MAX_CHARS) entries.push([K.planVersion(h.at), null])
+  })
   store.setMany(entries)
   return true
+}
+
+/** Undo the last change; pressing it again keeps going back. */
+export function undoLast(): boolean {
+  const t = undoTarget(planHistory())
+  if (!t) return false
+  return commitEdits(t.edits, 'Undo', 'undo')
 }
 
 const when = (ms: number) => new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Dhaka', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true }).format(new Date(ms))
 export const versionTime = when
 
 export function restoreVersion(v: PlanVersion) {
-  commitEdits(v.edits, `Went back to the version from ${when(v.at)}`)
+  commitEdits(v.edits, `Went back to the version from ${when(v.at)}`, 'restore')
 }
 export function resetPlan() {
-  commitEdits(EMPTY_EDITS, 'Reset to the original plan')
+  commitEdits(EMPTY_EDITS, 'Reset to the original plan', 'restore')
 }
 
 /** Plan editing needs a passcode and a live, working sync, so two devices can never hold different plans. */

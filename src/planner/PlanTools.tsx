@@ -4,14 +4,14 @@ import { addDays, weekdayIndex } from '../data/dhaka'
 import { itemByKey, PLAN_LAST, type PlanItem } from '../data/plan'
 import { duesList, topicOn, type Due } from '../logic/dues'
 import { K } from '../logic/keys'
-import { evenSplit, movePart, resetTopic, splitPart, versionBefore, type PlanEdits } from '../logic/planEdits'
+import { evenSplit, movePart, resetTopic, splitPart, undoTarget, versionBefore, type PlanEdits } from '../logic/planEdits'
 import type { Row, Schedule } from '../logic/schedule'
 import { go, href } from '../router'
 import { store, useStoreVersion } from '../store/store'
 import { syncNow } from '../store/syncClient'
 import { useReader } from '../hooks'
 import { Sheet, SubjectChip, toast } from '../components/ui'
-import { commitEdits, currentEdits, planHistory, resetPlan, restoreVersion, useCanEdit, versionTime } from './actions'
+import { commitEdits, currentEdits, planHistory, resetPlan, restoreVersion, undoLast, useCanEdit, versionTime } from './actions'
 
 export type PlanTab = 'plan' | 'dues' | 'edit'
 const TABS: [PlanTab, string][] = [['plan', 'Plan'], ['dues', 'Dues'], ['edit', 'Edit planner']]
@@ -273,7 +273,7 @@ function History({ can }: { can: boolean }) {
         <span className="small">{nEdited ? `${nEdited} topic${nEdited === 1 ? '' : 's'} moved or split` : 'The plan is as it was made'}</span>
       </div>
       <div className="row-flex">
-        <button type="button" className="btn sm" disabled={!can || !hist.length} onClick={() => (restoreVersion(hist[0]), toast('Last change undone.'))}>Undo last change</button>
+        <button type="button" className="btn sm" disabled={!can || !undoTarget(hist)} onClick={() => undoLast() && toast('Last change undone.')}>Undo last change</button>
         <button type="button" className="btn sm" disabled={!can || !day} onClick={() => day && confirm(`Go back to how the plan was before ${versionTime(day.at)} (undo the last 24 hours of changes)?`) && (restoreVersion(day), toast('Back to the version from 24 hours ago.'))}>Undo the last 24 hours</button>
         <button type="button" className="btn sm danger" disabled={!can || !nEdited} onClick={() => confirm('Reset to the original plan? Every move, split and note is removed. Your ticks stay, and you can undo this from the history.') && (resetPlan(), toast('Back to the original plan.'))}>Reset to original plan</button>
       </div>

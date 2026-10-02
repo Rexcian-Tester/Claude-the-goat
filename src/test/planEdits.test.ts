@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { planDays } from '../data/plan'
 import { dayProgress, ownTasks } from '../logic/dayStatus'
-import { applyEdits, evenSplit, movePart, partsOf, resetTopic, splitPart, versionBefore, type PlanEdits } from '../logic/planEdits'
+import { applyEdits, evenSplit, movePart, partsOf, resetTopic, splitPart, undoTarget, versionBefore, type PlanEdits, type PlanVersion } from '../logic/planEdits'
 import { mapReader } from '../logic/reader'
 import { buildSchedule } from '../logic/schedule'
 import { burnUp } from '../logic/stats'
@@ -130,5 +130,18 @@ describe('dues', () => {
     // a day marked done clears its topics from Dues
     d = duesList(mapReader({ 'day:2026-10-01:done': true }), sched.rows, '2026-10-03')
     expect(d.overdue.some((x) => x.row.date === '2026-10-01')).toBe(false)
+  })
+})
+
+describe('undo', () => {
+  it('repeated undo keeps walking back', () => {
+    const v = (at: number, kind?: PlanVersion['kind']): PlanVersion => ({ at, label: String(at), edits: { v: 1, topics: {} }, kind })
+    // edit1, edit2, edit3, then two undos
+    expect(undoTarget([v(1), v(2), v(3)])?.at).toBe(3)
+    expect(undoTarget([v(1), v(2), v(3), v(4, 'undo')])?.at).toBe(2)
+    expect(undoTarget([v(1), v(2), v(3), v(4, 'undo'), v(5, 'undo')])?.at).toBe(1)
+    expect(undoTarget([v(1), v(2, 'undo')])).toBeNull()
+    // a restore counts as a change you can undo
+    expect(undoTarget([v(1), v(2, 'restore')])?.at).toBe(2)
   })
 })

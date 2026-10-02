@@ -21,6 +21,13 @@ Progress syncs through a Pages Function + KV (`functions/api/sync.ts`). See `REA
 - Progress keys are allow-listed in `src/sync/merge.ts` (`KEY_RE`); new synced keys must use an existing prefix
   (e.g. `day:<date>:…`). Keys are position-based (`task:<date>:<item>:<i>`), so moving topics on a day that
   already has ticks loses those ticks.
+- Your own plan edits (Plan → Edit planner) live in the synced field `plan:edits` and are laid over the JSON by
+  `src/logic/planEdits.ts` (`applyEdits`, used by `buildSchedule`); every change saves the previous version as
+  `plan:hist:<ms>`. Ticks belong to the topic (`PlanItem.tks`), so moved/split topics keep them. Editing is locked
+  unless the device has a passcode and a live sync (`src/planner/actions.ts`). If you change the plan JSON, existing
+  edits still point at `<original date>:<item index>`, so check `plan:edits` before reordering a day's items.
+- Study Blocks (Focus): one app-wide timer in `src/study/engine.tsx`; logged study time and late starts are synced
+  under `day:<date>:focus:*` / `day:<date>:late:*`.
 - Tests: `npm test` (vitest). Build: `npm run build`. Always run both before pushing.
 
 ## Deploying (read this before every push)

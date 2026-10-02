@@ -144,8 +144,24 @@ export interface PlanVersion {
   /** what the change was (this version is how the plan looked just before it) */
   label: string
   edits: PlanEdits
+  /** 'undo' when the change was an "Undo last change" (older versions have no kind: an edit) */
+  kind?: 'edit' | 'undo' | 'restore'
 }
 export const HISTORY_KEEP = 30
+/** The whole synced document must stay under the server's 3 MB, so edits and their history get a budget. */
+export const EDITS_MAX_CHARS = 60_000
+export const HISTORY_MAX_CHARS = 900_000
+
+/** What "Undo last change" goes back to: repeated undos keep walking back instead of undoing the undo. */
+export function undoTarget(history: PlanVersion[]): PlanVersion | null {
+  let skip = 0
+  for (const h of [...history].sort((a, b) => b.at - a.at)) {
+    if (h.kind === 'undo') skip++
+    else if (skip > 0) skip--
+    else return h
+  }
+  return null
+}
 
 /** The version to restore to undo everything changed in the last `ms` (default 24 hours), or null. */
 export function versionBefore(history: PlanVersion[], now: number, ms = 24 * 3600000): PlanVersion | null {
