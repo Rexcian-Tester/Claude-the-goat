@@ -18,9 +18,17 @@ export interface EditPart {
 export interface PlanEdits {
   v: 1
   topics: Record<string, { parts: EditPart[] }>
+  /** the order you dragged a day's topics into: plan day (original date) -> topic keys, top first */
+  order?: Record<string, string[]>
 }
 export const EMPTY_EDITS: PlanEdits = { v: 1, topics: {} }
-export const isEmptyEdits = (e: PlanEdits | undefined) => !e || Object.keys(e.topics).length === 0
+export const isEmptyEdits = (e: PlanEdits | undefined) => !e || (Object.keys(e.topics).length === 0 && Object.keys(e.order ?? {}).length === 0)
+
+/** Put a day's topics in this order (keys as shown on the day, top first). */
+export function setOrder(edits: PlanEdits | undefined, row: string, keys: string[]): PlanEdits {
+  const e = edits ?? EMPTY_EDITS
+  return { ...e, order: { ...(e.order ?? {}), [row]: [...keys] } }
+}
 
 const srcDate = (src: string) => src.slice(0, 10)
 const allSubs = (n: number) => Array.from({ length: n }, (_, i) => i)
@@ -44,7 +52,7 @@ function withParts(edits: PlanEdits | undefined, src: string, nSubs: number, par
     parts.length === 1 && parts[0].row === srcDate(src) && !parts[0].note && parts[0].subs.length === nSubs && parts[0].subs.every((s, i) => s === i)
   if (original) delete topics[src]
   else topics[src] = { parts }
-  return { v: 1, topics }
+  return { ...(edits ?? EMPTY_EDITS), v: 1, topics }
 }
 
 /** Move one part (or a whole unedited topic) to another plan day, and/or change its note. */
@@ -72,7 +80,7 @@ export function splitPart(edits: PlanEdits | undefined, src: string, nSubs: numb
 export function resetTopic(edits: PlanEdits | undefined, src: string): PlanEdits {
   const topics = { ...(edits ?? EMPTY_EDITS).topics }
   delete topics[src]
-  return { v: 1, topics }
+  return { ...(edits ?? EMPTY_EDITS), v: 1, topics }
 }
 
 /** Tick key for subtopic `sub` in part `pid`: the original key for the first part holding it, else its own. */
@@ -97,7 +105,7 @@ export function applyEdits(days: PlanDay[], edits: PlanEdits | undefined): PlanD
   }
   for (const d of days)
     for (const it of d.items) {
-      const e = edits!.topics[it.key]
+      const e = edits!.topics?.[it.key]
       if (!e) {
         put(d.date, [0, d.date, it.itemIdx, 0], it)
         continue
@@ -125,9 +133,20 @@ export function applyEdits(days: PlanDay[], edits: PlanEdits | undefined): PlanD
       })
     }
   const cmp = (a: [number, string, number, number], b: [number, string, number, number]) => a[0] - b[0] || a[1].localeCompare(b[1]) || a[2] - b[2] || a[3] - b[3]
+  const order = edits!.order ?? {}
+  for (const k of Object.keys(order)) if (valid.has(k)) touched.add(k)
   return days.map((d) => {
     if (!touched.has(d.date)) return d
-    const items = (placed.get(d.date) ?? []).sort((a, b) => cmp(a.order, b.order)).map((x) => x.item)
+    let items = (placed.get(d.date) ?? []).sort((a, b) => cmp(a.order, b.order)).map((x) => x.item)
+    // your own order first; topics it doesn't mention (added later) keep their place after
+    const want = order[d.date]
+    if (want) {
+      const pos = (it: PlanItem) => {
+        const i = want.indexOf(it.key)
+        return i < 0 ? want.length : i
+      }
+      items = items.map((it, i) => [it, i] as const).sort((a, b) => pos(a[0]) - pos(b[0]) || a[1] - b[1]).map(([it]) => it)
+    }
     return {
       ...d,
       items,

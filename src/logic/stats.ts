@@ -6,7 +6,8 @@ import type { Chapter, Subject, Tier } from '../data/types'
 import { dayProgress, ownTasks, taskState, topicMark, topicMarkKey } from './dayStatus'
 import { K, type QStatus } from './keys'
 import type { Reader } from './reader'
-import type { Row } from './schedule'
+import type { Row, Schedule } from './schedule'
+import { topicOn } from './dues'
 
 export const TIER_WEIGHT: Record<Tier, number> = { T1: 4, T2: 3, T3: 2, T4: 1 }
 const TIER_ORDER: Tier[] = ['T1', 'T2', 'T3', 'T4']
@@ -42,6 +43,27 @@ export const overallCompletion = (r: Reader, rows: Row[]) => {
   return { done, total: study.length, pct: study.length ? done / study.length : 0, tasks: taskCounts(r, rows, () => true) }
 }
 export const subjectCompletion = (r: Reader, rows: Row[], s: 'P' | 'C' | 'M') => taskCounts(r, rows, (i) => i.s === s)
+
+/** Whole chapters finished: a chapter counts only when every day it appears on is done for it (all its
+ *  parts, by ticks or your Done). `started` = some of it done. */
+export function chapterCompletion(r: Reader, sched: Pick<Schedule, 'rows' | 'slots'>, filter: (c: Chapter) => boolean) {
+  let done = 0
+  let total = 0
+  let started = 0
+  for (const c of allChapters) {
+    if (!filter(c)) continue
+    const slots = (sched.slots.get(c.id) ?? []).filter((s) => s.item.k !== 'buf')
+    if (!slots.length) continue
+    total++
+    const states = slots.map((s) => topicOn(r, s.row, s.item, sched.rows))
+    if (states.every((d) => d.done)) done++
+    else if (states.some((d) => d.done || d.ticked > 0)) started++
+  }
+  return { done, total, started, pct: total ? done / total : 0 }
+}
+const SUBJECT_OF: Record<'P' | 'C' | 'M', Subject> = { P: 'Phy', C: 'Chem', M: 'Math' }
+export const subjectChapters = (r: Reader, sched: Pick<Schedule, 'rows' | 'slots'>, s: 'P' | 'C' | 'M') => chapterCompletion(r, sched, (c) => c.subject === SUBJECT_OF[s])
+export const tierChapters = (r: Reader, sched: Pick<Schedule, 'rows' | 'slots'>, t: Tier) => chapterCompletion(r, sched, (c) => c.tier === t)
 export const tierCompletion = (r: Reader, rows: Row[], t: Tier) => taskCounts(r, rows, (i) => itemTier(i) === t)
 
 export interface QStats {

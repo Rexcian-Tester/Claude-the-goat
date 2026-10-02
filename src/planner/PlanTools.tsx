@@ -323,17 +323,18 @@ function History({ can }: { can: boolean }) {
   useStoreVersion()
   const hist = planHistory()
   const nEdited = Object.keys(currentEdits()?.topics ?? {}).length
+  const nOrdered = Object.keys(currentEdits()?.order ?? {}).length
   const day = versionBefore(hist, Date.now())
   return (
     <div className="card pe-hist">
       <div className="card-h">
         <h2>Your changes</h2>
-        <span className="small">{nEdited ? `${nEdited} topic${nEdited === 1 ? '' : 's'} moved or split` : 'The plan is as it was made'}</span>
+        <span className="small">{nEdited || nOrdered ? [nEdited && `${nEdited} topic${nEdited === 1 ? '' : 's'} moved or split`, nOrdered && `${nOrdered} day${nOrdered === 1 ? '' : 's'} reordered`].filter(Boolean).join(' · ') : 'The plan is as it was made'}</span>
       </div>
       <div className="row-flex">
         <button type="button" className="btn sm" disabled={!can || !undoTarget(hist)} onClick={() => undoLast() && toast('Last change undone.')}>Undo last change</button>
         <button type="button" className="btn sm" disabled={!can || !day} onClick={() => day && confirm(`Go back to how the plan was before ${versionTime(day.at)} (undo the last 24 hours of changes)?`) && (restoreVersion(day), toast('Back to the version from 24 hours ago.'))}>Undo the last 24 hours</button>
-        <button type="button" className="btn sm danger" disabled={!can || !nEdited} onClick={() => confirm('Reset to the original plan? Every move, split and note is removed. Your ticks stay, and you can undo this from the history.') && (resetPlan(), toast('Back to the original plan.'))}>Reset to original plan</button>
+        <button type="button" className="btn sm danger" disabled={!can || (!nEdited && !nOrdered)} onClick={() => confirm('Reset to the original plan? Every move, split, note and order change is removed. Your ticks stay, and you can undo this from the history.') && (resetPlan(), toast('Back to the original plan.'))}>Reset to original plan</button>
       </div>
       {hist.length > 0 && (
         <details className="pe-vers">

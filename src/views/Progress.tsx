@@ -7,7 +7,7 @@ import { PLAN_LAST, PLAN_START } from '../data/plan'
 import { behindInfo, lagLabel } from '../logic/behind'
 import { K } from '../logic/keys'
 import {
-  burnUp, movingAvg, overallCompletion, questionStats, revisionList, streak, subjectCompletion, tierCompletion, weakestChapters,
+  burnUp, movingAvg, overallCompletion, questionStats, revisionList, streak, subjectChapters, tierChapters, weakestChapters,
 } from '../logic/stats'
 import { href } from '../router'
 import { useReader, useSchedule, useToday } from '../hooks'
@@ -138,15 +138,15 @@ export function ProgressView() {
         <div className="card">
           <h2>By subject</h2>
           {(['P', 'C', 'M'] as const).map((s) => {
-            const c = subjectCompletion(r, sched.rows, s)
-            return <Meter key={s} label={<span className={`chip ${s}`}>{SUBJ_BN[s]}</span>} pct={c.pct} sub={`${pctBn(c.pct)} · ${bn(c.done)}/${bn(c.total)}`} />
+            const c = subjectChapters(r, sched, s)
+            return <Meter key={s} label={<span className={`chip ${s}`}>{SUBJ_BN[s]}</span>} pct={c.pct} sub={`${bn(c.done)}/${bn(c.total)} chapters${c.started ? ` · ${c.started} started` : ''}`} />
           })}
         </div>
         <div className="card">
           <h2>By tier</h2>
           {(['T1', 'T2', 'T3', 'T4'] as Tier[]).map((t) => {
-            const c = tierCompletion(r, sched.rows, t)
-            return <Meter key={t} label={<TierPill tier={t} />} pct={c.pct} sub={`${pctBn(c.pct)} · ${bn(c.done)}/${bn(c.total)}`} />
+            const c = tierChapters(r, sched, t)
+            return <Meter key={t} label={<TierPill tier={t} />} pct={c.pct} sub={`${bn(c.done)}/${bn(c.total)} chapters${c.started ? ` · ${c.started} started` : ''}`} />
           })}
         </div>
       </div>

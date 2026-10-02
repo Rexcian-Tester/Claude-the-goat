@@ -788,8 +788,8 @@ a:focus-visible,button:focus-visible,summary:focus-visible,[tabindex]:focus-visi
 .topic-ctl .due-seg button{min-height:32px;min-width:58px;font-size:13px}
 .topic-ctl .btn.sm{min-height:34px;font-size:13px;padding:0 12px}
 /* dark: surfaces get a faint top edge so cards read as layers on the near-black page */
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) :is(.card,.days,.rt-list,.sb-clock,.pe-days,.panel,.stat,.sb-task-list){box-shadow:inset 0 1px 0 rgba(255,255,255,.035),var(--shadow-1)}}
-:root[data-theme="dark"] :is(.card,.days,.rt-list,.sb-clock,.pe-days,.panel,.stat,.sb-task-list){box-shadow:inset 0 1px 0 rgba(255,255,255,.035),var(--shadow-1)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) :is(.card,.day,.rt-list,.sb-clock,.pe-days,.panel,.stat,.sb-task-list){box-shadow:inset 0 1px 0 rgba(255,255,255,.035),var(--shadow-1)}}
+:root[data-theme="dark"] :is(.card,.day,.rt-list,.sb-clock,.pe-days,.panel,.stat,.sb-task-list){box-shadow:inset 0 1px 0 rgba(255,255,255,.035),var(--shadow-1)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .card.accent{box-shadow:inset 0 3px 0 var(--accent),var(--shadow-2)}}
 :root[data-theme="dark"] .card.accent{box-shadow:inset 0 3px 0 var(--accent),var(--shadow-2)}
 /* finished days fade without turning Bangla text muddy */
@@ -798,3 +798,18 @@ a:focus-visible,button:focus-visible,summary:focus-visible,[tabindex]:focus-visi
 .pe-when button{min-width:130px}
 .pe-check{display:flex;align-items:center;gap:8px;font-size:14.5px;cursor:pointer}
 .pe-check input{width:18px;height:18px;accent-color:var(--ok)}
+
+/* plan list: each day its own card, with a little air between days */
+.days{gap:12px;border:none;border-radius:0;background:none;box-shadow:none;overflow:visible}
+.day,.day:last-child{border:1px solid color-mix(in srgb,var(--line) 85%,transparent);border-radius:var(--radius-lg);background:var(--panel);box-shadow:var(--shadow-1);overflow:hidden}
+.day.is-today{background:color-mix(in srgb,var(--accent-soft) 70%,var(--panel))}
+/* topics inside a day: drag by the handle to reorder */
+.items{display:flex;flex-direction:column;gap:18px;min-width:0}
+.items>.item+.item{padding-top:18px;border-top:1px dashed var(--line)}
+.item.shifting{transition:transform .22s var(--ease)}
+.item.dragging{position:relative;z-index:3;background:var(--panel);border-radius:12px;box-shadow:var(--shadow-3),0 0 0 1px color-mix(in srgb,var(--accent) 35%,transparent);transition:none;cursor:grabbing}
+.drag-h{display:inline-grid;place-items:center;width:28px;height:32px;margin-left:-6px;border:none;border-radius:8px;background:none;color:var(--muted);cursor:grab;touch-action:none;-webkit-user-select:none;user-select:none;transition:background .15s,color .15s}
+.drag-h:hover:not(:disabled){background:color-mix(in srgb,var(--ink) 7%,transparent);color:var(--ink)}
+.drag-h:active:not(:disabled){cursor:grabbing}
+.drag-h:disabled{opacity:.35;cursor:default}
+.item.dragging{padding:10px 12px;margin:-10px -12px}

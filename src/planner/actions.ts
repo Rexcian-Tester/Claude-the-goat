@@ -1,5 +1,5 @@
 import { K } from '../logic/keys'
-import { EDITS_MAX_CHARS, EMPTY_EDITS, HISTORY_KEEP, HISTORY_MAX_CHARS, undoTarget, type PlanEdits, type PlanVersion } from '../logic/planEdits'
+import { EDITS_MAX_CHARS, EMPTY_EDITS, HISTORY_KEEP, HISTORY_MAX_CHARS, isEmptyEdits, undoTarget, type PlanEdits, type PlanVersion } from '../logic/planEdits'
 import { store } from '../store/store'
 import { useSyncState } from '../store/syncClient'
 
@@ -27,7 +27,7 @@ export function commitEdits(next: PlanEdits, label: string, kind: PlanVersion['k
   const version: PlanVersion = { at: now, label, edits: prev, kind }
   const entries: [string, unknown][] = [
     [K.planVersion(now), version],
-    [K.edits, Object.keys(next.topics).length ? next : null],
+    [K.edits, isEmptyEdits(next) ? null : next],
   ]
   // keep the newest versions within both the count and the size budget
   let size = JSON.stringify(version).length

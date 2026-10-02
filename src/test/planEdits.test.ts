@@ -177,3 +177,39 @@ describe('topic Due / Done marks', () => {
     expect(topicMarkKey(moved)).toBe(topicMarkKey(chem))
   })
 })
+
+describe('day order and chapter progress', () => {
+  it('puts a day\'s topics in the order you dragged them, and keeps it through other edits', async () => {
+    const { setOrder } = await import('../logic/planEdits')
+    const d3 = planDays.find((d) => d.date === '2026-10-03')!
+    // move 1 Oct physics onto 3 Oct, then put it first
+    const phy = d1.items[1]
+    let e = movePart(undefined, phy.key, phy.topicList.length, '0', '2026-10-03', '')
+    const placed = applyEdits(planDays, e).find((d) => d.date === '2026-10-03')!
+    expect(placed.items.map((i) => i.ch)).toEqual([d3.items[0].ch, phy.ch])
+    e = setOrder(e, '2026-10-03', [placed.items[1].key, placed.items[0].key])
+    expect(applyEdits(planDays, e).find((d) => d.date === '2026-10-03')!.items.map((i) => i.ch)).toEqual([phy.ch, d3.items[0].ch])
+    // an unrelated edit keeps the order; resetting that topic does too
+    e = movePart(e, chem.key, n, '0', '2026-10-05', '')
+    expect(e.order?.['2026-10-03']).toHaveLength(2)
+    expect(resetTopic(e, chem.key).order?.['2026-10-03']).toHaveLength(2)
+    // order alone is an edit (reordering an untouched day)
+    const only = setOrder(undefined, '2026-10-01', [d1.items[1].key, d1.items[0].key])
+    expect(applyEdits(planDays, only).find((d) => d.date === '2026-10-01')!.items.map((i) => i.key)).toEqual([d1.items[1].key, d1.items[0].key])
+  })
+
+  it('subject progress counts whole chapters: done only when every day of it is done', async () => {
+    const { subjectChapters } = await import('../logic/stats')
+    const { topicMarkKey } = await import('../logic/dayStatus')
+    const sched = buildSchedule(undefined)
+    const base = subjectChapters(mapReader({}), sched, 'C')
+    expect(base.done).toBe(0)
+    // পরিমাণগত রসায়ন is on 1, 4 and 7 Oct: finishing 1 Oct only "starts" it
+    const later = ['2026-10-04', '2026-10-07'].map((d) => sched.byOrig.get(d)!.items.find((i) => i.ch === chem.ch)!)
+    const ticks = Object.fromEntries(chem.tks.map((k) => [k, true]))
+    expect(subjectChapters(mapReader(ticks), sched, 'C')).toMatchObject({ done: 0, started: 1 })
+    expect(subjectChapters(mapReader({ ...ticks, [topicMarkKey(later[0])]: 'done' }), sched, 'C')).toMatchObject({ done: 0, started: 1 })
+    const all = mapReader({ ...ticks, ...Object.fromEntries(later.map((i) => [topicMarkKey(i), 'done'])) })
+    expect(subjectChapters(all, sched, 'C')).toMatchObject({ done: 1, total: base.total })
+  })
+})

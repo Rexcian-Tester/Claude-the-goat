@@ -1,4 +1,4 @@
-import { memo, useCallback, useState } from 'react'
+import { memo, useCallback, useRef, useState } from 'react'
 import { bn, dateBn, dateEn, MONTHS_BN as MONTH_BN, WD_BN } from '../data/bn'
 import { addDays, weekdayIndex } from '../data/dhaka'
 import { studyPlan } from '../data/load'
@@ -17,6 +17,9 @@ import { BehindBanner } from './BehindBanner'
 import { DayBody, KindBadges, Methods } from './day'
 import { topicOn } from '../logic/dues'
 import { DuesView, EditNote, EditorView, PartTag, PlanTabs, TopicControls, type PlanTab } from '../planner/PlanTools'
+import { commitEdits, currentEdits, useCanEdit } from '../planner/actions'
+import { setOrder } from '../logic/planEdits'
+import { toast } from '../components/ui'
 
 type St = 'done' | 'partial' | 'overdue' | 'todo'
 function rowStatus(r: Reader, row: Row, rows: Row[], today: string) {
@@ -26,17 +29,95 @@ function rowStatus(r: Reader, row: Row, rows: Row[], today: string) {
 }
 const STATUS_LABEL: Record<St, string> = { done: 'Done', partial: 'In progress', overdue: 'Overdue', todo: '' }
 
+/** Drag a day's topics into the order you want (by the ⋮⋮ handle; arrow keys work on it too). */
+function useReorder(row: Row) {
+  const can = useCanEdit()
+  const box = useRef<HTMLDivElement>(null)
+  const [drag, setDrag] = useState<{ from: number; to: number; dy: number; h: number } | null>(null)
+  const save = (from: number, to: number) => {
+    if (from === to || to < 0 || to >= row.items.length) return
+    const keys = row.items.map((x) => x.key)
+    const [k] = keys.splice(from, 1)
+    keys.splice(to, 0, k)
+    if (commitEdits(setOrder(currentEdits(), row.date, keys), `Reordered ${row.eff ? dateEn(row.eff) : row.date}`)) toast('Order saved. Undo it from Edit planner.')
+  }
+  const onPointerDown = (e: React.PointerEvent, from: number) => {
+    if (!can.ok || !box.current || (e.pointerType === 'mouse' && e.button !== 0)) return
+    e.preventDefault()
+    e.stopPropagation()
+    const handle = e.currentTarget as HTMLElement
+    handle.setPointerCapture(e.pointerId)
+    const rects = [...box.current.querySelectorAll<HTMLElement>(':scope > .item')].map((el) => el.getBoundingClientRect())
+    const y0 = e.clientY
+    const h = rects[from].height
+    let cur = { from, to: from, dy: 0, h }
+    setDrag(cur)
+    const move = (ev: PointerEvent) => {
+      const dy = ev.clientY - y0
+      const mid = rects[from].top + h / 2 + dy
+      let to = rects.findIndex((r) => mid < r.top + r.height / 2)
+      if (to < 0) to = rects.length - 1
+      else if (to > from) to -= 1
+      cur = { from, to, dy, h }
+      setDrag(cur)
+    }
+    const up = () => {
+      handle.removeEventListener('pointermove', move)
+      handle.removeEventListener('pointerup', up)
+      handle.removeEventListener('pointercancel', up)
+      setDrag(null)
+      save(cur.from, cur.to)
+    }
+    handle.addEventListener('pointermove', move)
+    handle.addEventListener('pointerup', up)
+    handle.addEventListener('pointercancel', up)
+  }
+  /** how far another item slides while one is dragged past it */
+  const shift = (j: number) => {
+    if (!drag || j === drag.from) return 0
+    if (drag.from < drag.to && j > drag.from && j <= drag.to) return -drag.h - 18
+    if (drag.from > drag.to && j >= drag.to && j < drag.from) return drag.h + 18
+    return 0
+  }
+  return { can, box, drag, shift, onPointerDown, save }
+}
+
 function ItemLine({ row, sched, today }: { row: Row; sched: Schedule; today: string }) {
   const r = useReader()
   const rows = sched.rows
+  const re = useReorder(row)
   if (row.isFree) return row.note ? <div className="free-note">✓ {row.note}</div> : <div className="topics-t muted">খালি দিন · এই দিনের কাজ অন্য দিনে সরানো হয়েছে</div>
+  const many = row.items.length > 1
   return (
-    <>
-      {row.items.map((it) => {
+    <div className="items" ref={re.box}>
+      {row.items.map((it, j) => {
         const tier = itemTier(it)
+        const dragging = re.drag?.from === j
         return (
-          <div key={it.key} className={`item ${row.eff && topicOn(r, row, it, rows).done ? 'it-done' : ''}`}>
+          <div
+            key={it.key}
+            className={`item ${row.eff && topicOn(r, row, it, rows).done ? 'it-done' : ''} ${dragging ? 'dragging' : ''} ${re.drag && !dragging ? 'shifting' : ''}`}
+            style={re.drag ? { transform: `translateY(${dragging ? re.drag.dy : re.shift(j)}px)` } : undefined}
+          >
             <div className="top">
+              {many && (
+                <button
+                  type="button"
+                  className="drag-h"
+                  aria-label={`Move ${it.ch} up or down (drag, or use the arrow keys)`}
+                  title={re.can.ok ? 'Drag to reorder' : re.can.why}
+                  disabled={!re.can.ok}
+                  onPointerDown={(e) => re.onPointerDown(e, j)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                      e.preventDefault()
+                      re.save(j, e.key === 'ArrowUp' ? j - 1 : j + 1)
+                    }
+                  }}
+                >
+                  <svg width="14" height="18" viewBox="0 0 14 18" aria-hidden="true"><g fill="currentColor"><circle cx="4" cy="3" r="1.6" /><circle cx="10" cy="3" r="1.6" /><circle cx="4" cy="9" r="1.6" /><circle cx="10" cy="9" r="1.6" /><circle cx="4" cy="15" r="1.6" /><circle cx="10" cy="15" r="1.6" /></g></svg>
+                </button>
+              )}
               <SubjectChip s={it.s} />
               <span className="ch">{it.ch}</span>
               <PartTag item={it} />
@@ -54,7 +135,7 @@ function ItemLine({ row, sched, today }: { row: Row; sched: Schedule; today: str
           </div>
         )
       })}
-    </>
+    </div>
   )
 }
 
