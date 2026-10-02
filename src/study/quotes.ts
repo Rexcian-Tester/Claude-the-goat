@@ -24,3 +24,21 @@ export const DONE_QUOTES: Quote[] = [
   { text: 'Not giving up is my magic!', by: 'Asta' },
 ]
 export const pickQuote = (list: Quote[], seed?: number) => list[Math.abs(seed ?? Math.floor(Math.random() * 1e9)) % list.length]
+
+/* CR7 on the Progress page: lines about Ronaldo (not his own words). Comeback lines when you are behind,
+ * standard-keeping lines when you are on plan or ahead. */
+const ON = 'On CR7'
+export const CR7_COMEBACK: Quote[] = [
+  { text: 'At 12 he left Madeira for Lisbon, alone and homesick, and got teased for his accent. He answered with work, not words.', by: ON },
+  { text: 'In the Euro 2016 final he went off injured early. He spent the rest of it on the touchline, driving his team to the trophy.', by: ON },
+  { text: 'He missed his penalty in the 2008 Champions League final shootout. United still won, and he never stopped stepping up to take the next one.', by: ON },
+  { text: 'As a teenager he needed heart surgery. Soon after, he was back on the pitch. A bad week is not the end of the story.', by: ON },
+  { text: 'They called him a show-off with no end product. He became the top scorer in Champions League history. Let the results answer.', by: ON },
+]
+export const CR7_STANDARD: Quote[] = [
+  { text: 'Teammates tell the same story: first into training, last to leave. That is the whole secret.', by: ON },
+  { text: 'Even at the top he kept adding to his game: weaker foot, headers, free kicks. Never satisfied with yesterday’s level.', by: ON },
+  { text: 'He didn’t wait to feel motivated. He built habits that didn’t need motivation.', by: ON },
+  { text: 'He built a skinny winger into a machine one session at a time. One session at a time is how chapters get finished too.', by: ON },
+  { text: 'Seven isn’t just a number on a shirt. It’s what discipline looks like every single day.', by: ON },
+]

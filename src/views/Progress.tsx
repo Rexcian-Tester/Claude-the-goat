@@ -19,6 +19,7 @@ import { EXAM_DATE } from '../data/plan'
 import { store } from '../store/store'
 import type { LateStart } from '../logic/keys'
 import { BLOCK_LABEL, type StudyBlockId } from '../logic/pomo'
+import { CR7_COMEBACK, CR7_STANDARD, pickQuote } from '../study/quotes'
 
 const LATE_RE = /^day:(\d{4}-\d{2}-\d{2}):late:(study-[abcd]|revision)$/
 /** Late starts of study blocks, newest first, with a per-block summary, to see which block you put off most. */
@@ -66,6 +67,24 @@ function LateStarts({ today }: { today: string }) {
         </div>
       )}
     </div>
+  )
+}
+
+/** CR7 corner: always a line about Ronaldo; a comeback one when you are behind. Changes once a day. */
+function CR7({ lag, today }: { lag: number; today: string }) {
+  const down = lag > 0
+  const list = down ? CR7_COMEBACK : CR7_STANDARD
+  const q = pickQuote(list, Number(today.replaceAll('-', '')))
+  return (
+    <section className={`cr7 ${down ? 'down' : ''}`} aria-label="CR7">
+      <span className="cr7-seven" aria-hidden="true">7</span>
+      <div className="cr7-h">
+        <span className="cr7-tag">CR7</span>
+        <span className="cr7-state">{down ? `${lag} day${lag === 1 ? '' : 's'} behind · comeback mode` : lag < 0 ? `${-lag} day${lag === -1 ? '' : 's'} ahead · keep the standard` : 'On plan · keep the standard'}</span>
+      </div>
+      <blockquote className="cr7-q">“{q.text}”</blockquote>
+      <cite className="cr7-by">{q.by}</cite>
+    </section>
   )
 }
 
@@ -119,6 +138,8 @@ export function ProgressView() {
         <h1>How it's going</h1>
         <p className="small">{lagLabel(info.lag)} · {info.daysLeft} days to the exam ({dateEn(EXAM_DATE)})</p>
       </div>
+
+      <CR7 lag={info.lag} today={today} />
 
       <div className="grid2">
         <div className="card">
