@@ -78,7 +78,7 @@ function Timer({ now }: { now: number }) {
   const brk = s.phase === 'break'
   const label = brk ? (s.breakKind === 'long' ? 'Long break' : s.breakKind === 'custom' ? 'Break' : 'Short break') : PHASE[s.phase]
   return (
-    <div className={`focus-hero sb-hero ${brk ? 'brk' : ''} ${s.phase === 'flow' ? 'flow' : ''} ${paused ? 'paused' : ''} ${counting && !paused ? 'run' : ''}`}>
+    <div className={`focus-hero sb-hero ${brk ? 'brk' : ''} ${s.phase === 'flow' ? 'flow' : ''} ${paused ? 'paused' : ''}`}>
       <div className="fc-top">
         <span className="fc-q">{label}{s.mode === 'study' && s.block && (counting || s.phase === 'ask') && <span> · {P.studyBlock(s.block).label}</span>}</span>
         {paused && <span className="fc-paused">Paused</span>}

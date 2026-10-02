@@ -663,8 +663,6 @@ ol.find li::marker{font-weight:700;color:var(--accent)}
 /* timer */
 .sb-hero .fc-center{animation:digits-in .5s var(--spring)}
 @keyframes digits-in{from{opacity:0;transform:scale(.92)}}
-.sb-hero.run .fc-ring .val{animation:glow 2.8s ease-in-out infinite}
-@keyframes glow{50%{filter:drop-shadow(0 0 7px color-mix(in srgb,var(--hero-acc) 70%,transparent))}}
 .sb-hero .fc-done{position:relative;overflow:hidden}
 .sb-hero .fc-done::after{content:"";position:absolute;inset:0;width:40%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);transform:translateX(-120%);animation:sheen 4.5s ease-in-out 1.2s infinite}
 @keyframes sheen{0%,70%{transform:translateX(-120%)}100%{transform:translateX(320%)}}
