@@ -45,7 +45,14 @@ interface DayInfo {
   started: string[]
   /** blocks you were reminded about because they started and you hadn't */
   nudged: string[]
+  /** blocks you were already studying in when they began (or started within the grace time): never "late" */
+  onTime: string[]
+  /** blocks whose late question already came up today while the timer was running */
+  lateAsked: string[]
 }
+/** Study already counted in a block that still doesn't make it "started" (a session spilling a few minutes
+ *  past the previous block's end). Above this, the block was clearly underway. */
+const SPILL = 10 * 60000
 type Dialog =
   | { type: 'collide'; block: RoutineBlock }
   | { type: 'late'; block: StudyBlockId; min: number }
@@ -56,7 +63,7 @@ type Dialog =
 
 let state: P.PomoState = read(LS, P.idle())
 let config: P.PomoConfig = read(LS_CFG, P.DEFAULT_CONFIG)
-let day: DayInfo = read(LS_DAY, { date: '', ok: [], celebrated: [], ended: [], started: [], nudged: [] })
+let day: DayInfo = read(LS_DAY, { date: '', ok: [], celebrated: [], ended: [], started: [], nudged: [], onTime: [], lateAsked: [] })
 let dialog: Dialog = null
 let pendingStart = false
 let version = 0
@@ -84,8 +91,10 @@ export function setConfig(c: P.PomoConfig) {
 }
 function today(): DayInfo {
   const d = todayISO()
-  if (day.date !== d) day = { date: d, ok: [], celebrated: [], ended: [], started: [], nudged: [] }
+  if (day.date !== d) day = { date: d, ok: [], celebrated: [], ended: [], started: [], nudged: [], onTime: [], lateAsked: [] }
   day.nudged ??= []
+  day.onTime ??= []
+  day.lateAsked ??= []
   return day
 }
 function saveDay() {
@@ -159,7 +168,8 @@ export const actions = {
       // late: starting a block's first session after its start (plus the grace minutes)
       const win = P.blockIn(min, d.date)
       const late = win ? P.minutesLate(win.id, min, config.grace, d.date) : 0
-      if (win && late && loggedMs(d.date, win.id) === 0 && !store.get(K.late(d.date, win.id))) {
+      if (win && !late && !d.onTime.includes(win.id)) (d.onTime.push(win.id), saveDay())
+      if (win && late && !d.onTime.includes(win.id) && loggedMs(d.date, win.id) < SPILL && !store.get(K.late(d.date, win.id))) {
         pendingStart = true
         return setDialog({ type: 'late', block: win.id, min: late })
       }
@@ -184,8 +194,9 @@ export const actions = {
     store.set(K.late(today().date, dialog.block), rec)
     const block = dialog.block
     setDialog(null)
+    // from Start: now start; asked while the timer was already running: just save the reason
+    if (pendingStart) setState(P.startFocus(state, Date.now(), config, block))
     pendingStart = false
-    setState(P.startFocus(state, Date.now(), config, block))
   },
   closeDialog: () => setDialog(null),
   /** from the "block started, you're late" reminder */
@@ -254,7 +265,19 @@ function tick() {
       notify(`${b.label} starts now`, 'Open MIST Prep and start your first session.')
     }
     // the block started a while ago and you haven't: remind you (once), and the start asks why
-    if (min >= b.from + config.grace && min < b.to && !d.nudged.includes(b.id) && !dialog && !P.isStudy(state) && loggedMs(d.date, b.id) === 0 && !store.get(K.late(d.date, b.id))) {
+    // the timer is running inside this block: on time if this stretch began before the block (plus grace),
+    // otherwise you began late (resumed, flow state, ...): ask why, once, without stopping the timer
+    if (min >= b.from && min < b.to && P.isStudy(state) && P.running(state) && !d.onTime.includes(b.id) && !d.lateAsked.includes(b.id) && !store.get(K.late(d.date, b.id))) {
+      const blockStart = Date.parse(`${d.date}T00:00:00+06:00`) + b.from * 60000
+      if (state.runFrom! <= blockStart + config.grace * 60000) d.onTime.push(b.id)
+      else if (!dialog && loggedMs(d.date, b.id) < SPILL) {
+        d.lateAsked.push(b.id)
+        pendingStart = false
+        setDialog({ type: 'late', block: b.id, min: Math.round((state.runFrom! - blockStart) / 60000) })
+      }
+      changed = true
+    }
+    if (min >= b.from + config.grace && min < b.to && !d.nudged.includes(b.id) && !d.lateAsked.includes(b.id) && !dialog && !P.isStudy(state) && !d.onTime.includes(b.id) && loggedMs(d.date, b.id) < SPILL && !store.get(K.late(d.date, b.id))) {
       d.nudged.push(b.id)
       changed = true
       beep(1)
@@ -306,20 +329,21 @@ function Dlg({ children, label }: { children: React.ReactNode; label: string }) 
 const REASONS = ['Overslept', 'Phone / social media', 'Felt tired or unwell', 'Family / home', 'Got distracted']
 
 function LateForm({ block, min }: { block: StudyBlockId; min: number }) {
+  const starting = pendingStart
   const [reason, setReason] = useState('')
   const [note, setNote] = useState('')
   return (
     <Dlg label="Late start">
       <div className="dlg-ic" aria-hidden="true">⏱️</div>
-      <p className="dlg-t">You're starting {studyBlock(block).label} {min} min late.</p>
+      <p className="dlg-t">{starting ? "You're starting" : 'You started'} {studyBlock(block).label} {min} min late.</p>
       <p className="dlg-s">What happened? It's saved under Progress → Late starts.</p>
       <div className="late-chips">
         {REASONS.map((r) => <button key={r} type="button" className="fc-b" aria-pressed={reason === r} onClick={() => setReason(r)}>{r}</button>)}
       </div>
       <input className="input late-in" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Anything else (optional)" maxLength={200} />
-      <button type="button" className="fc-done" disabled={!reason && !note.trim()} onClick={() => actions.submitLate([reason, note.trim()].filter(Boolean).join(': '))}>Save and start</button>
-      <button type="button" className="fc-b" onClick={() => actions.submitLate('')}>Start without a reason</button>
-      <button type="button" className="fc-b ghost" onClick={actions.cancel}>Cancel</button>
+      <button type="button" className="fc-done" disabled={!reason && !note.trim()} onClick={() => actions.submitLate([reason, note.trim()].filter(Boolean).join(': '))}>{starting ? 'Save and start' : 'Save'}</button>
+      <button type="button" className="fc-b" onClick={() => actions.submitLate('')}>{starting ? 'Start without a reason' : 'Save without a reason'}</button>
+      <button type="button" className="fc-b ghost" onClick={actions.cancel}>{starting ? 'Cancel' : 'Not now'}</button>
     </Dlg>
   )
 }
