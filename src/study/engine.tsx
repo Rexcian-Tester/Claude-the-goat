@@ -239,8 +239,9 @@ function tick() {
       notify('Break over', 'Back to it: start the next session.')
     }
   }
-  // log as you go, so progress, the block it counts to and the target pop-up are always current
-  else if (P.running(state) && P.unlogged(state, now) >= 15000) flush(now)
+  // log as you go, every 5 minutes (each save syncs, and Cloudflare's free plan allows ~1,000 saves a day);
+  // the screen shows the unsaved minutes live, and pause / stop / session end save at once
+  else if (P.running(state) && P.unlogged(state, now) >= 5 * 60000) flush(now)
   // block start reminders and block-end summaries (study mode only)
   if (state.mode !== 'study') return
   const d = today()

@@ -42,7 +42,9 @@ let again = false
 let timer: ReturnType<typeof setTimeout> | undefined
 let conflictTimer: ReturnType<typeof setTimeout> | undefined
 
-export function scheduleSync(delay = 2000) {
+// Ticks are batched: a sync goes out ~10 s after the last change (each sync that changes something is one
+// Cloudflare KV write, and the free plan allows ~1,000 a day).
+export function scheduleSync(delay = 10000) {
   if (!getPasscode()) return set({})
   clearTimeout(timer)
   timer = setTimeout(() => void syncNow(), delay)
@@ -69,6 +71,7 @@ export async function syncNow(): Promise<void> {
     })
     if (res.status === 401) return set({ status: 'auth', message: 'Wrong passcode' })
     if (res.status === 404) return set({ status: 'off', message: 'Sync is not available here (no server function)' })
+    if (res.status === 429) return set({ status: 'error', message: "Cloudflare's free daily sync limit is used up. Your progress is safe on this device and syncs again after 6:00 AM" })
     if (res.status === 500) return set({ status: 'error', message: 'Server not configured (KV binding or SYNC_PASSCODE missing)' })
     if (!res.ok) return set({ status: 'error', message: `Server error ${res.status}` })
     const remote = parseDoc(((await res.json()) as { doc?: unknown }).doc)
@@ -100,7 +103,7 @@ export function startSync() {
   started = true
   store.onLocalChange(() => {
     set({})
-    scheduleSync(2000)
+    scheduleSync()
   })
   addEventListener('online', () => void syncNow())
   addEventListener('offline', () => set({ status: 'offline' }))

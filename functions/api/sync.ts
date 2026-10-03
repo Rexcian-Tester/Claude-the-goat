@@ -54,6 +54,13 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
 
   const { doc, changedKeys } = mergeDocs(stored, incoming)
   // only write when the client actually brought something new
-  if (changedKeys.length > 0) await env.PROGRESS.put(KEY, JSON.stringify(doc))
+  if (changedKeys.length > 0) {
+    try {
+      await env.PROGRESS.put(KEY, JSON.stringify(doc))
+    } catch {
+      // free plan: ~1,000 writes a day, reset at 00:00 UTC; the device keeps its changes and retries later
+      return json({ error: 'daily-limit' }, 429)
+    }
+  }
   return json({ doc, at: Date.now() })
 }

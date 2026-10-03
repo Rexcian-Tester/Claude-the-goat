@@ -34,6 +34,10 @@ Progress syncs through a Pages Function + KV (`functions/api/sync.ts`). See `REA
   Study time is logged as you go and split by `splitStudy` (`src/logic/pomo.ts`): it counts to the block whose
   window it is in, and once that block reaches its target the extra fills the earliest block still short.
   `revision` ids only exist in data from before the merge.
+- Cloudflare free plan: Workers KV allows ~1,000 writes a day (reset 00:00 UTC = 6 AM Dhaka), and every sync
+  that changes anything is one write of the whole document. Keep writes rare: the Study Blocks timer saves every
+  5 min (plus pause/stop/end), and syncs are debounced 10 s after the last change. Over the limit the function
+  returns 429 and devices keep their changes until the reset.
 - Tests: `npm test` (vitest). Build: `npm run build`. Always run both before pushing.
 
 ## Deploying (read this before every push)
