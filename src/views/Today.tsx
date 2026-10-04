@@ -9,6 +9,7 @@ import { useSchedule, useToday } from '../hooks'
 import { Countdown } from '../components/Countdown'
 import { Timer } from '../components/Timer'
 import { href } from '../router'
+import { Sheet } from '../components/ui'
 import { BehindBanner } from './BehindBanner'
 import { DayBody, DayMini, ItemHeader, OverdueJump, OverdueList } from './day'
 import { EndgameView } from './Endgame'
@@ -66,6 +67,27 @@ function StartDay() {
       <span className="start-day-s">{going ? `${timerView(s, now).big}${s.phase === 'flow' ? '' : ' left'} · open Study Blocks` : 'Study Blocks · Pomodoro on your Routine'}</span>
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
     </a>
+  )
+}
+
+const REVISION_URL = 'https://1-revision.pages.dev/'
+/** Your revision site, opened inside the app (a full-screen panel), so you never leave MIST Prep. */
+function RevisionLink() {
+  const [open, setOpen] = useState(false)
+  return (
+    <>
+      <button type="button" className="start-day rev-link" onClick={() => setOpen(true)}>
+        <span className="start-day-t">Revision</span>
+        <span className="start-day-s">Open your revision site without leaving the app</span>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+      </button>
+      {open && (
+        <Sheet title="Revision" onClose={() => setOpen(false)}>
+          <iframe className="rev-frame" src={REVISION_URL} title="Revision" />
+          <a className="small" href={REVISION_URL} target="_blank" rel="noopener">Not loading? Open it in a new tab ↗</a>
+        </Sheet>
+      )}
+    </>
   )
 }
 
@@ -135,6 +157,8 @@ export function TodayView() {
         {tomorrow ? <DayMini row={tomorrow} /> : tmrEg === 'revision' ? <p>Endgame begins: revision list and timed model tests only.</p> : <p className="muted">Nothing scheduled.</p>}
         {tomorrow?.isBuffer && <p className="small">A catch-up day: finish anything left over, or solve the Repeats list.</p>}
       </div>
+
+      <RevisionLink />
 
       <details className="panel">
         <summary>Daily method</summary>
