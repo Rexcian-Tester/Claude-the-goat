@@ -16,15 +16,19 @@ describe('study blocks: targets and schedule', () => {
     expect(P.effectiveTarget(60)).toBe(50)
   })
   it('every day has Study Blocks A, B & Revision, C and D; Friday shifts C', () => {
-    expect(P.studyBlocks(THU).map((b) => [b.id, b.from / 60, b.to / 60])).toEqual([['study-a', 4, 7.5], ['study-b', 8.5, 12.5], ['study-c', 14, 17], ['study-d', 18, 20]])
-    expect(P.studyBlocks(FRI).map((b) => [b.id, b.from / 60, b.to / 60])).toEqual([['study-a', 4, 7.5], ['study-b', 8.5, 12.5], ['study-c', 14.5, 17.5], ['study-d', 18, 20]])
+    expect(P.studyBlocks(THU).map((b) => [b.id, b.from / 60, b.to / 60])).toEqual([['study-a', 4, 7.5], ['study-b', 9, 13], ['study-c', 14, 16.5], ['study-d', 17.5, 20]])
+    expect(P.studyBlocks(FRI).map((b) => [b.id, b.from / 60, b.to / 60])).toEqual([['study-a', 4, 7.5], ['study-b', 9, 12.5], ['study-c', 14.5, 16.5], ['study-d', 17.5, 20]])
+    // per-block targets from the unchanged 25/5 + 15-after-4 cycle
+    const t = (d: string) => P.studyBlocks(d).map((b) => P.effectiveTarget(P.blockMinutes(b)))
+    expect(t(THU)).toEqual([170, 195, 120, 120]) // 2h50 · 3h15 · 2h00 · 2h00
+    expect(t(FRI)).toEqual([170, 170, 100, 120]) // 2h50 · 2h50 · 1h40 · 2h00
     expect(P.studyBlock('study-b', THU).label).toBe('Study Block B & Revision')
   })
   it('study time counts to the block you are in, else the last one that ended', () => {
     expect(P.attributeBlock(hm(5), THU)).toBe('study-a')
     expect(P.attributeBlock(hm(8), THU)).toBe('study-a') // breakfast: extra time for Block A
     expect(P.attributeBlock(hm(12, 10), THU)).toBe('study-b')
-    expect(P.attributeBlock(hm(13), THU)).toBe('study-b') // lunch
+    expect(P.attributeBlock(hm(13, 30), THU)).toBe('study-b') // lunch
     expect(P.attributeBlock(hm(15), THU)).toBe('study-c')
     expect(P.attributeBlock(hm(14, 15), FRI)).toBe('study-b') // Jumu'ah
     expect(P.attributeBlock(hm(19), FRI)).toBe('study-d')
@@ -33,16 +37,16 @@ describe('study blocks: targets and schedule', () => {
   it('late only inside the block window and past the grace period, for every block', () => {
     expect(P.minutesLate('study-a', hm(4, 10), 10, THU)).toBe(0)
     expect(P.minutesLate('study-a', hm(4, 30), 10, THU)).toBe(30)
-    expect(P.minutesLate('study-b', hm(8), 10, THU)).toBe(0)
-    expect(P.minutesLate('study-b', hm(8, 55), 10, THU)).toBe(25)
+    expect(P.minutesLate('study-b', hm(8, 30), 10, THU)).toBe(0)
+    expect(P.minutesLate('study-b', hm(9, 25), 10, THU)).toBe(25)
     expect(P.minutesLate('study-c', hm(14, 20), 10, THU)).toBe(20)
     expect(P.minutesLate('study-c', hm(14, 20), 10, FRI)).toBe(0) // C starts 2:30 on Friday
-    expect(P.minutesLate('study-d', hm(18, 40), 10, FRI)).toBe(40)
+    expect(P.minutesLate('study-d', hm(18, 10), 10, FRI)).toBe(40)
     expect(P.blockIn(hm(9, 25), THU)?.id).toBe('study-b')
   })
   it('names the non-study block a session would eat into (Jumu\'ah on Fridays)', () => {
     expect(P.collidingBlock(hm(8), THU)?.label).toBe('Breakfast & shower')
-    expect(P.collidingBlock(hm(13), THU)?.label).toBe('Lunch & nap')
+    expect(P.collidingBlock(hm(13, 30), THU)?.label).toBe('Lunch & nap')
     expect(P.collidingBlock(hm(10), THU)).toBeNull()
     expect(P.collidingBlock(hm(13), FRI)?.id).toBe('jumuah')
     expect(P.collidingBlock(hm(20, 45), THU)?.label).toBe('Check-in & wind down')
@@ -52,8 +56,8 @@ describe('study blocks: targets and schedule', () => {
 describe('study blocks: where study time counts', () => {
   const at = (date: string, h: number, m = 0) => Date.parse(`${date}T${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00+06:00`)
   const target = (id: P.StudyBlockId) => P.effectiveTarget(P.blockMinutes(P.studyBlock(id, THU))) * MIN
-  it('a session running from breakfast into Block B is split at 8:30', () => {
-    const got = P.splitStudy(at(THU, 8, 20), at(THU, 8, 45), THU, () => 0, target)
+  it('a session running from breakfast into Block B is split at 9:00', () => {
+    const got = P.splitStudy(at(THU, 8, 50), at(THU, 9, 15), THU, () => 0, target)
     expect(got).toEqual([['study-a', 10 * MIN], ['study-b', 15 * MIN]])
   })
   it('once Block B is full, extra time goes back to Block A if it is short', () => {
