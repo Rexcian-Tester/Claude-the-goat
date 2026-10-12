@@ -282,7 +282,7 @@ export function StudyBlocks() {
             <span className="num">{fmtDur(total)} studied</span>
           </div>
           <div className={`sb-day ${day.state}`}>
-            <span className="sb-day-l"><b>Goal {P.DAILY_GOAL_MIN / 60}h</b> · Minimum {P.DAILY_MINIMUM_MIN / 60}h</span>
+            <span className="sb-day-l"><b>Goal {P.DAILY_GOAL_MIN / 60}h</b></span>
             <span className="small">{day.state === 'goal' ? 'Perfect day' : `${fmtDur(day.left)} ${day.state === 'good' ? 'to perfect' : 'to hold the line'}`}</span>
           </div>
           <span className={`bar sb-total ${day.state}`} style={{ ['--mark' as string]: `${day.mark * 100}%` }}><i style={{ width: `${frac * 100}%` }} /></span>
