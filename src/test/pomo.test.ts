@@ -124,5 +124,11 @@ describe('daily total bar (Goal 10h · Minimum 9h)', () => {
     expect(P.dailyBar(9 * H)).toMatchObject({ frac: 0.9, state: 'good' })
     expect(P.dailyBar(9.5 * H)).toMatchObject({ frac: 0.95, state: 'good' })
     expect(P.dailyBar(10.5 * H)).toMatchObject({ frac: 1, state: 'goal' })
+    // what's left to the next line: 9h → 10h
+    expect(P.dailyBar(0).left).toBe(9 * H)
+    expect(P.dailyBar(400 * MIN).left).toBe(140 * MIN)
+    expect(P.dailyBar(560 * MIN)).toMatchObject({ state: 'good', left: 40 * MIN })
+    expect(P.dailyBar(560 * MIN - 20000).left).toBe(41 * MIN) // part minutes round up, never "0m" early
+    expect(P.dailyBar(10.5 * H).left).toBe(0)
   })
 })

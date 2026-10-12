@@ -216,5 +216,7 @@ export function dailyBar(studiedMs: number) {
   const goal = DAILY_GOAL_MIN * 60000
   const min = DAILY_MINIMUM_MIN * 60000
   const state: DailyState = studiedMs >= goal ? 'goal' : studiedMs >= min ? 'good' : 'normal'
-  return { frac: Math.max(0, Math.min(1, studiedMs / goal)), state, mark: DAILY_MINIMUM_MIN / DAILY_GOAL_MIN }
+  // time still to go to the next line (whole minutes, rounded up so it never reads "0m" before you're there)
+  const left = state === 'goal' ? 0 : Math.ceil(((state === 'good' ? goal : min) - studiedMs) / 60000) * 60000
+  return { frac: Math.max(0, Math.min(1, studiedMs / goal)), state, mark: DAILY_MINIMUM_MIN / DAILY_GOAL_MIN, left }
 }
