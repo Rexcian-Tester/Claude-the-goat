@@ -205,3 +205,16 @@ export function endBreak(s: PomoState): PomoState {
 export function stopFocus(s: PomoState, now: number): { state: PomoState; studied: number } {
   return { state: { ...s, phase: 'ready', acc: 0, runFrom: null, logged: 0 }, studied: s.phase === 'focus' ? Math.max(0, elapsed(s, now) - s.logged) : 0 }
 }
+
+/* ---------- the day's total ---------- */
+/** Daily study minimum and goal, in minutes. The only place these numbers live. */
+export const DAILY_MINIMUM_MIN = 540 // 9h
+export const DAILY_GOAL_MIN = 600 // 10h
+export type DailyState = 'normal' | 'good' | 'goal'
+/** The daily bar: full width = the goal, a marker at the minimum; green past the minimum, gold at the goal. */
+export function dailyBar(studiedMs: number) {
+  const goal = DAILY_GOAL_MIN * 60000
+  const min = DAILY_MINIMUM_MIN * 60000
+  const state: DailyState = studiedMs >= goal ? 'goal' : studiedMs >= min ? 'good' : 'normal'
+  return { frac: Math.max(0, Math.min(1, studiedMs / goal)), state, mark: DAILY_MINIMUM_MIN / DAILY_GOAL_MIN }
+}

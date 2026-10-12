@@ -248,9 +248,6 @@ function TodayTasks() {
   )
 }
 
-const DAY_TARGET = 8 * 3600000
-const DAY_FLOOR = 6 * 3600000
-
 export function StudyBlocks() {
   const now = useTick(1000)
   const { s, c } = usePomo()
@@ -262,9 +259,8 @@ export function StudyBlocks() {
   const liveBlock = study && P.isStudy(s) ? P.attributeBlock(dhakaMinute(now), date) : null
   const live = (id: P.StudyBlockId) => (id === liveBlock ? P.unlogged(s, now) : 0)
   const total = blocks.reduce((n, b) => n + loggedMs(date, b.id) + live(b.id), 0)
-  // the day's goal: 8 hours of real study, never under 6 (the block targets add up to more, as a buffer)
-  const frac = Math.min(1, total / DAY_TARGET)
-  const dayState = total >= DAY_TARGET ? 'hit' : total >= DAY_FLOOR ? 'floor' : 'below'
+  const day = P.dailyBar(total)
+  const frac = day.frac
   // a new line every 10% of the day's target, so it changes as you go
   const q = pickQuote(QUOTES, Math.floor(frac * 10) + Number(date.slice(8)))
   const busy = s.phase === 'focus' || s.phase === 'flow' || s.phase === 'break'
@@ -285,11 +281,10 @@ export function StudyBlocks() {
             <h2>Today's study blocks</h2>
             <span className="num">{fmtDur(total)} studied</span>
           </div>
-          <div className={`sb-day ${dayState}`}>
-            <span className="sb-day-l"><b>Target 8h</b> · Floor 6h</span>
-            <span className="small">{dayState === 'hit' ? 'Target hit ✓' : dayState === 'floor' ? `Floor reached · ${fmtDur(DAY_TARGET - total)} to target` : `${fmtDur(DAY_FLOOR - total)} to the floor`}</span>
+          <div className="sb-day">
+            <span className="sb-day-l"><b>Goal {P.DAILY_GOAL_MIN / 60}h</b> · Minimum {P.DAILY_MINIMUM_MIN / 60}h</span>
           </div>
-          <span className="bar sb-total" style={{ ['--floor' as string]: `${(DAY_FLOOR / DAY_TARGET) * 100}%` }}><i style={{ width: `${frac * 100}%` }} /></span>
+          <span className={`bar sb-total ${day.state}`} style={{ ['--mark' as string]: `${day.mark * 100}%` }}><i style={{ width: `${frac * 100}%` }} /></span>
           {blocks.map((b) => <BlockRow key={b.id} id={b.id} date={date} live={live(b.id)} />)}
           <p className="small">Targets are the study time a block allows with {c.focus}-min sessions and the breaks between them. Time counts to the block you're in; once a block is full, extra time fills the earliest block still short.</p>
         </div>

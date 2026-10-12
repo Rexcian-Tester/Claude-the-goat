@@ -107,3 +107,18 @@ describe('study blocks: session flow', () => {
     expect(f.state.streak).toBe(1)
   })
 })
+
+describe('daily total bar (Goal 10h · Minimum 9h)', () => {
+  const H = 3600000
+  it('is defined once: minimum 9h (540 min), goal 10h (600 min)', () => {
+    expect([P.DAILY_MINIMUM_MIN, P.DAILY_GOAL_MIN]).toEqual([540, 600])
+    expect(P.dailyBar(0).mark).toBe(0.9)
+  })
+  it('fills toward the goal, green past the minimum, gold at the goal, never over full', () => {
+    expect(P.dailyBar(0)).toMatchObject({ frac: 0, state: 'normal' })
+    expect(P.dailyBar(6 * H)).toMatchObject({ frac: 0.6, state: 'normal' })
+    expect(P.dailyBar(9 * H)).toMatchObject({ frac: 0.9, state: 'good' })
+    expect(P.dailyBar(9.5 * H)).toMatchObject({ frac: 0.95, state: 'good' })
+    expect(P.dailyBar(10.5 * H)).toMatchObject({ frac: 1, state: 'goal' })
+  })
+})
