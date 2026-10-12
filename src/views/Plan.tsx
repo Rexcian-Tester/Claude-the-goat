@@ -1,4 +1,4 @@
-import { memo, useCallback, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { bn, dateBn, dateEn, MONTHS_BN as MONTH_BN, WD_BN } from '../data/bn'
 import { addDays, weekdayIndex } from '../data/dhaka'
 import { studyPlan } from '../data/load'
@@ -9,7 +9,7 @@ import { K } from '../logic/keys'
 import type { Reader } from '../logic/reader'
 import type { Row, Schedule } from '../logic/schedule'
 import { itemTier } from '../logic/stats'
-import { closeTo, go, href, useRoute } from '../router'
+import { cameBack, closeTo, go, href, useRoute } from '../router'
 import { store } from '../store/store'
 import { useReader, useSchedule, useToday } from '../hooks'
 import { Panel, Sheet, SubjectChip, TierPill } from '../components/ui'
@@ -150,7 +150,7 @@ function DayRow({ row, today, sched }: { row: Row; today: string; sched: Schedul
     go(to)
   }
   return (
-    <div className={`day st-${st} ${eff === today ? 'is-today' : ''}`} onClick={open}>
+    <div className={`day st-${st} ${eff === today ? 'is-today' : ''}`} data-eff={eff ?? undefined} onClick={open}>
       <a className="date" href={to} aria-label={`Open ${eff ? dateBn(eff) : 'Unscheduled'}, day ${row.dayNo}, ${row.items.map((i) => i.ch).join(', ')}`}>
         <span className="dd">{eff ? bn(Number(eff.slice(8))) : '—'}</span>
         <span className="mm">{eff ? `${MONTH_BN[Number(eff.slice(5, 7)) - 1]} · ${WD_BN[weekdayIndex(eff)]}বার` : 'Unscheduled'}</span>
@@ -258,6 +258,46 @@ function DaySheet({ date, sched, today }: { date: string; sched: Schedule; today
 
 type Layout = 'list' | 'month'
 
+/** Today's day on the plan (or the next planned day when today has none): its row in the list, its cell in the grid. */
+function todayEl(today: string): HTMLElement | null {
+  const cell = document.querySelector<HTMLElement>('.mgrid .cell.is-today')
+  if (cell) return cell
+  return [...document.querySelectorAll<HTMLElement>('.phases .day[data-eff]')].filter((el) => el.dataset.eff! >= today).sort((a, b) => a.dataset.eff!.localeCompare(b.dataset.eff!))[0] ?? null
+}
+function jumpTo(el: HTMLElement, smooth: boolean) {
+  const bar = document.querySelector('.topbar')?.getBoundingClientRect().height ?? 0
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+  scrollTo({ top: Math.max(0, el.getBoundingClientRect().top + scrollY - bar - 12), behavior: smooth && !reduce ? 'smooth' : 'auto' })
+}
+
+/** Opening Plan goes straight to today; a "Today" button brings you back whenever today is off screen. */
+function TodayJump({ today, view }: { today: string; view: Layout }) {
+  const [where, setWhere] = useState<'up' | 'down' | null>(null)
+  useEffect(() => {
+    // a fresh visit lands on today; Back/Forward keeps the spot you left
+    if (cameBack() || location.hash.split('?')[0] !== href.plan()) return
+    const f = requestAnimationFrame(() => {
+      const el = todayEl(today)
+      if (el) jumpTo(el, false)
+    })
+    return () => cancelAnimationFrame(f)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  useEffect(() => {
+    const el = todayEl(today)
+    if (!el) return setWhere(null)
+    const io = new IntersectionObserver(([e]) => setWhere(e.isIntersecting ? null : e.boundingClientRect.top < 0 ? 'up' : 'down'))
+    io.observe(el)
+    return () => io.disconnect()
+  }, [today, view])
+  if (!where) return null
+  return (
+    <button type="button" className="today-jump" onClick={() => { const el = todayEl(today); if (el) jumpTo(el, true) }}>
+      Today {where === 'up' ? '↑' : '↓'}
+    </button>
+  )
+}
+
 export function PlanView() {
   const today = useToday()
   const sched = useSchedule()
@@ -338,6 +378,7 @@ const PlanBody = memo(function PlanBody({ today, sched, view, setView }: { today
         <span className="small">Tap a day to open it.</span>
       </div>
 
+      <TodayJump today={today} view={view} />
       {view === 'month' ? (
         <MonthGrid sched={sched} today={today} />
       ) : (

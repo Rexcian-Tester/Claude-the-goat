@@ -842,3 +842,6 @@ a:focus-visible,button:focus-visible,summary:focus-visible,[tabindex]:focus-visi
 .sb-total.good i{background:linear-gradient(90deg,color-mix(in srgb,var(--ok) 75%,var(--panel)),var(--ok))}
 .sb-total.goal i{background:linear-gradient(90deg,color-mix(in srgb,var(--gold) 75%,var(--panel)),var(--gold))}
 .sb-total::after{content:"";position:absolute;top:-4px;bottom:-4px;left:var(--mark);width:2px;border-radius:1px;background:var(--ink);opacity:.4}
+/* Plan: back to today */
+.today-jump{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0));z-index:30;border:1px solid var(--line);border-radius:99px;padding:9px 16px;background:var(--panel);color:var(--accent);font:600 14px var(--body);box-shadow:var(--shadow-3);cursor:pointer;animation:tj-in .3s var(--spring)}
+@keyframes tj-in{from{transform:translateY(12px);opacity:0}}
