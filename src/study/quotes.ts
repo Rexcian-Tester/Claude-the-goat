@@ -5,7 +5,7 @@ export interface Quote {
 }
 export const QUOTES: Quote[] = [
   { text: 'Talent without working hard is nothing.', by: 'Cristiano Ronaldo' },
-  { text: 'Dreams are not what you see in your sleep. Dreams are things which do not let you sleep.', by: 'Cristiano Ronaldo' },
+  { text: 'Dreams are not what you see in your sleep. Dreams are things which do not let you sleep.', by: 'A. P. J. Abdul Kalam' },
   { text: 'I am not a perfectionist, but I like to feel that things are done well.', by: 'Cristiano Ronaldo' },
   { text: 'There is no harm in dreaming of becoming the world’s best. It’s all about trying to be the best.', by: 'Cristiano Ronaldo' },
   { text: 'Your love makes me strong. Your hate makes me unstoppable.', by: 'Cristiano Ronaldo' },
@@ -34,6 +34,10 @@ export const CR7_COMEBACK: Quote[] = [
   { text: 'He missed his penalty in the 2008 Champions League final shootout. United still won, and he never stopped stepping up to take the next one.', by: ON },
   { text: 'As a teenager he needed heart surgery. Soon after, he was back on the pitch. A bad week is not the end of the story.', by: ON },
   { text: 'They called him a show-off with no end product. He became the top scorer in Champions League history. Let the results answer.', by: ON },
+  { text: 'In 2004 he cried on the pitch after losing the Euro final at home in Lisbon. Twelve years later he lifted that same trophy.', by: ON },
+  { text: 'At the 2018 World Cup, with Portugal a goal down to Spain late on, he stood over a free kick and scored his hat-trick. Pressure is where preparation pays.', by: ON },
+  { text: 'If you think you’re perfect already, then you never will be.', by: 'Cristiano Ronaldo' },
+  { text: 'Your love makes me strong. Your hate makes me unstoppable.', by: 'Cristiano Ronaldo' },
 ]
 export const CR7_STANDARD: Quote[] = [
   { text: 'Teammates tell the same story: first into training, last to leave. That is the whole secret.', by: ON },
@@ -41,4 +45,9 @@ export const CR7_STANDARD: Quote[] = [
   { text: 'He didn’t wait to feel motivated. He built habits that didn’t need motivation.', by: ON },
   { text: 'He built a skinny winger into a machine one session at a time. One session at a time is how chapters get finished too.', by: ON },
   { text: 'Seven isn’t just a number on a shirt. It’s what discipline looks like every single day.', by: ON },
+  { text: 'He is famous for short naps through the day to recover. Your 25-minute nap is part of the training, not a break from it.', by: ON },
+  { text: 'He kept playing at the top into his late thirties while others retired. Longevity is thousands of boring, correct days in a row.', by: ON },
+  { text: 'At 18 he arrived in Manchester as a skinny winger. Years of extra gym and finishing work turned him into the most feared forward in the world.', by: ON },
+  { text: 'Talent without working hard is nothing.', by: 'Cristiano Ronaldo' },
+  { text: 'We don’t want to tell our dreams. We want to show them.', by: 'Cristiano Ronaldo' },
 ]

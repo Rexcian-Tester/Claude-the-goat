@@ -23,7 +23,7 @@ export const BLOCK_LABEL: Record<StudyBlockId, string> = {
   'study-d': 'Study Block D',
   revision: 'Revision',
 }
-/** The study blocks of a day, in order (Friday has four). */
+/** The study blocks of a day, in order: A, B & Revision, C, D (Friday shifts C). */
 export const studyBlocks = (date: string = todayISO()) => routineFor(date).filter((b) => b.kind === 'study') as StudyBlock[]
 /** A study block on a date; a block that day doesn't have falls back to its usual (weekday) times. */
 export const studyBlock = (id: StudyBlockId, date: string = todayISO()): StudyBlock =>

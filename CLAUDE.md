@@ -30,7 +30,10 @@ Progress syncs through a Pages Function + KV (`functions/api/sync.ts`). See `REA
   the day's "mark done"; with any mark on a day, the day is done only when every topic is done.
 - Study Blocks (Focus): one app-wide timer in `src/study/engine.tsx`; logged study time and late starts are synced
   under `day:<date>:focus:*` / `day:<date>:late:*`. Blocks come from the day's routine (`routineFor(date)` in
-  `src/views/Routine.tsx`: weekdays A + "B & Revision"; Fridays A, B & Revision, C, D with Jumu'ah 12:30–2:30).
+  `src/views/Routine.tsx`: every day is a full study day, Study Blocks A, B & Revision, C, D; Friday has Jumu'ah
+  12:30–2:30 with C at 2:30–5:30, and D as weekly recovery). The Study Blocks card shows a daily Target 8h / Floor 6h.
+  The routine is not dated: past days are shown with today's block times, while their stored data (ticks, late
+  starts, study time by block id) is untouched.
   Study time is logged as you go and split by `splitStudy` (`src/logic/pomo.ts`): it counts to the block whose
   window it is in, and once that block reaches its target the extra fills the earliest block still short.
   `revision` ids only exist in data from before the merge.

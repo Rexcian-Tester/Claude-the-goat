@@ -133,6 +133,7 @@ function BlockRow({ id, date, live }: { id: P.StudyBlockId; date: string; live: 
         <span className="sb-row-l">
           <b>{b.label}{late && <span className="tag" title={late.reason}>{late.min} min late</span>}</b>
           <span className="small">{clock12(b.from)} – {clock12(b.to)}</span>
+          {b.note && <span className="sb-row-note">{b.note}</span>}
         </span>
         <span className="num">{fmtDur(done)} / {fmtDur(target)}{pct >= 1 && ' ✓'}</span>
       </div>
@@ -174,7 +175,7 @@ function Settings() {
           {field('every', 'Long break after (sessions)', 1, 12)}
           {field('grace', 'Late after (min)', 0, 60)}
         </div>
-        <p className="small">Targets with these settings: {P.studyBlocks().map((b) => `${b.label} ${fmtDur(targetMs(b.id, c))}`).join(' · ')}{P.studyBlocks().length < 4 && ' (Fridays have Study Blocks C and D as well)'}. Changes apply from the next session.</p>
+        <p className="small">Targets with these settings: {P.studyBlocks().map((b) => `${b.label} ${fmtDur(targetMs(b.id, c))}`).join(' · ')}. Changes apply from the next session.</p>
         <button type="button" className="btn sm" onClick={() => {
           setConfig(P.DEFAULT_CONFIG)
           setRaw(Object.fromEntries(Object.entries(P.DEFAULT_CONFIG).map(([k, v]) => [k, String(v)])) as Record<keyof P.PomoConfig, string>)
@@ -247,6 +248,9 @@ function TodayTasks() {
   )
 }
 
+const DAY_TARGET = 8 * 3600000
+const DAY_FLOOR = 6 * 3600000
+
 export function StudyBlocks() {
   const now = useTick(1000)
   const { s, c } = usePomo()
@@ -258,8 +262,9 @@ export function StudyBlocks() {
   const liveBlock = study && P.isStudy(s) ? P.attributeBlock(dhakaMinute(now), date) : null
   const live = (id: P.StudyBlockId) => (id === liveBlock ? P.unlogged(s, now) : 0)
   const total = blocks.reduce((n, b) => n + loggedMs(date, b.id) + live(b.id), 0)
-  const target = blocks.reduce((n, b) => n + targetMs(b.id, undefined, date), 0)
-  const frac = Math.min(1, total / target)
+  // the day's goal: 8 hours of real study, never under 6 (the block targets add up to more, as a buffer)
+  const frac = Math.min(1, total / DAY_TARGET)
+  const dayState = total >= DAY_TARGET ? 'hit' : total >= DAY_FLOOR ? 'floor' : 'below'
   // a new line every 10% of the day's target, so it changes as you go
   const q = pickQuote(QUOTES, Math.floor(frac * 10) + Number(date.slice(8)))
   const busy = s.phase === 'focus' || s.phase === 'flow' || s.phase === 'break'
@@ -278,9 +283,13 @@ export function StudyBlocks() {
         <div className="card">
           <div className="card-h">
             <h2>Today's study blocks</h2>
-            <span className="num">{fmtDur(total)} / {fmtDur(target)}</span>
+            <span className="num">{fmtDur(total)} studied</span>
           </div>
-          <span className="bar sb-total"><i style={{ width: `${frac * 100}%` }} /></span>
+          <div className={`sb-day ${dayState}`}>
+            <span className="sb-day-l"><b>Target 8h</b> · Floor 6h</span>
+            <span className="small">{dayState === 'hit' ? 'Target hit ✓' : dayState === 'floor' ? `Floor reached · ${fmtDur(DAY_TARGET - total)} to target` : `${fmtDur(DAY_FLOOR - total)} to the floor`}</span>
+          </div>
+          <span className="bar sb-total" style={{ ['--floor' as string]: `${(DAY_FLOOR / DAY_TARGET) * 100}%` }}><i style={{ width: `${frac * 100}%` }} /></span>
           {blocks.map((b) => <BlockRow key={b.id} id={b.id} date={date} live={live(b.id)} />)}
           <p className="small">Targets are the study time a block allows with {c.focus}-min sessions and the breaks between them. Time counts to the block you're in; once a block is full, extra time fills the earliest block still short.</p>
         </div>

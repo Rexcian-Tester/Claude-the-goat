@@ -40,9 +40,11 @@ function LateStarts({ today }: { today: string }) {
       </div>
       <div className="late-sum">
         {(['study-a', 'study-b', 'study-c', 'study-d'] as StudyBlockId[]).map((id) => ({ id, label: BLOCK_LABEL[id] })).map((b) => {
-          const mine = rows.filter((r) => r.block === b.id)
+          // Revision was merged into Study Block B: its older records count there
+          const ids = b.id === 'study-b' ? ['study-b', 'revision'] : [b.id]
+          const mine = rows.filter((r) => ids.includes(r.block))
           const avg = mine.length ? Math.round(mine.reduce((n, r) => n + r.min, 0) / mine.length) : 0
-          const studied = [...week].reduce((n, d) => n + (store.get<number>(K.focusMs(d, b.id)) ?? 0), 0)
+          const studied = [...week].reduce((n, d) => n + ids.reduce((m, id) => m + (store.get<number>(K.focusMs(d, id)) ?? 0), 0), 0)
           return (
             <div key={b.id} className="stat">
               <b>{mine.length}</b>
