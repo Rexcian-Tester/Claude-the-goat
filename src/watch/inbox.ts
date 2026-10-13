@@ -7,6 +7,7 @@ import { store } from '../store/store'
 import { getPasscode } from '../store/syncClient'
 import { loggedMs, targetMs } from '../study/engine'
 import { importEntries, parseSession, type WatchSession } from './session'
+import { publishToday } from './summary'
 
 let inflight = false
 export async function pullWatchInbox(): Promise<number> {
@@ -35,6 +36,7 @@ export async function pullWatchInbox(): Promise<number> {
       })
     }
     if (ticks.length) store.setMany(ticks)
+    publishToday() // the watch's progress screen sees the new numbers at its next fetch
     return entries.length
   } catch {
     return 0 // offline or no server function (local dev): try again later

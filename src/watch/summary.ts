@@ -1,10 +1,12 @@
 // Keeps the watch's "today" summary up to date (see src/watch/today.ts). Invisible: nothing is shown on screen.
-// It is refreshed only after an edit made on this device (studying, importing watch sessions, ticks...), never in
-// reaction to data arriving from another device, so two devices can't keep rewriting it back and forth.
-// It is saved only when the numbers actually changed, in the same sync as the edit that changed them.
+// It is refreshed after an edit made on this device (studying, ticks...), right after watch sessions are imported,
+// and once when the page loads — but only after this device's first sync has finished, so a device that was offline
+// can't overwrite fresher numbers with stale ones. Never in reaction to data arriving from another device, so two
+// devices can't keep rewriting it back and forth. Saved only when the numbers actually changed.
 import { dhakaDate } from '../data/dhaka'
 import { DAILY_GOAL_MIN, studyBlocks } from '../logic/pomo'
 import { store } from '../store/store'
+import { loadAll } from '../store/idb'
 import { getPasscode } from '../store/syncClient'
 import { loggedMs, targetMs } from '../study/engine'
 import { WATCH_KEY_RE } from './session'
@@ -28,7 +30,7 @@ export function buildToday(date: string): TodaySummary {
   return { date, blocks, total: blocks.reduce((n, b) => n + b.studied, 0), goal: DAILY_GOAL_MIN * 60000, watchIds }
 }
 
-function publish() {
+export function publishToday() {
   if (!store.ready || !getPasscode()) return
   const date = dhakaDate(Date.now()) // the real day, not Settings' test date
   const next = buildToday(date)
@@ -45,7 +47,24 @@ export function startTodaySummary() {
     queued = true
     queueMicrotask(() => {
       queued = false
-      publish()
+      publishToday()
     })
   })
+  void publishAfterFirstSync()
+}
+
+/** On page load: wait (up to 2 minutes) until this device has synced, then refresh the summary once. */
+async function publishAfterFirstSync() {
+  const lastSync = async () => {
+    try {
+      return Number((await loadAll()).meta.lastSync) || 0
+    } catch {
+      return 0
+    }
+  }
+  const before = await lastSync()
+  for (let i = 0; i < 24; i++) {
+    await new Promise((r) => setTimeout(r, 5000))
+    if ((await lastSync()) > before) return publishToday()
+  }
 }
