@@ -22,6 +22,7 @@ import { App } from './App'
 import { loadTodayOverride } from './hooks'
 import { store } from './store/store'
 import { startSync } from './store/syncClient'
+import { startWatchInbox } from './watch/inbox'
 import { markUpdateReady } from './ui-state'
 
 async function boot() {
@@ -30,6 +31,7 @@ async function boot() {
   await store.init()
   loadTodayOverride()
   startSync()
+  startWatchInbox() // sessions from the watch (invisible: they just count as study time)
   // A new deploy takes over in the background; reload into it only once the app is out of sight,
   // never under your fingers while you are ticking or typing.
   let reloadPending = false
