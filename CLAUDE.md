@@ -45,6 +45,9 @@ Progress syncs through a Pages Function + KV (`functions/api/sync.ts`). See `REA
   share (`src/watch/watchTime.ts`, same splitStudy rules). The timer also records its stretches as
   `day:<date>:span:<device>` so watch minutes overlapping them count once. Never write watch time into `focus:` keys.
   Test without a watch: `scripts/watch-send-test.mjs`.
+  The watch's progress screen reads `GET /api/watch/today` (watch token): only the field `day:<date>:watchsum`
+  (today's blocks, targets, studied, total, goal, counted watch ids), written by `src/watch/summary.ts` after local
+  edits only (never on remote changes, to avoid two devices rewriting it) and filtered by `cleanToday`.
 - Cloudflare free plan: Workers KV allows ~1,000 writes a day (reset 00:00 UTC = 6 AM Dhaka), and every sync
   that changes anything is one write of the whole document. Keep writes rare: the Study Blocks timer saves every
   5 min (plus pause/stop/end), and syncs are debounced 10 s after the last change. Over the limit the function

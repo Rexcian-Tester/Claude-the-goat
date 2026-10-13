@@ -10,6 +10,7 @@
 // the same moment could drop one; the watch therefore re-sends its last 7 days on every sync and a lost write
 // self-heals (the same idea as /api/sync).
 import { KEEP_DAYS, parseSession, type Span, type WatchSession } from '../../../src/watch/session'
+import { authorized, denied, json } from '../../../src/watch/server'
 
 interface Env {
   PROGRESS: KVNamespace
@@ -23,28 +24,6 @@ interface Inbox {
 const KEY = 'watch-inbox'
 const MAX_BODY = 64_000
 const MAX_BATCH = 200
-
-const json = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' },
-  })
-
-async function sha256(s: string): Promise<Uint8Array> {
-  return new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)))
-}
-async function authorized(request: Request, secret: string): Promise<boolean> {
-  const h = request.headers.get('authorization') ?? ''
-  const given = h.startsWith('Bearer ') ? h.slice(7) : ''
-  const [a, b] = await Promise.all([sha256(given), sha256(secret)])
-  let diff = 0
-  for (let i = 0; i < a.length; i++) diff |= a[i] ^ b[i]
-  return diff === 0
-}
-const denied = async () => {
-  await new Promise((r) => setTimeout(r, 500)) // slow down guessing
-  return json({ error: 'unauthorized' }, 401)
-}
 
 async function readInbox(kv: KVNamespace): Promise<Inbox> {
   const x = (await kv.get(KEY, 'json')) as Inbox | null

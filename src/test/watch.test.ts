@@ -79,3 +79,35 @@ describe('watch sessions: import', () => {
     expect(importEntries([s], (k) => k === 'day:2026-10-15:watch:w-abc123')).toEqual([])
   })
 })
+
+import { cleanToday, summaryKey } from '../watch/today'
+describe('watch today summary: only the allowed numbers leave', () => {
+  const good = {
+    date: THU,
+    blocks: [{ id: 'study-a', label: 'Study Block A', from: 240, to: 450, target: 170 * MIN, studied: 100 * MIN, secret: 'x' }],
+    total: 100 * MIN,
+    goal: 600 * MIN,
+    watchIds: ['w-abc123', 'bad id!'],
+    note: 'private',
+  }
+  it('keeps the block numbers and drops everything else', () => {
+    expect(cleanToday(good, THU)).toEqual({
+      date: THU,
+      blocks: [{ id: 'study-a', label: 'Study Block A', from: 240, to: 450, target: 170 * MIN, studied: 100 * MIN }],
+      total: 100 * MIN,
+      goal: 600 * MIN,
+      watchIds: ['w-abc123'],
+    })
+  })
+  it('only today, and nothing malformed', () => {
+    expect(cleanToday(good, '2026-10-16')).toBeNull()
+    expect(cleanToday({ ...good, blocks: [{ id: 'a' }] }, THU)).toBeNull()
+    expect(cleanToday('text', THU)).toBeNull()
+    expect(cleanToday(null, THU)).toBeNull()
+  })
+  it('lives under the existing day: prefix and is not mistaken for a watch session', () => {
+    expect(summaryKey(THU)).toBe('day:2026-10-15:watchsum')
+    expect(WATCH_KEY_RE.test(summaryKey(THU))).toBe(false)
+    expect(/^(task|task-moved|day|refl|q|sub|ch|plan|endgame|note):[^\s]{1,190}$/u.test(summaryKey(THU))).toBe(true)
+  })
+})
