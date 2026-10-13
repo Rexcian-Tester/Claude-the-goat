@@ -38,6 +38,16 @@ Progress syncs through a Pages Function + KV (`functions/api/sync.ts`). See `REA
   Study time is logged as you go and split by `splitStudy` (`src/logic/pomo.ts`): it counts to the block whose
   window it is in, and once that block reaches its target the extra fills the earliest block still short.
   `revision` ids only exist in data from before the merge.
+- Watch sessions (Amazfit Bip 6, separate repo): the watch posts finished focus sessions to the inbox
+  `functions/api/watch/sessions.ts` (its own add-only secret `WATCH_TOKEN`; KV key `watch-inbox`). Any device with
+  the passcode imports them (`src/watch/inbox.ts`) as one field per session, `day:<date>:watch:<id>`, so a session
+  never counts twice. `loggedMs` in `src/study/engine.tsx` = the site's own `day:<date>:focus:<block>` plus the watch's
+  share (`src/watch/watchTime.ts`, same splitStudy rules). The timer also records its stretches as
+  `day:<date>:span:<device>` so watch minutes overlapping them count once. Never write watch time into `focus:` keys.
+  Test without a watch: `scripts/watch-send-test.mjs`.
+  The watch's progress screen reads `GET /api/watch/today` (watch token): only the field `day:<date>:watchsum`
+  (today's blocks, targets, studied, total, goal, counted watch ids), written by `src/watch/summary.ts` after local
+  edits only (never on remote changes, to avoid two devices rewriting it) and filtered by `cleanToday`.
 - Cloudflare free plan: Workers KV allows ~1,000 writes a day (reset 00:00 UTC = 6 AM Dhaka), and every sync
   that changes anything is one write of the whole document. Keep writes rare: the Study Blocks timer saves every
   5 min (plus pause/stop/end), and syncs are debounced 10 s after the last change. Over the limit the function

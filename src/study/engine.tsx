@@ -4,6 +4,7 @@ import { K, type LateStart } from '../logic/keys'
 import * as P from '../logic/pomo'
 import { studyBlock, type StudyBlockId } from '../logic/pomo'
 import { store } from '../store/store'
+import { spanEntry, watchMs } from '../watch/watchStore'
 import { askNotify, beep, notify, unlockAudio, useWakeLock } from '../components/alarm'
 import { DONE_QUOTES, pickQuote, QUOTES } from './quotes'
 import { blockAt, type RoutineBlock } from '../views/Routine'
@@ -107,7 +108,11 @@ const setDialog = (d: Dialog) => {
 
 /* ---------- study time per block (synced) ---------- */
 export const targetMs = (id: StudyBlockId, c = config, date = todayISO()) => P.effectiveTarget(P.blockMinutes(studyBlock(id, date)), c) * 60000
-export const loggedMs = (date: string, id: StudyBlockId) => store.get<number>(K.focusMs(date, id)) ?? 0
+/** study time logged on the site itself (any phone/tablet) */
+const siteMs = (date: string, id: StudyBlockId) => store.get<number>(K.focusMs(date, id)) ?? 0
+/** all study time counted to a block: the site's own plus the watch's share (src/watch) */
+export const loggedMs = (date: string, id: StudyBlockId) =>
+  siteMs(date, id) + watchMs(date, id, (b) => siteMs(date, b), (b) => targetMs(b, config, date))
 /** Log the study time of [from, to): it counts to the block you were in, and once that block is full, back to
  *  the earliest block still short (see P.splitStudy). */
 function logStudy(from: number, to: number) {
@@ -115,7 +120,8 @@ function logStudy(from: number, to: number) {
   const date = todayISO(to)
   const pieces = P.splitStudy(from, to, date, (id) => loggedMs(date, id), (id) => targetMs(id, config, date))
   if (!pieces.length) return
-  store.setMany(pieces.map(([id, ms]) => [K.focusMs(date, id), Math.round(loggedMs(date, id) + ms)]))
+  // the stretch itself is noted too, so watch minutes overlapping it count only once
+  store.setMany([...pieces.map(([id, ms]) => [K.focusMs(date, id), Math.round(siteMs(date, id) + ms)] as [string, unknown]), spanEntry(date, from, to)])
   const d = today()
   for (const [id] of pieces) {
     if (loggedMs(date, id) < targetMs(id, config, date) || d.celebrated.includes(id)) continue

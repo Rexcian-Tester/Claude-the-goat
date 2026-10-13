@@ -7,3 +7,9 @@ pages_build_output_dir = "dist"
 [[kv_namespaces]]
 binding = "PROGRESS"
 id = "b07182b387804a1987745f491f70fe53"
+
+# Preview deployments (every branch except main) use their own, separate storage, so testing a branch can never
+# read or change your real progress. The binding above stays the one production uses.
+[[env.preview.kv_namespaces]]
+binding = "PROGRESS"
+id = "844e805660094eb49bf64faf5974bcca"
