@@ -48,6 +48,10 @@ Progress syncs through a Pages Function + KV (`functions/api/sync.ts`). See `REA
   The watch's progress screen reads `GET /api/watch/today` (watch token): only the field `day:<date>:watchsum`
   (today's blocks, targets, studied, total, goal, counted watch ids), written by `src/watch/summary.ts` after local
   edits only (never on remote changes, to avoid two devices rewriting it) and filtered by `cleanToday`.
+- Desk Buddy companion app (Android, separate repo): reads `GET /api/companion` (`functions/api/companion.ts`, its own
+  read-only secret `COMPANION_TOKEN`), a summary built by `src/companion/summary.ts` from the progress document with the
+  site's own logic (schedule, ticks, study time incl. watch, late starts, behind, overdue, last 7 days). It never writes.
+  The routine's block times live in `src/logic/routine.ts` (pure) so functions can use them; `src/views/Routine.tsx` shows them.
 - Cloudflare free plan: Workers KV allows ~1,000 writes a day (reset 00:00 UTC = 6 AM Dhaka), and every sync
   that changes anything is one write of the whole document. Keep writes rare: the Study Blocks timer saves every
   5 min (plus pause/stop/end), and syncs are debounced 10 s after the last change. Over the limit the function

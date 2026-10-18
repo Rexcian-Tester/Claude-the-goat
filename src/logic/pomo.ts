@@ -2,7 +2,7 @@
 // Times of day are minutes after midnight in Bangladesh time; durations inside a session are milliseconds of
 // wall-clock time, so the timer stays exact when the phone sleeps or the tab is throttled.
 import { todayISO } from '../data/dhaka'
-import { blockAt, routineFor, type RoutineBlock } from '../views/Routine'
+import { blockAt, routineFor, type RoutineBlock } from './routine'
 
 export interface PomoConfig {
   focus: number // minutes

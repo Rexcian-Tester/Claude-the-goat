@@ -107,6 +107,14 @@ npx wrangler pages secret put SYNC_PASSCODE --project-name <your-project-name>
 
 Then **redeploy** (Deployments -> ... -> Retry deployment, or push any commit) so the function sees it.
 
+### Optional: the Desk Buddy companion app
+
+The companion app reads a summary of your day from `GET /api/companion` (today's topics and ticks, study time,
+late starts, behind/ahead, the last week). It has its own **read-only** secret, so the app never needs your passcode:
+add a secret named `COMPANION_TOKEN` the same way as above (a long random string), push any commit so the function
+sees it, and paste the same token into the app's Settings. Without the secret the endpoint answers
+"server-not-configured" and nothing else changes.
+
 ---
 
 ## 6. Use it on every device
