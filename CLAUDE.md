@@ -31,7 +31,8 @@ Progress syncs through a Pages Function + KV (`functions/api/sync.ts`). See `REA
 - Study Blocks (Focus): one app-wide timer in `src/study/engine.tsx`; logged study time and late starts are synced
   under `day:<date>:focus:*` / `day:<date>:late:*`. Blocks come from the day's routine (`routineFor(date)` in
   `src/views/Routine.tsx`: every day is a full study day, Study Blocks A, B & Revision, C, D; Friday has Jumu'ah
-  12:30–2:30 with B ending 12:30 and C at 2:30–4:30, and D as weekly recovery). The Study Blocks card shows the daily
+  12:30–2:30 with B ending 12:30 and C at 2:30–4:00, and D as weekly recovery; Sat–Thu C is 2:00–4:00, Refresh
+  4:00–5:30, D 5:30–8:30, no Dinner block). The Study Blocks card shows the daily
   Goal 10h / Minimum 9h bar with "…to hold the line" / "…to perfect" / "Perfect day" (`DAILY_GOAL_MIN` / `DAILY_MINIMUM_MIN` and `dailyBar` in `src/logic/pomo.ts`).
   The routine is not dated: past days are shown with today's block times, while their stored data (ticks, late
   starts, study time by block id) is untouched.

@@ -16,12 +16,12 @@ describe('study blocks: targets and schedule', () => {
     expect(P.effectiveTarget(60)).toBe(50)
   })
   it('every day has Study Blocks A, B & Revision, C and D; Friday shifts C', () => {
-    expect(P.studyBlocks(THU).map((b) => [b.id, b.from / 60, b.to / 60])).toEqual([['study-a', 4, 7.5], ['study-b', 9, 13], ['study-c', 14, 16.5], ['study-d', 17.5, 20]])
-    expect(P.studyBlocks(FRI).map((b) => [b.id, b.from / 60, b.to / 60])).toEqual([['study-a', 4, 7.5], ['study-b', 9, 12.5], ['study-c', 14.5, 16.5], ['study-d', 17.5, 20]])
+    expect(P.studyBlocks(THU).map((b) => [b.id, b.from / 60, b.to / 60])).toEqual([['study-a', 4, 7.5], ['study-b', 9, 13], ['study-c', 14, 16], ['study-d', 17.5, 20.5]])
+    expect(P.studyBlocks(FRI).map((b) => [b.id, b.from / 60, b.to / 60])).toEqual([['study-a', 4, 7.5], ['study-b', 9, 12.5], ['study-c', 14.5, 16], ['study-d', 17.5, 20.5]])
     // per-block targets from the unchanged 25/5 + 15-after-4 cycle
     const t = (d: string) => P.studyBlocks(d).map((b) => P.effectiveTarget(P.blockMinutes(b)))
-    expect(t(THU)).toEqual([170, 195, 120, 120]) // 2h50 · 3h15 · 2h00 · 2h00
-    expect(t(FRI)).toEqual([170, 170, 100, 120]) // 2h50 · 2h50 · 1h40 · 2h00
+    expect(t(THU)).toEqual([170, 195, 100, 145]) // 2h50 · 3h15 · 1h40 · 2h25
+    expect(t(FRI)).toEqual([170, 170, 75, 145]) // 2h50 · 2h50 · 1h15 · 2h25
     expect(P.studyBlock('study-b', THU).label).toBe('Study Block B & Revision')
   })
   it('study time counts to the block you are in, else the last one that ended', () => {
