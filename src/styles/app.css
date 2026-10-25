@@ -313,6 +313,8 @@ ol.find li::marker{font-weight:700;color:var(--accent)}
 .chart text{font:11px var(--body);fill:var(--muted)}
 .chart .axis{stroke:var(--line);stroke-width:1}
 .chart .grid{stroke:var(--line);stroke-width:1;stroke-dasharray:2 3}
+.chart .ref text{fill:var(--gold);font-weight:600}
+.chart text.val{fill:var(--ink);font-weight:600;font-size:10.5px}
 .rev-item{display:flex;gap:10px;align-items:flex-start;border-bottom:1px solid var(--line);padding:8px 6px;border-radius:6px;transition:background .15s}
 .rev-item:hover{background:color-mix(in srgb,var(--accent-soft) 50%,transparent)}
 .rowbtn{background:none;border:none;text-align:left;padding:0;min-height:var(--tap);display:flex;align-items:center;width:100%}
@@ -845,3 +847,12 @@ a:focus-visible,button:focus-visible,summary:focus-visible,[tabindex]:focus-visi
 /* Plan: back to today */
 .today-jump{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0));z-index:30;border:1px solid var(--line);border-radius:99px;padding:9px 16px;background:var(--panel);color:var(--accent);font:600 14px var(--body);box-shadow:var(--shadow-3);cursor:pointer;animation:tj-in .3s var(--spring)}
 @keyframes tj-in{from{transform:translateY(12px);opacity:0}}
+/* Progress: big Hours studied view */
+.hx-stats{grid-template-columns:repeat(2,1fr)}
+@media (min-width:560px){.hx-stats{grid-template-columns:repeat(4,1fr)}}
+.hx-tbl tr.muted td{color:var(--muted)}
+.hx-tbl td:first-child{white-space:nowrap}
+/* Focus: step through past days of study blocks */
+.sb-nav{display:flex;align-items:center;gap:8px}
+.sb-nav-d{flex:1;text-align:center;font:600 14.5px var(--body)}
+.sb-nav .btn.sm{min-width:40px}

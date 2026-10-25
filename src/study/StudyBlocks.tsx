@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
-import { todayISO } from '../data/dhaka'
+import { addDays, todayISO, weekdayIndex } from '../data/dhaka'
+import { dateEn } from '../data/bn'
+import { PLAN_START } from '../data/plan'
 import { K, type LateStart } from '../logic/keys'
 import * as P from '../logic/pomo'
-import { useField, useStoreVersion } from '../store/store'
+import { store, useField, useStoreVersion } from '../store/store'
 import { blockAt } from '../views/Routine'
 import { actions, clock12, dhakaMinute, fmtDur, loggedMs, setConfig, targetMs, usePomo } from './engine'
 import { pickQuote, QUOTES } from './quotes'
@@ -123,9 +125,12 @@ function Timer({ now }: { now: number }) {
 
 function BlockRow({ id, date, live }: { id: P.StudyBlockId; date: string; live: number }) {
   const b = P.studyBlock(id, date)
-  const done = loggedMs(date, id) + live
+  // days from before Study Block B and Revision merged may still have time and a late start under 'revision'
+  const old = id === 'study-b' ? (store.get<number>(K.focusMs(date, 'revision')) ?? 0) : 0
+  const done = loggedMs(date, id) + old + live
   const target = targetMs(id, undefined, date)
-  const late = useField<LateStart | undefined>(K.late(date, id), undefined)
+  const lateOld = useField<LateStart | undefined>(K.late(date, 'revision'), undefined)
+  const late = useField<LateStart | undefined>(K.late(date, id), undefined) ?? (id === 'study-b' ? lateOld : undefined)
   const pct = Math.min(1, done / target)
   return (
     <div className={`sb-row ${pct >= 1 ? 'done' : ''}`}>
@@ -248,19 +253,32 @@ function TodayTasks() {
   )
 }
 
+const WD_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const dayName = (d: string, today: string) => `${d === today ? 'Today · ' : d === addDays(today, -1) ? 'Yesterday · ' : ''}${WD_EN[weekdayIndex(d)]} ${dateEn(d)}`
+const oldMs = (d: string) => store.get<number>(K.focusMs(d, 'revision')) ?? 0
+
 export function StudyBlocks() {
   const now = useTick(1000)
   const { s, c } = usePomo()
   useStoreVersion()
   const date = todayISO(now)
   const study = s.mode === 'study'
-  const blocks = P.studyBlocks(date)
+  // the day the card shows: today, or an earlier day picked with the arrows (read-only)
+  const [picked, setPicked] = useState<string | null>(null)
+  const shown = picked && picked < date ? picked : date
+  const isToday = shown === date
+  const blocks = P.studyBlocks(shown)
   // the few seconds not logged yet show on the block they will count to
   const liveBlock = study && P.isStudy(s) ? P.attributeBlock(dhakaMinute(now), date) : null
-  const live = (id: P.StudyBlockId) => (id === liveBlock ? P.unlogged(s, now) : 0)
-  const total = blocks.reduce((n, b) => n + loggedMs(date, b.id) + live(b.id), 0)
+  const live = (id: P.StudyBlockId) => (isToday && id === liveBlock ? P.unlogged(s, now) : 0)
+  const total = blocks.reduce((n, b) => n + loggedMs(shown, b.id) + live(b.id), 0) + oldMs(shown)
   const day = P.dailyBar(total)
-  const frac = day.frac
+  // the quote follows today's progress, whichever day is shown
+  const todayTotal = isToday ? total : P.studyBlocks(date).reduce((n, b) => n + loggedMs(date, b.id) + (b.id === liveBlock ? P.unlogged(s, now) : 0), 0)
+  const frac = P.dailyBar(todayTotal).frac
+  const dayText = isToday
+    ? day.state === 'goal' ? 'Perfect day' : `${fmtDur(day.left)} ${day.state === 'good' ? 'to perfect' : 'to hold the line'}`
+    : day.state === 'goal' ? 'Perfect day' : day.state === 'good' ? `Held the line · ${fmtDur(day.left)} short of perfect` : total === 0 ? 'Nothing logged' : `${fmtDur(day.left)} short of the line`
   // a new line every 10% of the day's target, so it changes as you go
   const q = pickQuote(QUOTES, Math.floor(frac * 10) + Number(date.slice(8)))
   const busy = s.phase === 'focus' || s.phase === 'flow' || s.phase === 'break'
@@ -277,16 +295,23 @@ export function StudyBlocks() {
       <Timer now={now} />
       {study && (
         <div className="card">
+          <div className="sb-nav" role="group" aria-label="Choose a day">
+            <button type="button" className="btn sm" aria-label="Previous day" disabled={shown <= PLAN_START} onClick={() => setPicked(addDays(shown, -1))}>‹</button>
+            <span className="sb-nav-d" aria-live="polite">{dayName(shown, date)}</span>
+            <button type="button" className="btn sm" aria-label="Next day" disabled={isToday} onClick={() => setPicked(addDays(shown, 1))}>›</button>
+            {!isToday && <button type="button" className="btn sm" onClick={() => setPicked(null)}>Today</button>}
+          </div>
           <div className="card-h">
-            <h2>Today's study blocks</h2>
+            <h2>{isToday ? "Today's study blocks" : 'Study blocks'}</h2>
             <span className="num">{fmtDur(total)} studied</span>
           </div>
           <div className={`sb-day ${day.state}`}>
             <span className="sb-day-l"><b>Goal {P.DAILY_GOAL_MIN / 60}h</b></span>
-            <span className="small">{day.state === 'goal' ? 'Perfect day' : `${fmtDur(day.left)} ${day.state === 'good' ? 'to perfect' : 'to hold the line'}`}</span>
+            <span className="small">{dayText}</span>
           </div>
-          <span className={`bar sb-total ${day.state}`} style={{ ['--mark' as string]: `${day.mark * 100}%` }}><i style={{ width: `${frac * 100}%` }} /></span>
-          {blocks.map((b) => <BlockRow key={b.id} id={b.id} date={date} live={live(b.id)} />)}
+          <span className={`bar sb-total ${day.state}`} style={{ ['--mark' as string]: `${day.mark * 100}%` }}><i style={{ width: `${day.frac * 100}%` }} /></span>
+          {blocks.map((b) => <BlockRow key={`${shown}${b.id}`} id={b.id} date={shown} live={live(b.id)} />)}
+          {!isToday && <p className="small">A past day, view only. Block times and targets are shown as they are in your Routine now.</p>}
           <p className="small">Targets are the study time a block allows with {c.focus}-min sessions and the breaks between them. Time counts to the block you're in; once a block is full, extra time fills the earliest block still short.</p>
         </div>
       )}

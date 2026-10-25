@@ -16,12 +16,19 @@ interface Props {
   yTicks?: number
   yLabel: string
   fmtLabel: (l: string) => string
+  /** chart height (default 210) */
+  height?: number
+  /** dashed reference lines, e.g. a daily goal */
+  refs?: { value: number; label: string }[]
+  /** the big view: values on the bars and more dates along the bottom when there is room */
+  detail?: boolean
+  /** short date for the bottom axis (defaults to fmtLabel) */
+  fmtTick?: (l: string) => string
 }
-const H = 210
 const P = { l: 34, r: 12, t: 12, b: 26 }
 
 /** One-axis line/bar chart with legend, hover crosshair + tooltip, and a table view. Colours are theme tokens. */
-export function Chart({ title, labels, series, yMax, yTicks = 4, yLabel, fmtLabel }: Props) {
+export function Chart({ title, labels, series, yMax, yTicks = 4, yLabel, fmtLabel, height: H = 210, refs = [], detail, fmtTick = fmtLabel }: Props) {
   const [hover, setHover] = useState<number | null>(null)
   const [table, setTable] = useState(false)
   const box = useRef<HTMLDivElement>(null)
@@ -35,17 +42,23 @@ export function Chart({ title, labels, series, yMax, yTicks = 4, yLabel, fmtLabe
     return () => ro.disconnect()
   }, [table])
   const n = labels.length
-  const max = yMax ?? Math.max(1, ...series.flatMap((s) => s.values.filter((v): v is number => v !== undefined)))
+  const max = yMax ?? Math.max(1, ...refs.map((r) => r.value), ...series.flatMap((s) => s.values.filter((v): v is number => v !== undefined)))
   const top = yMax ?? Math.ceil(max * 1.1)
-  const x = (i: number) => P.l + (n <= 1 ? 0.5 : i / (n - 1)) * (W - P.l - P.r)
+  const barW = Math.max(2, Math.min(detail ? 28 : 14, (W - P.l - P.r) / Math.max(1, n) - 3))
+  // the big view keeps its wide bars clear of the axis numbers
+  const pad = detail ? barW / 2 + 4 : 0
+  const x = (i: number) => P.l + pad + (n <= 1 ? 0.5 : i / (n - 1)) * (W - P.l - P.r - 2 * pad)
   const y = (v: number) => H - P.b - (v / top) * (H - P.t - P.b)
-  const barW = Math.max(2, Math.min(14, (W - P.l - P.r) / Math.max(1, n) - 3))
   const ticks = Array.from({ length: yTicks + 1 }, (_, i) => (top / yTicks) * i)
-  const xTicks = n <= 1 ? [0] : W < 420 ? [0, n - 1] : [0, Math.round((n - 1) / 3), Math.round(((n - 1) * 2) / 3), n - 1]
+  const span = (W - P.l - P.r - 2 * pad) / Math.max(1, n - 1)
+  // the big view labels every day, or every k-th day, as room allows (about 46px a short date)
+  const every = Math.max(1, Math.ceil(46 / span))
+  const xTicks = n <= 1 ? [0] : detail ? Array.from({ length: n }, (_, i) => i).filter((i) => (n - 1 - i) % every === 0) : W < 420 ? [0, n - 1] : [0, Math.round((n - 1) / 3), Math.round(((n - 1) * 2) / 3), n - 1]
+  const valueLabels = detail && span >= 26
   const onMove = (e: React.PointerEvent<SVGSVGElement>) => {
     const r = e.currentTarget.getBoundingClientRect()
     const px = ((e.clientX - r.left) / r.width) * W
-    setHover(Math.max(0, Math.min(n - 1, Math.round(((px - P.l) / (W - P.l - P.r)) * (n - 1)))))
+    setHover(Math.max(0, Math.min(n - 1, Math.round(((px - P.l - pad) / (W - P.l - P.r - 2 * pad)) * (n - 1)))))
   }
   if (!n) return <div className="empty">No data yet.</div>
   return (
@@ -84,10 +97,21 @@ export function Chart({ title, labels, series, yMax, yTicks = 4, yLabel, fmtLabe
               </g>
             ))}
             <line className="axis" x1={P.l} x2={W - P.r} y1={H - P.b} y2={H - P.b} />
-            {xTicks.map((i) => <text key={i} x={x(i)} y={H - 8} textAnchor={i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle'}>{fmtLabel(labels[i])}</text>)}
+            {xTicks.map((i) => <text key={i} x={x(i)} y={H - 8} textAnchor={detail ? 'middle' : i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle'}>{fmtTick(labels[i])}</text>)}
             <text x={P.l} y={9} textAnchor="start">{yLabel}</text>
+            {refs.map((r) => (
+              <g key={r.label} className="ref">
+                <line x1={P.l} x2={W - P.r} y1={y(r.value)} y2={y(r.value)} stroke="var(--gold)" strokeWidth="1.5" strokeDasharray="6 5" />
+                <text x={W - P.r} y={y(r.value) - 5} textAnchor="end" fill="var(--gold)">{r.label}</text>
+              </g>
+            ))}
             {series.filter((s) => s.kind === 'bar').map((s) =>
-              s.values.map((v, i) => v === undefined ? null : <rect key={`${s.name}${i}`} x={x(i) - barW / 2} y={y(v)} width={barW} height={Math.max(0, H - P.b - y(v))} rx={Math.min(3, barW / 2)} fill={s.color} opacity={hover === i ? 1 : 0.85} />),
+              s.values.map((v, i) => v === undefined ? null : (
+                <g key={`${s.name}${i}`}>
+                  <rect x={x(i) - barW / 2} y={y(v)} width={barW} height={Math.max(0, H - P.b - y(v))} rx={Math.min(3, barW / 2)} fill={s.color} opacity={hover === i ? 1 : 0.85} />
+                  {valueLabels && <text x={x(i)} y={y(v) - 5} textAnchor="middle" className="val">{bn(+v.toFixed(1))}</text>}
+                </g>
+              )),
             )}
             {series.filter((s) => s.kind !== 'bar').map((s) => {
               const pts = s.values.map((v, i) => (v === undefined ? null : ([x(i), y(v)] as const)))

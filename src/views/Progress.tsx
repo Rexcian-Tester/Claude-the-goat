@@ -1,8 +1,9 @@
-import { dateBn, dateEn, SUBJ_BN } from '../data/bn'
+import { useState } from 'react'
+import { bn as bnDigits, dateBn, dateEn, SUBJ_BN, WD_BN } from '../data/bn'
 const bn = (x: string | number) => String(x)
 const pctBn = (x: number) => `${Math.round(x * 100)}%`
 const fmt1 = (x: number) => String(+x.toFixed(1))
-import { addDays, diffDays } from '../data/dhaka'
+import { addDays, diffDays, weekdayIndex } from '../data/dhaka'
 import { PLAN_LAST, PLAN_START } from '../data/plan'
 import { behindInfo, lagLabel } from '../logic/behind'
 import { K } from '../logic/keys'
@@ -12,13 +13,13 @@ import {
 import { href } from '../router'
 import { useReader, useSchedule, useToday } from '../hooks'
 import { Chart, type Series } from '../components/charts'
-import { Bar, Panel, TierPill } from '../components/ui'
+import { Bar, Panel, Sheet, TierPill } from '../components/ui'
 import { RevisionListCard } from './Endgame'
 import type { Tier } from '../data/types'
 import { EXAM_DATE } from '../data/plan'
 import { store } from '../store/store'
 import type { LateStart } from '../logic/keys'
-import { BLOCK_LABEL, type StudyBlockId } from '../logic/pomo'
+import { BLOCK_LABEL, DAILY_GOAL_MIN, type StudyBlockId } from '../logic/pomo'
 import { CR7_COMEBACK, CR7_STANDARD, pickQuote } from '../study/quotes'
 import { loggedMs } from '../study/engine'
 
@@ -100,7 +101,58 @@ function Meter({ label, pct, sub }: { label: React.ReactNode; pct: number; sub?:
   )
 }
 
+const RANGES = [[7, '7 days'], [14, '14 days'], [30, '30 days'], [0, 'All']] as const
+
+/** "Hours studied" in a big view: pick a range, see the numbers, every day listed (newest first). */
+function HoursSheet({ dates, hours, onClose }: { dates: string[]; hours: (number | undefined)[]; onClose: () => void }) {
+  const [range, setRange] = useState<number>(14)
+  const from = range ? Math.max(0, dates.length - range) : 0
+  const avg = movingAvg(hours)
+  const ds = dates.slice(from)
+  const hs = hours.slice(from)
+  const logged = hs.map((h, i) => [h, ds[i]] as const).filter((x): x is readonly [number, string] => x[0] !== undefined)
+  const total = logged.reduce((n, [h]) => n + h, 0)
+  const best = logged.reduce<readonly [number, string] | null>((b, x) => (!b || x[0] > b[0] ? x : b), null)
+  const series: Series[] = [
+    { name: 'Hours studied', color: 'var(--accent)', kind: 'bar', values: hs },
+    { name: '7-day average', color: 'var(--warn)', values: avg.slice(from) },
+  ]
+  const day = (d: string) => `${dateBn(d)} · ${WD_BN[weekdayIndex(d)]}`
+  // whole 2-hour steps, at least up to 12h so the goal line has room
+  const top = Math.max(12, Math.ceil(Math.max(0, ...logged.map(([h]) => h)) / 2) * 2)
+  return (
+    <Sheet title="Hours studied" onClose={onClose}>
+      <div className="seg" role="group" aria-label="Range">
+        {RANGES.map(([n, l]) => <button key={n} type="button" aria-pressed={range === n} onClick={() => setRange(n)}>{l}</button>)}
+      </div>
+      <div className="stat-grid hx-stats">
+        <div className="stat"><b>{fmt1(total)}</b><span>hours in total</span></div>
+        <div className="stat"><b>{fmt1(logged.length ? total / logged.length : 0)}</b><span>average a day</span></div>
+        <div className="stat"><b>{best ? fmt1(best[0]) : '–'}</b><span>best day{best ? ` · ${dateBn(best[1])}` : ''}</span></div>
+        <div className="stat"><b>{bn(logged.length)}/{bn(ds.length)}</b><span>days filled in</span></div>
+      </div>
+      <Chart title="Hours studied per day" labels={ds} series={series} yLabel="hours" fmtLabel={(l) => dateBn(l)} fmtTick={(l) => bnDigits(`${+l.slice(8)}/${+l.slice(5, 7)}`)} height={320} yMax={top} yTicks={top / 2} refs={[{ value: DAILY_GOAL_MIN / 60, label: `Goal ${DAILY_GOAL_MIN / 60}h` }]} detail />
+      <div className="tbl">
+        <table className="plain hx-tbl">
+          <thead><tr><th>Day</th><th>Hours</th><th>7-day avg</th></tr></thead>
+          <tbody>
+            {ds.map((d, i) => [d, i] as const).reverse().map(([d, i]) => (
+              <tr key={d} className={hs[i] === undefined ? 'muted' : ''}>
+                <td>{day(d)}</td>
+                <td className="num">{hs[i] === undefined ? 'not filled' : fmt1(hs[i]!)}</td>
+                <td className="num">{avg[from + i] === undefined ? '–' : fmt1(avg[from + i]!)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="small">From the end-of-day reflection (hours you entered). A day you didn't fill in shows as "not filled".</p>
+    </Sheet>
+  )
+}
+
 export function ProgressView() {
+  const [bigHours, setBigHours] = useState(false)
   const r = useReader()
   const sched = useSchedule()
   const today = useToday()
@@ -200,7 +252,10 @@ export function ProgressView() {
 
       <div className="grid2">
         <div className="card">
-          <h2>Hours studied</h2>
+          <div className="card-h">
+            <h2>Hours studied</h2>
+            {anyRefl && <button type="button" className="btn sm" onClick={() => setBigHours(true)} aria-label="Open Hours studied in a larger view">⤢ Expand</button>}
+          </div>
           {anyRefl ? <Chart title="Hours studied per day" labels={dates} series={hoursSeries} yLabel="hours" fmtLabel={fmtL} /> : <div className="empty">Fill the end-of-day reflection to see this.</div>}
         </div>
         <div className="card">
@@ -209,6 +264,7 @@ export function ProgressView() {
         </div>
       </div>
 
+      {bigHours && <HoursSheet dates={dates} hours={hours} onClose={() => setBigHours(false)} />}
       <LateStarts today={today} />
 
       <div className="card">
