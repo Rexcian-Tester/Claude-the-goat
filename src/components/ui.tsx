@@ -47,14 +47,63 @@ export function FieldCheck({ k, children }: { k: string; children: ReactNode }) 
   return <Check checked={v} onChange={(x) => store.set(k, x)}>{children}</Check>
 }
 
-export function Rating({ value, onChange, max = 5, label }: { value?: number; onChange: (n: number | undefined) => void; max?: number; label: string }) {
+/** 1–5 buttons. With `fractions`, press and hold a number (1–4) to pick n.1–n.9; tapping a number sets it whole. */
+export function Rating({ value, onChange, max = 5, label, fractions }: { value?: number; onChange: (n: number | undefined) => void; max?: number; label: string; fractions?: boolean }) {
+  const [pick, setPick] = useState<number | null>(null)
+  const hold = useRef<{ t: number; x: number; y: number; fired: boolean } | null>(null)
+  const whole = value === undefined ? undefined : Math.floor(value + 1e-9)
+  const start = (e: React.PointerEvent, n: number) => {
+    hold.current = null
+    if (!fractions || n >= max || (e.pointerType === 'mouse' && e.button !== 0)) return
+    const h = { t: 0, x: e.clientX, y: e.clientY, fired: false }
+    h.t = window.setTimeout(() => {
+      h.fired = true
+      setPick(n)
+      navigator.userActivation?.hasBeenActive && navigator.vibrate?.(15)
+    }, 450)
+    hold.current = h
+  }
+  const cancel = () => hold.current && clearTimeout(hold.current.t)
   return (
-    <div className="rating" role="group" aria-label={label}>
-      {Array.from({ length: max }, (_, i) => i + 1).map((n) => (
-        <button key={n} type="button" aria-pressed={value === n} onClick={() => onChange(value === n ? undefined : n)}>
-          {n}
-        </button>
-      ))}
+    <div className="stack" style={{ gap: 8 }}>
+      <div className="rating" role="group" aria-label={label}>
+        {Array.from({ length: max }, (_, i) => i + 1).map((n) => (
+          <button
+            key={n}
+            type="button"
+            aria-pressed={whole === n}
+            className={whole === n && value !== n ? 'frac' : undefined}
+            onPointerDown={(e) => start(e, n)}
+            onPointerUp={cancel}
+            onPointerLeave={cancel}
+            onPointerCancel={cancel}
+            onPointerMove={(e) => hold.current && Math.hypot(e.clientX - hold.current.x, e.clientY - hold.current.y) > 10 && cancel()}
+            onContextMenu={(e) => fractions && e.preventDefault()}
+            onClick={() => {
+              // the click that ends a long press only opens the picker
+              if (hold.current?.fired) return void (hold.current = null)
+              setPick(null)
+              onChange(value === n ? undefined : n)
+            }}
+            onKeyDown={(e) => {
+              // arrow keys nudge the selected rating by 0.1
+              if (!fractions || whole !== n || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return
+              e.preventDefault()
+              onChange(Math.min(max, Math.max(1, Math.round((value! + (e.key === 'ArrowUp' ? 0.1 : -0.1)) * 10) / 10)))
+            }}
+          >
+            {whole === n && value !== n ? value!.toFixed(1) : n}
+          </button>
+        ))}
+      </div>
+      {pick !== null && (
+        <div className="rating rating-frac" role="group" aria-label={`${label}: ${pick}.1 to ${pick}.9`}>
+          {Array.from({ length: 9 }, (_, i) => Math.round((pick + (i + 1) / 10) * 10) / 10).map((v) => (
+            <button key={v} type="button" aria-pressed={value === v} onClick={() => (onChange(v), setPick(null))}>{v.toFixed(1)}</button>
+          ))}
+          <button type="button" className="ghost" aria-label="Close" onClick={() => setPick(null)}>✕</button>
+        </div>
+      )}
     </div>
   )
 }

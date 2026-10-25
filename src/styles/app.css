@@ -65,6 +65,11 @@ textarea.input{min-height:88px;resize:vertical;font-family:var(--body)}
 .rating button:hover{border-color:var(--accent)}
 .rating button[aria-pressed="true"]{transform:scale(1.06)}
 .rating button[aria-pressed="true"]{background:var(--accent);color:var(--panel);border-color:var(--accent)}
+.rating button{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+.rating button.frac{font-size:14.5px}
+.rating-frac{flex-wrap:wrap;animation:fade .2s ease-out}
+.rating-frac button{width:48px;height:40px;font-size:14.5px}
+.rating-frac button.ghost{width:40px;background:transparent;color:var(--muted)}
 input[type=range]{width:100%;accent-color:var(--accent);height:var(--tap)}
 
 /* ---------- cards & pills ---------- */

@@ -140,7 +140,8 @@ export function Reflection({ date }: { date: string }) {
         <NumField k={K.refl(date, 'hours')} label="Hours studied" min={0} max={24} step={0.5} />
         <div className="field">
           <span className="label" id={`focus-${date}`}>Focus (1 = scattered, 5 = locked in)</span>
-          <Rating value={focus} onChange={(n) => store.set(K.refl(date, 'focus'), n ?? null)} label="Focus rating" />
+          <Rating value={focus} onChange={(n) => store.set(K.refl(date, 'focus'), n ?? null)} label="Focus rating" fractions />
+          <span className="small">Hold a number for decimals (e.g. hold 3 for 3.1–3.9).</span>
         </div>
       </div>
       <TextField k={K.refl(date, 'well')} label="What went well" />
