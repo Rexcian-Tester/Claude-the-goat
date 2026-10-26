@@ -20,10 +20,12 @@ export interface ShiftPreview {
 /**
  * "Shift remaining days" preview. Unfinished past study days are re-slotted from today, later days move
  * down, and catch-up days are absorbed first. Days already completed stay where they are. Nothing beyond
- * PLAN_LAST (14 Dec) is used: 15–18 Dec are protected. Pure: the caller decides whether to save `shifts`.
+ * PLAN_LAST (17 Dec, the last Revision Phase day) is used: 18–19 Dec are protected. Pure: the caller decides whether to save `shifts`.
  */
-export function previewShift(rows: Row[], today: string, r: Reader): ShiftPreview {
-  const progress = new Map(rows.map((x) => [x.date, dayProgress(r, x, rows).complete]))
+export function previewShift(all: Row[], today: string, r: Reader): ShiftPreview {
+  // only the current plan shifts; old-plan days (before the rebase) are history
+  const rows = all.filter((x) => !x.archived)
+  const progress = new Map(rows.map((x) => [x.date, dayProgress(r, x, all).complete]))
   const late = rows.filter((x) => !x.isBuffer && !progress.get(x.date) && x.eff !== null && x.eff < today)
   // rows parked by an earlier shift stay lowest priority, and come back if a slot frees up
   const parked = rows.filter((x) => !x.isBuffer && x.eff === null && !progress.get(x.date))

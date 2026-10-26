@@ -1,5 +1,6 @@
 export type Subject = 'Phy' | 'Chem' | 'Math'
-export type PlanSubject = 'P' | 'C' | 'M' | 'X'
+/** X = catch-up day, R = a Revision Phase day (neither is a chapter) */
+export type PlanSubject = 'P' | 'C' | 'M' | 'X' | 'R'
 export type Kind = 'study' | 'half' | 'cls' | 'buf'
 export type Tier = 'T1' | 'T2' | 'T3' | 'T4'
 
@@ -36,6 +37,10 @@ export interface RawPlanItem {
   en: string
   topicList: string[]
   info?: { tier: Tier; rate: number; rank: number; en: string; full: boolean; q: number } | null
+  /** days from meta.rebase on: the item's index in its keys (10+, so it never collides with an old item on that date) */
+  ix?: number
+  /** days from meta.rebase on: tick key per micro-task (a micro-task reused from the old plan keeps its old key) */
+  tk?: string[]
 }
 export interface RawPlanDay { date: string; wd: string; phase: string; items: RawPlanItem[]; /** what was done on a free day */ note?: string }
 export interface StudyPlanJson {
@@ -53,6 +58,12 @@ export interface StudyPlanJson {
     ifBehind: string[]
     endgame: { date: string; what: string }[]
     intentionallyExcluded: string[]
+    /** the plan was reorganised from this date; earlier days are kept as history and never owed */
+    rebase: string
+    /** last day of the syllabus (the Today countdown) */
+    syllabusEnd: string
+    /** chapters left out on purpose (Priority Map shows them as skipped; not counted as remaining work) */
+    skippedByChoice: string[]
   }
   days: RawPlanDay[]
   trackerChanges: [PlanSubject, string, number, number, string?][]

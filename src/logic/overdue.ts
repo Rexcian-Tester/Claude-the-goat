@@ -9,7 +9,7 @@ import type { Row } from './schedule'
 export function overdueTasks(r: Reader, rows: Row[], today: string): TaskRef[] {
   const out: TaskRef[] = []
   for (const row of rows) {
-    if (row.eff === null || row.eff >= today) continue
+    if (row.eff === null || row.eff >= today || row.archived) continue
     const manual = dayProgress(r, row, rows).manual
     for (const t of ownTasks(row)) {
       const mark = topicMark(r, t.item)

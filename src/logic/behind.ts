@@ -31,10 +31,12 @@ export interface BehindInfo {
 /**
  * Behind/ahead = study days that should be finished by now (rows dated before today, catch-up rows excluded)
  * minus study days actually finished. A day is finished when all its tasks are ticked/moved/cleared or it is
- * marked done. Catch-up rows are never counted as owed, so an unused buffer costs nothing.
+ * marked done. Catch-up rows are never counted as owed, so an unused buffer costs nothing. Days from before the
+ * plan was reorganised (PlanDay.archived) are not counted at all.
  */
 export function behindInfo(today: string, rows: Row[], r: Reader): BehindInfo {
-  const study = rows.filter((x) => !x.isBuffer && x.eff !== null)
+  // old-plan days (before the rebase) are history: never owed, never counted
+  const study = rows.filter((x) => !x.isBuffer && !x.archived && x.eff !== null)
   let elapsed = 0
   let completed = 0
   for (const row of study) {

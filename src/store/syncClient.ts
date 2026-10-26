@@ -17,6 +17,9 @@ const set = (patch: Partial<SyncState>) => {
   listeners.forEach((l) => l())
 }
 export const useSyncState = (): SyncState => useSyncExternalStore((fn) => (listeners.add(fn), () => listeners.delete(fn)), () => state)
+/** outside React: the current sync status, and a listener for its changes (returns the unsubscribe) */
+export const syncStatus = (): SyncStatus => state.status
+export const onSyncChange = (fn: () => void) => (listeners.add(fn), () => void listeners.delete(fn))
 
 const PASS_KEY = 'mist-passcode'
 export const getPasscode = (): string => {

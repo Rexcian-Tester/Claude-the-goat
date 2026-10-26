@@ -50,7 +50,7 @@ export function ExamChecklist() {
 }
 
 const PAPERS = [...YEARS.map((y) => ({ id: y, label: `${yearBn(y)} প্রশ্নপত্র` })), ...MODEL_TESTS.map((m) => ({ id: m, label: yearBn(m) }))]
-function PaperChecklist() {
+export function PaperChecklist() {
   return (
     <div className="card">
       <h3>Papers checklist</h3>

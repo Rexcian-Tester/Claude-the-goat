@@ -5,7 +5,7 @@ import { chapterByName } from './catalog'
 import { studyPlan } from './load'
 import type { Chapter, PlanSubject, RawPlanItem, Subject } from './types'
 
-export const SUBJECT_OF: Record<Exclude<PlanSubject, 'X'>, Subject> = { P: 'Phy', C: 'Chem', M: 'Math' }
+export const SUBJECT_OF: Record<Exclude<PlanSubject, 'X' | 'R'>, Subject> = { P: 'Phy', C: 'Chem', M: 'Math' }
 
 /** plan (subject, ch) -> priority-map chapters it covers, when it isn't a 1:1 name match */
 export const PLAN_EXCEPTIONS: Record<string, { subject: Subject; n: string }[]> = {
@@ -24,11 +24,14 @@ export const PLAN_EXCEPTIONS: Record<string, { subject: Subject; n: string }[]> 
 }
 
 /** Priority-map chapters deliberately absent from the plan (meta.intentionallyExcluded). */
-export const INTENTIONALLY_UNSCHEDULED: { subject: Subject; n: string }[] = [{ subject: 'Chem', n: 'ল্যাবরেটরির নিরাপদ ব্যবহার' }]
+export const INTENTIONALLY_UNSCHEDULED: { subject: Subject; n: string }[] = []
 
-/** Priority-map chapters a plan item covers. Catch-up items (X) cover none. */
+/** Chapters you left out on purpose (meta.skippedByChoice): kept on the Priority Map, never counted as remaining work. */
+export const SKIPPED_BY_CHOICE = new Set(studyPlan.meta.skippedByChoice)
+
+/** Priority-map chapters a plan item covers. Catch-up (X) and Revision Phase (R) items cover none. */
 export function chaptersForItem(item: Pick<RawPlanItem, 's' | 'ch'>): Chapter[] {
-  if (item.s === 'X') return []
+  if (item.s === 'X' || item.s === 'R') return []
   const ex = PLAN_EXCEPTIONS[`${item.s}|${item.ch}`]
   if (ex) return ex.map((e) => chapterByName(e.subject, e.n)).filter((c): c is Chapter => !!c)
   const c = chapterByName(SUBJECT_OF[item.s], item.ch)
@@ -40,7 +43,7 @@ export function unmatchedPlanItems(): { date: string; ch: string; s: PlanSubject
   const out: { date: string; ch: string; s: PlanSubject }[] = []
   for (const d of studyPlan.days)
     for (const it of d.items) {
-      if (it.s === 'X') continue
+      if (it.s === 'X' || it.s === 'R') continue
       const ex = PLAN_EXCEPTIONS[`${it.s}|${it.ch}`]
       const found = chaptersForItem(it)
       if (found.length === 0 || (ex && found.length !== ex.length)) out.push({ date: d.date, ch: it.ch, s: it.s })

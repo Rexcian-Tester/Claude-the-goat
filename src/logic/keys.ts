@@ -11,7 +11,8 @@ export const K = {
   sub: (subId: string, kind: 'understood' | 'practised' | 'mist') => `sub:${subId}:${kind}`,
   conf: (chId: string) => `ch:${chId}:confidence`,
   formula: (chId: string) => `ch:${chId}:formula`,
-  shift: 'plan:shift',
+  /** "shift remaining days" of the current plan (the old plan's shift stays saved under 'plan:shift', unused) */
+  shift: 'plan:shift:v2',
   /** your moves and splits of plan topics (src/logic/planEdits.ts) */
   edits: 'plan:edits',
   /** a saved earlier version of `edits`, { at, label, edits } */

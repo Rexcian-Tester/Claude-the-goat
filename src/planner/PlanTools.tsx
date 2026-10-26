@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { dateBn, dateEn, WD_BN } from '../data/bn'
 import { addDays, weekdayIndex } from '../data/dhaka'
-import { itemByKey, PLAN_LAST, PLAN_START, type PlanItem } from '../data/plan'
+import { itemByKey, PLAN_LAST, PLAN_REBASE, PLAN_START, type PlanItem } from '../data/plan'
 import { duesList, topicOn, type Due } from '../logic/dues'
 import { markKeyFor, topicMarkKey } from '../logic/dayStatus'
 import { evenSplit, movePart, partsOf, resetTopic, splitPart, undoTarget, versionBefore, type PlanEdits } from '../logic/planEdits'
@@ -77,13 +77,16 @@ export function TopicSheet({ row, item, sched, today, mode: initial = 'move', on
   const pid = pidOf(item)
   const nSubs = orig.topicList.length
   const subs = item.subs ?? orig.topicList.map((_, i) => i)
+  // old-plan topics (before the rebase) stay in the old plan; current topics stay in the current plan
+  const lo = row.archived ? PLAN_START : PLAN_REBASE
+  const hi = row.archived ? addDays(PLAN_REBASE, -1) : PLAN_LAST
   const start = row.eff && row.eff >= today ? row.eff : today
   const [mode, setMode] = useState<Mode>(initial)
   const [date, setDate] = useState(start)
   const [note, setNote] = useState(item.editNote ?? '')
   const [n, setN] = useState(2)
   const draft = (k: number): DraftPart[] =>
-    evenSplit(subs, k).map((s, j) => ({ date: j === 0 ? start : addDays(start, j) <= PLAN_LAST ? addDays(start, j) : PLAN_LAST, subs: s, note: j === 0 ? item.editNote ?? '' : '' }))
+    evenSplit(subs, k).map((s, j) => ({ date: j === 0 ? start : addDays(start, j) <= hi ? addDays(start, j) : hi, subs: s, note: j === 0 ? item.editNote ?? '' : '' }))
   const [parts, setParts] = useState<DraftPart[]>(() => draft(2))
   const [ask, setAsk] = useState<{ days: { date: string; items: PlanItem[] }[]; apply: () => void } | null>(null)
   /** Move to an upcoming day, or send it to a past day (to record that you did it then) */
@@ -94,9 +97,9 @@ export function TopicSheet({ row, item, sched, today, mode: initial = 'move', on
   const rowFor = (d: string) => sched.byEff.get(d)
   const dateError = (d: string, allowPast = true) =>
     !d ? 'Pick a day.'
-    : d < PLAN_START ? `The plan starts on ${dateEn(PLAN_START)}.`
+    : d < lo ? `${row.archived ? 'The old plan' : 'This plan'} starts on ${dateEn(lo)}.`
     : !allowPast && d < today ? 'Pick today or a later day.'
-    : d > PLAN_LAST ? `The study plan ends on ${dateEn(PLAN_LAST)}.`
+    : d > hi ? `${row.archived ? 'The old plan' : 'The study plan'} ends on ${dateEn(hi)}.`
     : !rowFor(d) ? 'There is no plan day on that date.' : ''
   const moveError = when === 'past' ? (date >= today ? 'Pick a day before today.' : dateError(date)) : dateError(date, false)
   /** other topics on a day (not this part itself) */
@@ -145,8 +148,8 @@ export function TopicSheet({ row, item, sched, today, mode: initial = 'move', on
     const has = parts[k].subs.includes(s)
     setPart(k, { subs: has ? parts[k].subs.filter((x) => x !== s) : subs.filter((x) => x === s || parts[k].subs.includes(x)) })
   }
-  const quick = when === 'past' ? [1, 2, 3].map((k) => addDays(today, -k)).filter((d) => d >= PLAN_START) : [0, 1, 2, 3].map((k) => addDays(start, k)).filter((d) => d <= PLAN_LAST)
-  const pickWhen = (w: 'up' | 'past') => (setWhen(w), setDate(w === 'past' ? (yesterday >= PLAN_START ? yesterday : PLAN_START) : start))
+  const quick = when === 'past' ? [1, 2, 3].map((k) => addDays(today, -k)).filter((d) => d >= lo) : [0, 1, 2, 3].map((k) => addDays(start, k)).filter((d) => d <= hi)
+  const pickWhen = (w: 'up' | 'past') => (setWhen(w), setDate(w === 'past' ? (yesterday >= lo ? yesterday : lo) : start))
 
   return (
     <Sheet title="Edit topic" onClose={onClose}>
@@ -167,14 +170,14 @@ export function TopicSheet({ row, item, sched, today, mode: initial = 'move', on
         <div className="stack pe-pane" key="move">
           <div className="seg slide pe-when" role="group" aria-label="Upcoming or past day" style={{ ['--i' as string]: when === 'up' ? 0 : 1, ['--n' as string]: 2 }}>
             <button type="button" aria-pressed={when === 'up'} onClick={() => pickWhen('up')}>Upcoming day</button>
-            <button type="button" aria-pressed={when === 'past'} disabled={today <= PLAN_START} onClick={() => pickWhen('past')}>Send to past</button>
+            <button type="button" aria-pressed={when === 'past'} disabled={today <= lo} onClick={() => pickWhen('past')}>Send to past</button>
           </div>
           {when === 'past' && <p className="small">Already did it on an earlier day? Send it there so the plan shows when you really studied it.</p>}
           <div className="field">
             <label htmlFor="pe-date">Day</label>
             <div className="pe-quick">
               {quick.map((d) => <button key={d} type="button" className="btn sm" aria-pressed={d === date} onClick={() => setDate(d)}>{d === today ? 'Today' : d === addDays(today, 1) ? 'Tomorrow' : d === yesterday ? 'Yesterday' : dateBn(d)}</button>)}
-              <input id="pe-date" className="input pe-date" type="date" min={when === 'past' ? PLAN_START : today} max={when === 'past' ? yesterday : PLAN_LAST} value={date} onChange={(e) => setDate(e.target.value)} />
+              <input id="pe-date" className="input pe-date" type="date" min={when === 'past' ? lo : today} max={when === 'past' ? yesterday : hi} value={date} onChange={(e) => setDate(e.target.value)} />
             </div>
             {date && !moveError && <span className="small">{dayLabel(date)}{others(date).length ? ` · already has ${others(date).map((x) => x.ch).join(', ')}` : ' · nothing else that day'}</span>}
             {moveError && <span className="small bad-t">{moveError}</span>}
@@ -203,7 +206,7 @@ export function TopicSheet({ row, item, sched, today, mode: initial = 'move', on
           {parts.map((p, k) => (
             <div key={k} className="pe-part">
               <div className="pe-part-h"><b>Part {k + 1}</b>
-                <input className="input pe-date" type="date" aria-label={`Part ${k + 1} day`} min={PLAN_START} max={PLAN_LAST} value={p.date} onChange={(e) => setPart(k, { date: e.target.value })} />
+                <input className="input pe-date" type="date" aria-label={`Part ${k + 1} day`} min={lo} max={hi} value={p.date} onChange={(e) => setPart(k, { date: e.target.value })} />
               </div>
               {p.date && !dateError(p.date) ? <span className="small">{dayLabel(p.date)}</span> : <span className="small bad-t">{dateError(p.date)}</span>}
               <div className="pe-chips">

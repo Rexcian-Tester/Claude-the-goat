@@ -5,6 +5,7 @@ import { extras } from '../data/load'
 import { repeats } from '../data/repeats'
 import type { Chapter, Subject } from '../data/types'
 import { K } from '../logic/keys'
+import { SKIPPED_BY_CHOICE } from '../data/mapping'
 import { chapterProgress } from '../logic/stats'
 import { go, href, useRoute } from '../router'
 import { useReader, useSchedule } from '../hooks'
@@ -34,7 +35,7 @@ function ChapterRow({ c, maxRate, open, onToggle }: { c: Chapter; maxRate: numbe
             {c.full && <FullTag />}
             {c.wr === 0 && c.wm === 0 && <span className="tag zero">কোথাও আসেনি</span>}
             {c.wr === 0 && c.wm > 0 && <span className="tag zero">আসল প্রশ্নে আসেনি</span>}
-            {!slots.length && <span className="tag">পরিকল্পনায় নেই</span>}
+            {!slots.length && (SKIPPED_BY_CHOICE.has(c.n) ? <span className="tag" title="Skipped by choice: not counted as remaining work">নিজের সিদ্ধান্তে বাদ</span> : <span className="tag">পরিকল্পনায় নেই</span>)}
           </span>
           <span className="ln2">{c.p} · অধ্যায় {bn(c.no)} · আসল প্রশ্ন {fmt1(c.wr)}টি</span>
         </span>

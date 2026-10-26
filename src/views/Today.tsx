@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { dateBn, dateEn, dateLongBn, WD_BN } from '../data/bn'
 import { addDays, diffDays, weekdayIndex } from '../data/dhaka'
 import { studyPlan } from '../data/load'
-import { ENDGAME_START, PLAN_START, endgameKind } from '../data/plan'
+import { PLAN_REBASE, PLAN_START, SYLLABUS_END, endgameKind } from '../data/plan'
 import { isEndgame, phaseOf } from '../logic/behind'
 import type { Row } from '../logic/schedule'
 import { useSchedule, useToday } from '../hooks'
@@ -12,7 +12,7 @@ import { href } from '../router'
 import { Sheet } from '../components/ui'
 import { BehindBanner } from './BehindBanner'
 import { DayBody, DayMini, ItemHeader, OverdueJump, OverdueList } from './day'
-import { EndgameView } from './Endgame'
+import { EndgameView, PaperChecklist } from './Endgame'
 import { Accountability, RemindersCard } from './Habits'
 import { usePomo } from '../study/engine'
 import { timerView, useTick } from '../study/StudyBlocks'
@@ -99,7 +99,7 @@ export function TodayView() {
   if (isEndgame(today) || phase === 'after') return <EndgameView today={today} />
 
   const row = sched.byEff.get(today)
-  const prev = [...sched.rows].filter((x) => x.eff !== null && x.eff < today && !x.isBuffer).sort((a, b) => b.eff!.localeCompare(a.eff!))[0]
+  const prev = [...sched.rows].filter((x) => x.eff !== null && x.eff < today && !x.isBuffer && !x.archived).sort((a, b) => b.eff!.localeCompare(a.eff!))[0]
   const tomorrowISO = addDays(today, 1)
   const tomorrow = sched.byEff.get(tomorrowISO)
   const tmrEg = endgameKind(tomorrowISO)
@@ -118,7 +118,7 @@ export function TodayView() {
 
       <StartDay />
 
-      <Countdown target={ENDGAME_START} from={PLAN_START} title={`Countdown to ${dateBn(ENDGAME_START)}`} sub="Study plan ends · endgame begins" />
+      <Countdown target={addDays(SYLLABUS_END, 1)} from={PLAN_REBASE} title={`Countdown to ${dateBn(SYLLABUS_END)}`} sub="Syllabus ends · Revision Phase begins" />
 
       <div className="grid2 habits">
         <RemindersCard />
@@ -149,6 +149,8 @@ export function TodayView() {
           <div className="empty">No study day sits on today's date (the plan was shifted). Check the <a href={href.plan()}>Plan</a>.</div>
         )
       )}
+
+      {row?.items.some((it) => it.s === 'R') && <PaperChecklist />}
 
       <OverdueList sched={sched} today={today} />
 

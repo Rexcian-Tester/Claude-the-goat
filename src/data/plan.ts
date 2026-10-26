@@ -11,6 +11,8 @@ export interface PlanItem extends RawPlanItem {
   chapters: Chapter[]
   /** tick key per topicList entry. Ticks belong to the topic, not the day, so they travel when it moves. */
   tks: string[]
+  /** "moved to a catch-up day / cleared" key per topicList entry (its own, even when the tick key is reused) */
+  mks: string[]
   /* set on a topic you moved or split in the planner (src/logic/planEdits.ts) */
   /** key of the original topic */
   src?: string
@@ -29,6 +31,8 @@ export interface PlanDay {
   wd: string
   phase: string
   items: PlanItem[]
+  /** before meta.rebase: history from the old plan, kept as it was and never owed */
+  archived: boolean
   isBuffer: boolean
   /** nothing scheduled (work moved elsewhere): never owed, never a catch-up target */
   isFree: boolean
@@ -42,23 +46,32 @@ export const PLAN_LAST = studyPlan.days[studyPlan.days.length - 1].date
 export const REVISION_DATES = studyPlan.meta.revision
 export const REST_DATE = studyPlan.meta.rest
 export const EXAM_DATE = studyPlan.meta.exam
-export const ENDGAME_START = REVISION_DATES[0]
+export const ENDGAME_START = REVISION_DATES[0] ?? REST_DATE
+/** the plan was reorganised from this date (27 Oct); earlier days are history */
+export const PLAN_REBASE = studyPlan.meta.rebase
+/** last syllabus day (5 Dec); the Revision Phase follows */
+export const SYLLABUS_END = studyPlan.meta.syllabusEnd
 
 export const planDays: PlanDay[] = studyPlan.days.map((d, i) => {
-  const items: PlanItem[] = d.items.map((it, ii) => ({
-    ...it,
-    key: `${d.date}:${ii}`,
-    date: d.date,
-    itemIdx: ii,
-    chapters: chaptersForItem(it),
-    tks: it.topicList.map((_, i) => `task:${d.date}:${ii}:${i}`),
-  }))
+  const items: PlanItem[] = d.items.map((it, pos) => {
+    const ii = it.ix ?? pos
+    return {
+      ...it,
+      key: `${d.date}:${ii}`,
+      date: d.date,
+      itemIdx: ii,
+      chapters: chaptersForItem(it),
+      tks: it.topicList.map((_, i) => it.tk?.[i] ?? `task:${d.date}:${ii}:${i}`),
+      mks: it.topicList.map((_, i) => `task-moved:${d.date}:${ii}:${i}`),
+    }
+  })
   return {
     date: d.date,
     dayNo: i,
     wd: d.wd,
     phase: d.phase,
     items,
+    archived: d.date < studyPlan.meta.rebase,
     isBuffer: items.every((x) => x.k === 'buf'), // an empty (free) day counts like a buffer: nothing is owed
     isFree: items.length === 0,
     note: d.note,

@@ -1,6 +1,6 @@
 import { addDays, diffDays } from '../data/dhaka'
 import { allChapters, chaptersBySubject, realQuestions, allQuestions } from '../data/catalog'
-import { PLAN_START, PLAN_LAST, planDays, type PlanItem } from '../data/plan'
+import { PLAN_REBASE, PLAN_START, PLAN_LAST, planDays, type PlanItem } from '../data/plan'
 import { repeats } from '../data/repeats'
 import type { Chapter, Subject, Tier } from '../data/types'
 import { dayProgress, ownTasks, taskState, topicMark, topicMarkKey } from './dayStatus'
@@ -25,7 +25,7 @@ function taskCounts(r: Reader, rows: Row[], filter: (i: PlanItem) => boolean) {
   let done = 0
   let total = 0
   for (const row of rows) {
-    if (row.isBuffer) continue
+    if (row.isBuffer || row.archived) continue
     const manual = dayProgress(r, row, rows).manual
     for (const t of ownTasks(row)) {
       if (!filter(t.item)) continue
@@ -37,15 +37,17 @@ function taskCounts(r: Reader, rows: Row[], filter: (i: PlanItem) => boolean) {
   }
   return { done, total, pct: total ? done / total : 0 }
 }
+/** The current plan's days (from the rebase on); old-plan days are history. */
 export const overallCompletion = (r: Reader, rows: Row[]) => {
-  const study = rows.filter((x) => !x.isBuffer)
+  const study = rows.filter((x) => !x.isBuffer && !x.archived)
   const done = study.filter((x) => dayProgress(r, x, rows).complete).length
   return { done, total: study.length, pct: study.length ? done / study.length : 0, tasks: taskCounts(r, rows, () => true) }
 }
 export const subjectCompletion = (r: Reader, rows: Row[], s: 'P' | 'C' | 'M') => taskCounts(r, rows, (i) => i.s === s)
 
-/** Whole chapters finished: a chapter counts only when every day it appears on is done for it (all its
- *  parts, by ticks or your Done). `started` = some of it done. */
+/** Whole chapters finished: a chapter counts when every day it appears on is done for it (all its parts, by
+ *  ticks or your Done), in the old plan or in the current one (finished once stays finished). `started` = some
+ *  of it done. */
 export function chapterCompletion(r: Reader, sched: Pick<Schedule, 'rows' | 'slots'>, filter: (c: Chapter) => boolean) {
   let done = 0
   let total = 0
@@ -55,9 +57,13 @@ export function chapterCompletion(r: Reader, sched: Pick<Schedule, 'rows' | 'slo
     const slots = (sched.slots.get(c.id) ?? []).filter((s) => s.item.k !== 'buf')
     if (!slots.length) continue
     total++
-    const states = slots.map((s) => topicOn(r, s.row, s.item, sched.rows))
-    if (states.every((d) => d.done)) done++
-    else if (states.some((d) => d.done || d.ticked > 0)) started++
+    const states = slots.map((s) => ({ old: s.row.archived, d: topicOn(r, s.row, s.item, sched.rows) }))
+    const finished = (old: boolean) => {
+      const part = states.filter((x) => x.old === old)
+      return part.length > 0 && part.every((x) => x.d.done)
+    }
+    if (finished(true) || finished(false)) done++
+    else if (states.some((x) => x.d.done || x.d.ticked > 0)) started++
   }
   return { done, total, started, pct: total ? done / total : 0 }
 }
@@ -96,9 +102,19 @@ export function chapterQuestionStats(r: Reader, ch: Chapter): QStats & { mtTotal
   return out
 }
 
-/** Chapter progress for the map/search: micro-task ratio of the plan days it appears in. */
+/** Chapter progress for the map/search: micro-task ratio of the plan days it appears in. A chapter on both
+ *  old-plan and current days shows the further along of the two (finished once stays finished). */
 export function chapterProgress(r: Reader, rows: Row[], slots: { row: Row }[], chapterId?: string): { ratio: number; state: 'not started' | 'in progress' | 'done' } {
   void chapterId
+  const old = slots.filter((s) => s.row.archived)
+  if (old.length && old.length < slots.length) {
+    const a = progressOf(r, rows, old)
+    const b = progressOf(r, rows, slots.filter((s) => !s.row.archived))
+    return a.ratio >= b.ratio ? a : b
+  }
+  return progressOf(r, rows, slots)
+}
+function progressOf(r: Reader, rows: Row[], slots: { row: Row }[]): { ratio: number; state: 'not started' | 'in progress' | 'done' } {
   let done = 0
   let total = 0
   const seen = new Set<string>()
@@ -148,15 +164,16 @@ export interface BurnPoint {
   actual: number
 }
 /** Cumulative study days: original plan vs actually completed. */
+/** Current plan only: from the rebase (27 Oct), its days planned vs finished. */
 export function burnUp(r: Reader, rows: Row[], today: string): BurnPoint[] {
-  const study = rows.filter((x) => !x.isBuffer)
-  const end = today < PLAN_LAST ? today : PLAN_LAST
+  const study = rows.filter((x) => !x.isBuffer && !x.archived)
+  const end = today < PLAN_LAST ? (today < PLAN_REBASE ? PLAN_REBASE : today) : PLAN_LAST
   const done = study.map((x) => completedOn(r, x, rows)).filter((d): d is string => !!d)
-  const planned = planDays.filter((x) => !x.isBuffer)
+  const planned = planDays.filter((x) => !x.isBuffer && !x.archived)
   const out: BurnPoint[] = []
-  const n = diffDays(PLAN_START, end)
+  const n = diffDays(PLAN_REBASE, end)
   for (let i = 0; i <= n; i++) {
-    const date = addDays(PLAN_START, i)
+    const date = addDays(PLAN_REBASE, i)
     out.push({
       date,
       planned: planned.filter((x) => x.date <= date).length, // original schedule

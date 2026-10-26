@@ -18,6 +18,16 @@ Progress syncs through a Pages Function + KV (`functions/api/sync.ts`). See `REA
   round-trips byte-identically (`q`, `rate` and the 4th column of `trackerChanges` are written as floats, e.g. `8.0`;
   no trailing newline). A day with `items: []` is a **free day** (`isFree`): never owed, not a catch-up day;
   an optional day `note` is shown instead of the generic text.
+- **Plan reorganised 27 Oct 2026** (`meta.rebase`): days before it are the old plan, kept byte-identical as history
+  (`PlanDay.archived`: never owed, not in Dues/overdue/days behind/overall completion/burn-up/shift). From 27 Oct:
+  Prime Phase to `meta.syllabusEnd` (5 Dec, the Today countdown), then Revision Phase 6–17 Dec (বৃত্ত, সরলরেখা ও
+  কণিক, then 10 days of subject `R` রিভিশন); 18 Dec rest, 19 Dec exam (`meta.revision` is empty; endgame = 18–19 Dec).
+  New items carry `ix` (10+, so their keys never collide with old items on the same date) and `tk` (tick key per
+  micro-task: a micro-task reused from the old plan keeps its old key, so its tick carries over; "moved" keys stay
+  per item, `PlanItem.mks`). A chapter counts finished if finished in the old plan or the new. Planner edits never
+  move topics across 27 Oct. `plan:shift` was replaced by `plan:shift:v2` (old shift kept, unused).
+  `meta.skippedByChoice` (বাস্তব সংখ্যা ও অসমতা, যোগাশ্রয়ী প্রোগ্রাম) show "নিজের সিদ্ধান্তে বাদ" on the Priority Map.
+  `src/planner/markFinished.ts` once marked the owner's finished old-plan chapters Done (marker `plan:finished:2026-10-27`).
 - Progress keys are allow-listed in `src/sync/merge.ts` (`KEY_RE`); new synced keys must use an existing prefix
   (e.g. `day:<date>:…`). Keys are position-based (`task:<date>:<item>:<i>`), so moving topics on a day that
   already has ticks loses those ticks.

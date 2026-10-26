@@ -5,7 +5,7 @@
 // Ticks belong to the topic (`task:<original date>:<item>:<subtopic>`), so they follow a moved or split topic.
 // A subtopic can sit in more than one part (e.g. "speed graph" today, "velocity graph" on Friday): the first part
 // that has it keeps the original tick, every other copy gets its own (`…:<subtopic>:<part id>`).
-import type { PlanDay, PlanItem } from '../data/plan'
+import { PLAN_REBASE, type PlanDay, type PlanItem } from '../data/plan'
 
 export interface EditPart {
   id: string
@@ -83,11 +83,19 @@ export function resetTopic(edits: PlanEdits | undefined, src: string): PlanEdits
   return { ...(edits ?? EMPTY_EDITS), v: 1, topics }
 }
 
-/** Tick key for subtopic `sub` in part `pid`: the original key for the first part holding it, else its own. */
-export function tickKey(src: string, parts: EditPart[], pid: string, sub: number): string {
+/** Tick key for subtopic `sub` in part `pid`: the topic's own key for the first part holding it, else its own.
+ *  `base` is the topic's own tick key for that subtopic (a micro-task reused from the old plan keeps its old key). */
+export function tickKey(src: string, parts: EditPart[], pid: string, sub: number, base = `task:${src}:${sub}`): string {
   const owner = parts.find((p) => p.subs.includes(sub))
-  return owner && owner.id !== pid ? `task:${src}:${sub}:${pid}` : `task:${src}:${sub}`
+  return owner && owner.id !== pid ? `task:${src}:${sub}:${pid}` : base
 }
+/** "moved / cleared" key for subtopic `sub` in part `pid`, the same way. */
+const moveKey = (src: string, parts: EditPart[], pid: string, sub: number, base = `task-moved:${src}:${sub}`) => {
+  const owner = parts.find((p) => p.subs.includes(sub))
+  return owner && owner.id !== pid ? `task-moved:${src}:${sub}:${pid}` : base
+}
+/** Old-plan days (before the rebase) and new-plan days never trade topics. */
+const sameSide = (a: string, b: string) => (a < PLAN_REBASE) === (b < PLAN_REBASE)
 
 /**
  * The plan with your edits laid over it. Days keep their identity; their topics change. A topic moved onto a day
@@ -113,7 +121,8 @@ export function applyEdits(days: PlanDay[], edits: PlanEdits | undefined): PlanD
       touched.add(d.date)
       const parts = e.parts
       parts.forEach((p, k) => {
-        const row = valid.has(p.row) ? p.row : d.date
+        // an old-plan topic sent past the rebase (or a new one sent before it) stays on its own day
+        const row = valid.has(p.row) && sameSide(p.row, d.date) ? p.row : d.date
         touched.add(row)
         const subs = p.subs.filter((s) => s >= 0 && s < it.topicList.length)
         const topicList = subs.map((s) => it.topicList[s])
@@ -122,7 +131,8 @@ export function applyEdits(days: PlanDay[], edits: PlanEdits | undefined): PlanD
           key: `${it.key}#${p.id}`,
           topicList,
           t: topicList.join(' · '),
-          tks: subs.map((s) => tickKey(it.key, parts, p.id, s)),
+          tks: subs.map((s) => tickKey(it.key, parts, p.id, s, it.tks[s])),
+          mks: subs.map((s) => moveKey(it.key, parts, p.id, s, it.mks?.[s])),
           subs,
           src: it.key,
           pid: p.id,

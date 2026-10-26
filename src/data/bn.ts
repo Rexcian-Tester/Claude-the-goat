@@ -79,6 +79,7 @@ export const SUBJ_BN: Record<string, string> = {
   C: 'রসায়ন',
   M: 'উচ্চতর গণিত',
   X: 'ধরা-পড়ার দিন',
+  R: 'রিভিশন',
 }
 export const yearBn = (y: string): string => (y.startsWith('MT') ? 'মডেল টেস্ট-' + bn(y.slice(2).padStart(2, '0')) : bn(y))
 const LET: Record<string, string> = { a: 'ক', b: 'খ', c: 'গ', d: 'ঘ', e: 'ঙ' }

@@ -1,4 +1,4 @@
-import type { PlanDay, PlanItem } from '../data/plan'
+import { PLAN_REBASE, type PlanDay, type PlanItem } from '../data/plan'
 import { K } from './keys'
 import type { Reader } from './reader'
 import type { Row } from './schedule'
@@ -34,7 +34,7 @@ export function ownTasks(day: PlanDay): TaskRef[] {
     out = day.items.flatMap((item) =>
       item.topicList.map((text, j) => {
         const tk = item.tks[j]
-        return { key: tk.slice(5), date: day.date, itemIdx: item.itemIdx, i: item.subs?.[j] ?? j, text, item, tk, mk: `task-moved:${tk.slice(5)}` }
+        return { key: tk.slice(5), date: day.date, itemIdx: item.itemIdx, i: item.subs?.[j] ?? j, text, item, tk, mk: item.mks?.[j] ?? `task-moved:${tk.slice(5)}` }
       }),
     )
     ownCache.set(day.items, out)
@@ -70,6 +70,9 @@ export const movedTo = (r: Reader, t: TaskRef): string | undefined => {
   return m && m !== 'cleared' ? m : undefined
 }
 
+/** An old-plan task moved to a catch-up date stays in the old plan (that date may now hold a current-plan day). */
+const sameSide = (row: PlanDay, to: string) => !!row.archived === to < PLAN_REBASE
+
 /** Tasks from other days that were moved onto this (catch-up) day, keyed by their *effective* target date. */
 export function movedIn(r: Reader, rows: Row[], targetDate: string): TaskRef[] {
   const m = memoFor(r, rows)
@@ -79,14 +82,14 @@ export function movedIn(r: Reader, rows: Row[], targetDate: string): TaskRef[] {
       for (const row of rows)
         for (const t of ownTasks(row)) {
           const to = movedTo(r, t)
-          if (to && to !== row.date) m.inbound.set(to, [...(m.inbound.get(to) ?? []), t])
+          if (to && to !== row.date && sameSide(row, to)) m.inbound.set(to, [...(m.inbound.get(to) ?? []), t])
         }
     }
     return m.inbound.get(targetDate) ?? []
   }
   const out: TaskRef[] = []
   for (const row of rows) {
-    if (row.date === targetDate) continue
+    if (row.date === targetDate || !sameSide(row, targetDate)) continue
     for (const t of ownTasks(row)) if (movedTo(r, t) === targetDate) out.push(t)
   }
   return out

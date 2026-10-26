@@ -2,7 +2,7 @@ import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { bn, dateBn, dateEn, MONTHS_BN as MONTH_BN, WD_BN } from '../data/bn'
 import { addDays, weekdayIndex } from '../data/dhaka'
 import { studyPlan } from '../data/load'
-import { endgameKind, endgameRows, planDays } from '../data/plan'
+import { endgameKind, endgameRows, PLAN_REBASE, planDays } from '../data/plan'
 import { dayProgress } from '../logic/dayStatus'
 import { behindInfo, lagLabel } from '../logic/behind'
 import { K } from '../logic/keys'
@@ -24,7 +24,8 @@ import { toast } from '../components/ui'
 type St = 'done' | 'partial' | 'overdue' | 'todo'
 function rowStatus(r: Reader, row: Row, rows: Row[], today: string) {
   const p = dayProgress(r, row, rows)
-  const st: St = p.complete ? 'done' : row.eff !== null && row.eff < today && !row.isBuffer ? 'overdue' : p.ticked > 0 || p.resolved > 0 ? 'partial' : 'todo'
+  // old-plan days are history: never shown as overdue
+  const st: St = p.complete ? 'done' : row.eff !== null && row.eff < today && !row.isBuffer && !row.archived ? 'overdue' : p.ticked > 0 || p.resolved > 0 ? 'partial' : 'todo'
   return { p, st }
 }
 const STATUS_LABEL: Record<St, string> = { done: 'Done', partial: 'In progress', overdue: 'Overdue', todo: '' }
@@ -172,7 +173,7 @@ const MONTHS = [
   { y: 2026, m: 12, name: 'ডিসেম্বর' },
 ]
 const WD_SHORT = ['শনি', 'রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহ', 'শুক্র']
-const SUB_LETTER: Record<string, string> = { P: 'প', C: 'র', M: 'গ', X: 'ধ' }
+const SUB_LETTER: Record<string, string> = { P: 'প', C: 'র', M: 'গ', X: 'ধ', R: 'রি' }
 
 function MonthGrid({ sched, today }: { sched: Schedule; today: string }) {
   const r = useReader()
@@ -182,7 +183,7 @@ function MonthGrid({ sched, today }: { sched: Schedule; today: string }) {
         <span className="pd"><span className="chip P">প</span> পদার্থ</span>
         <span className="pd"><span className="chip C">র</span> রসায়ন</span>
         <span className="pd"><span className="chip M">গ</span> গণিত</span>
-        <span className="pd"><span className="chip X">ধ</span> ধরা-পড়ার দিন</span>
+        <span className="pd"><span className="chip R">রি</span> রিভিশন</span>
         <span className="pd"><span className="status done">Done</span><span className="status partial">In progress</span><span className="status overdue">Overdue</span></span>
       </div>
       {MONTHS.map(({ y, m, name }) => {
@@ -338,18 +339,20 @@ export function PlanView() {
 function PlanHead({ today, sched }: { today: string; sched: Schedule }) {
   const r = useReader()
   const info = behindInfo(today, sched.rows, r)
+  // the current plan (from the rebase); older days are history
+  const cur = planDays.filter((d) => !d.archived)
   const counts = {
-    days: planDays.length,
-    study: planDays.filter((d) => !d.isBuffer).length,
-    cls: planDays.reduce((n, d) => n + d.items.filter((i) => i.k === 'cls').length, 0),
-    half: planDays.filter((d) => d.items.some((i) => i.k === 'half')).length,
-    buf: planDays.filter((d) => d.isBuffer && !d.isFree).length,
+    days: cur.length,
+    study: cur.filter((d) => !d.isBuffer).length,
+    cls: cur.reduce((n, d) => n + d.items.filter((i) => i.k === 'cls').length, 0),
+    half: cur.filter((d) => d.items.some((i) => i.k === 'half')).length,
+    rev: cur.filter((d) => d.items.some((i) => i.s === 'R')).length,
   }
   return (
     <div className="page-h">
       <div className="eyebrow">Study plan · 30 Sep – 19 Dec 2026</div>
       <h1>Plan</h1>
-      <p className="small">{counts.days} rows (Day 0 + 1 Oct–14 Dec) · {counts.study} study days · {counts.cls} class days · {counts.half} half days · {counts.buf} catch-up days · <b>{lagLabel(info.lag)}</b></p>
+      <p className="small">{counts.days} days from {dateEn(PLAN_REBASE)} to {dateEn(cur[cur.length - 1].date)} · {counts.cls} class days · {counts.half} half days · {counts.rev} revision days · days before {dateEn(PLAN_REBASE)} are kept as history · <b>{lagLabel(info.lag)}</b></p>
     </div>
   )
 }

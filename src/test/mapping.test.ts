@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { allChapters, allQuestions, chapterByName, questionById } from '../data/catalog'
 import { studyPlan } from '../data/load'
-import { chaptersForItem, INTENTIONALLY_UNSCHEDULED, unmatchedPlanItems, PLAN_EXCEPTIONS } from '../data/mapping'
+import { chaptersForItem, SKIPPED_BY_CHOICE, unmatchedPlanItems, PLAN_EXCEPTIONS } from '../data/mapping'
 import { chapterSlots, planDays, slotLabel } from '../data/plan'
 
 describe('plan <-> priority-map mapping', () => {
@@ -9,9 +9,9 @@ describe('plan <-> priority-map mapping', () => {
     expect(unmatchedPlanItems()).toEqual([])
   })
 
-  it('catch-up (X) items map to nothing', () => {
-    const x = studyPlan.days.flatMap((d) => d.items).filter((i) => i.s === 'X')
-    expect(x.length).toBe(2)
+  it('Revision Phase (R) items map to nothing', () => {
+    const x = studyPlan.days.flatMap((d) => d.items).filter((i) => i.s === 'X' || i.s === 'R')
+    expect(x.length).toBe(10)
     for (const it of x) expect(chaptersForItem(it)).toEqual([])
   })
 
@@ -23,12 +23,11 @@ describe('plan <-> priority-map mapping', () => {
     }
   })
 
-  it('every priority-map chapter is scheduled, except the intentionally excluded ones', () => {
+  it('every priority-map chapter is scheduled, except the ones skipped by choice', () => {
     const unscheduled = allChapters.filter((c) => (chapterSlots.get(c.id) ?? []).length === 0)
-    const allowed = INTENTIONALLY_UNSCHEDULED.map((e) => chapterByName(e.subject, e.n)!.id)
-    expect(unscheduled.map((c) => c.id).sort()).toEqual(allowed.sort())
-    // and that exclusion is the one the plan's own meta declares
-    expect(studyPlan.meta.intentionallyExcluded.some((s) => s.includes('ল্যাবরেটরির নিরাপদ ব্যবহার'))).toBe(true)
+    expect(unscheduled.map((c) => c.n).sort()).toEqual([...SKIPPED_BY_CHOICE].sort())
+    expect([...SKIPPED_BY_CHOICE].sort()).toEqual(['বাস্তব সংখ্যা ও অসমতা', 'যোগাশ্রয়ী প্রোগ্রাম'].sort())
+    for (const n of SKIPPED_BY_CHOICE) expect(chapterByName('Math', n)).toBeDefined()
   })
 
   it('math chapters 6–7 (trigonometry) match directly, with a string chapter number', () => {
@@ -42,11 +41,14 @@ describe('plan <-> priority-map mapping', () => {
     expect(questionById.size).toBe(allQuestions.length)
   })
 
-  it('plan is continuous 30 Sep – 14 Dec with Day 0 first', () => {
+  it('plan is continuous 30 Sep – 17 Dec with Day 0 first (syllabus to 5 Dec, Revision Phase 6–17 Dec)', () => {
     expect(planDays[0].date).toBe('2026-09-30')
     expect(planDays[0].dayNo).toBe(0)
-    expect(planDays.at(-1)!.date).toBe('2026-12-14')
-    expect(planDays.length).toBe(76)
+    expect(planDays.at(-1)!.date).toBe('2026-12-17')
+    expect(planDays.length).toBe(79)
+    planDays.forEach((d, i) => expect(d.date).toBe(new Date(Date.UTC(2026, 8, 30 + i)).toISOString().slice(0, 10)))
+    expect(planDays.filter((d) => d.phase === 'Prime Phase').map((d) => d.date)).toEqual(planDays.filter((d) => d.date >= '2026-10-27' && d.date <= '2026-12-05').map((d) => d.date))
+    expect(planDays.filter((d) => d.phase === 'Revision Phase')).toHaveLength(12)
   })
 
   it('labels a class day followed by practice', () => {

@@ -246,7 +246,7 @@ export function ProgressView() {
 
       <div className="card">
         <h2>Study days: plan vs actual</h2>
-        <p className="small">Cumulative completed study days against the original schedule. A gap under the dashed line means you're behind.</p>
+        <p className="small">Cumulative completed study days against the plan, from 27 Oct. A gap under the dashed line means you're behind.</p>
         <Chart title="Cumulative study days" labels={burn.map((b) => b.date)} series={burnSeries} yLabel="days" fmtLabel={fmtL} />
       </div>
 

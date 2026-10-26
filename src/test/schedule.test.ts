@@ -22,90 +22,87 @@ describe('day progress', () => {
 })
 
 describe('overdue', () => {
-  it('carries unticked tasks of a partly done past day, until cleared or moved', () => {
-    const today = '2026-10-02'
-    const d = planDays.find((x) => x.date === '2026-10-01')!
-    const n = ownTasks(d).length
-    const m = { 'task:2026-10-01:0:0': true } as Record<string, unknown>
+  // 30 Oct (current plan) has two topics; its tick keys are reused from the old plan, its "moved" keys are its own
+  const d30 = planDays.find((x) => x.date === '2026-10-30')!
+  it('carries unticked tasks of a partly done past day, until cleared', () => {
+    const today = '2026-10-31'
+    const n = ownTasks(d30).length
+    const [t0, t1] = ownTasks(d30)
+    const m = { [t0.tk]: true } as Record<string, unknown>
     const r = () => mapReader(m)
-    expect(overdueTasks(r(), sched.rows, today).filter((t) => t.date === '2026-10-01')).toHaveLength(n - 1)
-    m['task-moved:2026-10-01:0:1'] = 'cleared'
-    expect(overdueTasks(r(), sched.rows, today).filter((t) => t.date === '2026-10-01')).toHaveLength(n - 2)
-    m['task-moved:2026-10-01:0:2'] = '2026-11-16'
-    expect(overdueTasks(r(), sched.rows, today).filter((t) => t.date === '2026-10-01')).toHaveLength(n - 3)
-    // once the catch-up day has passed and it is still not done, it is overdue again
-    expect(overdueTasks(r(), sched.rows, '2026-11-17').some((t) => t.key === '2026-10-01:0:2')).toBe(true)
+    expect(overdueTasks(r(), sched.rows, today).filter((t) => t.date === '2026-10-30')).toHaveLength(n - 1)
+    m[t1.mk] = 'cleared'
+    expect(overdueTasks(r(), sched.rows, today).filter((t) => t.date === '2026-10-30')).toHaveLength(n - 2)
   })
 
-  it('moved tasks show up (and can be ticked) on the catch-up day and count toward it', () => {
-    const m: Record<string, unknown> = { 'task-moved:2026-10-01:0:0': '2026-11-16' }
-    const buf = sched.byOrig.get('2026-11-16')!
-    const p = dayProgress(mapReader(m), buf, sched.rows)
-    expect(p.tasks.some((t) => t.key === '2026-10-01:0:0')).toBe(true)
-    expect(p.complete).toBe(false)
-    expect(nextCatchUp(sched.rows, '2026-10-05')!.eff).toBe('2026-11-16')
-    expect(nextCatchUp(sched.rows, '2026-11-17')!.eff).toBe('2026-12-14')
-    expect(nextCatchUp(sched.rows, '2026-12-15')).toBeUndefined()
+  it('old-plan days are history: never overdue', () => {
+    expect(overdueTasks(mapReader({}), sched.rows, '2026-10-27')).toHaveLength(0)
+    expect(overdueTasks(mapReader({}), sched.rows, '2026-10-28').every((t) => t.date >= '2026-10-27')).toBe(true)
+  })
+
+  it('an old task moved to an old catch-up date (16 Nov) never lands on the current plan\'s 16 Nov', () => {
+    const old = ownTasks(planDays.find((x) => x.date === '2026-10-12')!)[0]
+    const m = { [old.mk]: '2026-11-16' }
+    const p = dayProgress(mapReader(m), sched.byOrig.get('2026-11-16')!, sched.rows)
+    expect(p.tasks.some((t) => t.date === '2026-10-12')).toBe(false)
+    // and the same topic on its current-plan day (27 Oct) is still open: the old "moved" does not carry
+    const reused = ownTasks(sched.byOrig.get('2026-10-27')!).find((t) => t.tk === old.tk)!
+    expect(reused.mk).not.toBe(old.mk)
+    expect(nextCatchUp(sched.rows, '2026-10-27')).toBeUndefined()
   })
 
   it('a manually completed past day has nothing overdue', () => {
-    expect(overdueTasks(mapReader({ 'day:2026-10-01:done': true }), sched.rows, '2026-10-02').filter((t) => t.date === '2026-10-01')).toHaveLength(0)
+    expect(overdueTasks(mapReader({ 'day:2026-10-30:done': true }), sched.rows, '2026-10-31').filter((t) => t.date === '2026-10-30')).toHaveLength(0)
   })
 })
 
 describe('shift preview (never automatic)', () => {
   it('does nothing when on plan', () => {
-    const today = '2026-10-20'
+    const today = '2026-11-20'
     const p = previewShift(sched.rows, today, ticked(studyDatesBefore(today)))
     expect(p.moves).toEqual([])
     expect(p.debt).toBe(0)
   })
 
-  it('3 days behind on 20 Oct: work moves down and the 16 Nov catch-up day absorbs one, then 14 Dec', () => {
-    const today = '2026-10-20'
-    const dates = studyDatesBefore(today)
-    const r = ticked(dates.slice(0, -3))
+  it('old-plan days are never pulled into the current plan', () => {
+    const p = previewShift(sched.rows, '2026-10-27', mapReader({}))
+    expect(p.debt).toBe(0)
+    expect(p.moves).toEqual([])
+  })
+
+  it('3 days behind on 20 Nov: work moves down; what no longer fits by 17 Dec is reported, not dropped', () => {
+    const today = '2026-11-20'
+    const r = ticked(studyDatesBefore(today).slice(0, -3))
     const p = previewShift(sched.rows, today, r)
     expect(p.debt).toBe(3)
-    expect(p.consumedBuffers.map((b) => b.date)).toEqual(['2026-11-16', '2026-12-14'])
+    expect(p.consumedBuffers).toEqual([])
     // the three unfinished days now start today
-    expect(p.moves.slice(0, 3).map((m) => m.to)).toEqual(['2026-10-20', '2026-10-21', '2026-10-22'])
-    // nothing lands after 14 Dec; the one row that does not fit is reported, not silently dropped
-    expect(p.unscheduled.length).toBe(1)
-    expect(p.unscheduled[0].isBuffer).toBe(false)
-    expect(Object.values(p.shifts).every((v) => v === 'unscheduled' || v <= '2026-12-14')).toBe(true)
+    expect(p.moves.slice(0, 3).map((m) => m.to)).toEqual(['2026-11-20', '2026-11-21', '2026-11-22'])
+    expect(p.unscheduled.length).toBe(3)
+    expect(Object.values(p.shifts).every((v) => v === 'unscheduled' || v <= '2026-12-17')).toBe(true)
+    expect(Object.keys(p.shifts).every((d) => d >= '2026-10-27')).toBe(true)
   })
 
   it('accepting the preview fixes the behind count; nothing changes before that', () => {
-    const today = '2026-10-20'
+    const today = '2026-11-20'
     const r = ticked(studyDatesBefore(today).slice(0, -3))
     expect(behindInfo(today, sched.rows, r).lag).toBe(3)
     const p = previewShift(sched.rows, today, r)
     const shifted = buildSchedule(p.shifts)
     expect(behindInfo(today, shifted.rows, r).lag).toBe(0)
     // original schedule is untouched
-    expect(sched.byOrig.get('2026-10-19')!.eff).toBe('2026-10-19')
+    expect(sched.byOrig.get('2026-11-19')!.eff).toBe('2026-11-19')
     // and a second preview on the shifted plan is a no-op
     expect(previewShift(shifted.rows, today, r).moves).toEqual([])
   })
 
-  it('with only one day behind and a buffer ahead, slip is absorbed without unscheduling anything', () => {
-    const today = '2026-10-20'
-    const r = ticked(studyDatesBefore(today).slice(0, -1))
-    const p = previewShift(sched.rows, today, r)
-    expect(p.consumedBuffers.map((b) => b.date)).toEqual(['2026-11-16'])
-    expect(p.unscheduled).toEqual([])
-    // days after the 16 Nov buffer are untouched
-    expect(p.moves.every((m) => (m.from ?? '') < '2026-11-16')).toBe(true)
-  })
-
   it('completed future days stay put', () => {
-    const today = '2026-10-20'
-    const r = ticked([...studyDatesBefore(today).slice(0, -2), '2026-10-22'])
+    const today = '2026-11-20'
+    const r = ticked([...studyDatesBefore(today).slice(0, -2), '2026-11-22'])
     const p = previewShift(sched.rows, today, r)
-    expect(p.moves.find((m) => m.row.date === '2026-10-22')).toBeUndefined()
+    expect(p.moves.find((m) => m.row.date === '2026-11-22')).toBeUndefined()
     const s = buildSchedule(p.shifts)
-    expect(s.byOrig.get('2026-10-22')!.eff).toBe('2026-10-22')
+    expect(s.byOrig.get('2026-11-22')!.eff).toBe('2026-11-22')
   })
 })
 
@@ -116,6 +113,7 @@ describe('free day', () => {
     expect(free.isFree).toBe(true)
     expect(free.items).toHaveLength(0)
     expect(nextCatchUp(sched.rows, '2026-09-30')?.date).not.toBe('2026-09-30')
-    expect(planDays.filter((d) => d.isBuffer && !d.isFree).map((d) => d.date)).toEqual(['2026-11-16', '2026-12-14'])
+    // the reorganised plan has no catch-up days
+    expect(planDays.filter((d) => d.isBuffer && !d.isFree)).toEqual([])
   })
 })

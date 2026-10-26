@@ -54,9 +54,13 @@ describe('companion summary', () => {
     )
     expect(s.history).toHaveLength(7)
     expect(s.history[0]).toMatchObject({ date: yesterday, goalAnswer: 'close', studied: 60 * 60000, reflection: { blocked: 'YouTube after lunch' } })
-    // nothing ticked since the plan started: every earlier study day is owed
-    expect(s.behind.lag).toBeGreaterThan(0)
-    expect(s.overdue.count).toBeGreaterThan(0)
+    // 15 Oct is in the old plan (history since the 27 Oct reorganisation): nothing from it is owed
+    expect(s.behind.lag).toBe(0)
+    expect(s.overdue.count).toBe(0)
+    // in the current plan, unticked earlier days are owed
+    const later = buildCompanionSummary({}, '2026-10-30', Date.parse('2026-10-30T06:00:00Z'))
+    expect(later.behind.lag).toBe(3)
+    expect(later.overdue.count).toBeGreaterThan(0)
     expect(s.upcoming.map((u) => u.date)).toEqual(['2026-10-16', '2026-10-17', '2026-10-18'])
   })
 

@@ -96,7 +96,7 @@ input[type=range]{width:100%;accent-color:var(--accent);height:var(--tap)}
 .tag.mt{background:var(--mt-soft);color:var(--mt)}
 .tag.full{background:transparent;color:var(--ink);border:1px solid var(--muted)}
 .chip{font:600 12px var(--body);padding:0 8px;border-radius:99px;white-space:nowrap;display:inline-block}
-.chip.P,.chip.Phy{background:var(--phy-soft);color:var(--phy)} .chip.C,.chip.Chem{background:var(--chem-soft);color:var(--chem)} .chip.M,.chip.Math{background:var(--math-soft);color:var(--math)} .chip.X{background:var(--warn-soft);color:var(--warn)}
+.chip.P,.chip.Phy{background:var(--phy-soft);color:var(--phy)} .chip.C,.chip.Chem{background:var(--chem-soft);color:var(--chem)} .chip.M,.chip.Math{background:var(--math-soft);color:var(--math)} .chip.X{background:var(--warn-soft);color:var(--warn)} .chip.R{background:var(--accent-soft);color:var(--accent)}
 .badge{font:600 11px var(--body);padding:0 7px;border-radius:4px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
 .badge.cls{border-color:var(--accent);color:var(--accent)}
 .badge.half{border-style:dashed}
@@ -224,7 +224,7 @@ a.cell:hover{border-color:var(--accent);box-shadow:var(--shadow-2);transform:tra
 .cell .cn{font:700 13px var(--display)}
 .cell .cs{display:flex;gap:2px;flex-wrap:wrap}
 .cell .cs i{font:700 10px var(--body);font-style:normal;padding:0 4px;border-radius:3px}
-.cell .cs i.P{background:var(--phy-soft);color:var(--phy)} .cell .cs i.C{background:var(--chem-soft);color:var(--chem)} .cell .cs i.M{background:var(--math-soft);color:var(--math)} .cell .cs i.X{background:var(--warn-soft);color:var(--warn)}
+.cell .cs i.P{background:var(--phy-soft);color:var(--phy)} .cell .cs i.C{background:var(--chem-soft);color:var(--chem)} .cell .cs i.M{background:var(--math-soft);color:var(--math)} .cell .cs i.X{background:var(--warn-soft);color:var(--warn)} .cell .cs i.R{background:var(--accent-soft);color:var(--accent)}
 .cell.st-done{background:var(--ok-soft)}
 .cell.st-partial{background:var(--warn-soft)}
 .cell.st-overdue{background:var(--bad-soft)}

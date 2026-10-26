@@ -44,7 +44,7 @@ export function duesList(r: Reader, rows: Row[], today: string): DuesList {
   const weekAgo = addDays(today, -7)
   for (const row of rows)
     for (const item of row.items) {
-      if (item.k === 'buf') continue // catch-up placeholders are never owed
+      if (item.k === 'buf' || row.archived) continue // catch-up placeholders and old-plan history are never owed
       const past = row.eff !== null && row.eff < today
       const edited = !!item.src
       if (!past && !edited && row.eff !== null) continue
