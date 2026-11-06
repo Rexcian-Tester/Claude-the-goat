@@ -69,6 +69,23 @@ export interface StudyPlanJson {
   trackerChanges: [PlanSubject, string, number, number, string?][]
 }
 
+/** site-source/data/artifacts.json: one row per syllabus chapter with its study artifact */
+export type ArtifactStatus = 'ready' | 'coming-soon' | 'none'
+export interface ArtifactChapter {
+  subject: Subject | 'Eng'
+  paper: 1 | 2
+  /** chapter order in the syllabus */
+  no: number
+  /** Bangla name */
+  name: string
+  status: ArtifactStatus
+  link: string | null
+  extras: { label: string; url: string }[]
+  /** a chapter left out on purpose */
+  skipped?: boolean
+}
+export interface ArtifactsJson { _readme: string; chapters: ArtifactChapter[] }
+
 export interface Repeat { subject: string; question: string; where: string; match: string }
 export interface PriorityExtrasJson {
   findings: string[]

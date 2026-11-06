@@ -861,3 +861,25 @@ a:focus-visible,button:focus-visible,summary:focus-visible,[tabindex]:focus-visi
 .sb-nav{display:flex;align-items:center;gap:8px}
 .sb-nav-d{flex:1;text-align:center;font:600 14.5px var(--body)}
 .sb-nav .btn.sm{min-width:40px}
+/* study artifact button (Plan, day panel, Dues, Map → Subject list) */
+.art{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.art-main{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.art-btn{gap:8px}
+.art-btn.off{background:transparent;color:var(--muted);border-style:dashed;box-shadow:none;cursor:not-allowed;opacity:.75}
+.art-more a{color:var(--accent)}
+.art-skip{background:transparent;border:1px solid var(--line);color:var(--muted)}
+.art.compact{align-items:flex-end;text-align:right;max-width:170px}
+.art.compact .art-main{justify-content:flex-end}
+/* Map: Importance map / Subject list */
+.map-mode{align-self:center;width:min(100%,360px)}
+.sl-sub>summary{flex-wrap:wrap}
+.sl-count{font:500 14px var(--body);color:var(--muted)}
+.sl-paper+.sl-paper{margin-top:6px}
+.sl-paper h3{font-size:15px;color:var(--muted);margin:0 0 4px}
+.sl-list{list-style:none;margin:0;padding:0}
+.sl-row{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:6px 10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.sl-list .sl-row:first-child{border-top:none}
+.sl-no{font:600 14px var(--body);color:var(--muted);text-align:right}
+.sl-name{font:600 15.5px var(--body);line-height:1.35}
+.sl-row.not-ready .sl-name{color:var(--muted)}
+@media (max-width:420px){.sl-row{grid-template-columns:20px minmax(0,1fr) auto;gap:6px 8px}.sl-name{font-size:15px}.art.compact .art-btn{padding:0 10px;font-size:13.5px}.art.compact .art-more{max-width:150px}}

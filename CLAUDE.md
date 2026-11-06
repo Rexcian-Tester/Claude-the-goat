@@ -28,6 +28,11 @@ Progress syncs through a Pages Function + KV (`functions/api/sync.ts`). See `REA
   move topics across 27 Oct. `plan:shift` was replaced by `plan:shift:v2` (old shift kept, unused).
   `meta.skippedByChoice` (বাস্তব সংখ্যা ও অসমতা, যোগাশ্রয়ী প্রোগ্রাম) show "নিজের সিদ্ধান্তে বাদ" on the Priority Map.
   `src/planner/markFinished.ts` once marked the owner's finished old-plan chapters Done (marker `plan:finished:2026-10-27`).
+- Study artifacts: `site-source/data/artifacts.json` (one line per HSC chapter: subject, paper, no, Bangla name,
+  status ready / coming-soon / none, link, extras, skipped). `src/data/artifacts.ts` matches a plan topic to its row by
+  Bangla name (spacing, ও/এবং and small spelling differences ignored; `SPLITS` for two-chapter topics); the
+  "📘 Open artifact" button (`src/components/ArtifactLinks.tsx`) shows in Plan, a day's panel, Today and Dues, and
+  Map → Subject list (`#/map?view=list`) lists every row. Display only: no synced keys.
 - Progress keys are allow-listed in `src/sync/merge.ts` (`KEY_RE`); new synced keys must use an existing prefix
   (e.g. `day:<date>:…`). Keys are position-based (`task:<date>:<item>:<i>`), so moving topics on a day that
   already has ticks loses those ticks.

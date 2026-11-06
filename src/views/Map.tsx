@@ -6,6 +6,8 @@ import { repeats } from '../data/repeats'
 import type { Chapter, Subject } from '../data/types'
 import { K } from '../logic/keys'
 import { SKIPPED_BY_CHOICE } from '../data/mapping'
+import { artifactChapters, readyCount } from '../data/artifacts'
+import { ArtifactLinks } from '../components/ArtifactLinks'
 import { chapterProgress } from '../logic/stats'
 import { go, href, useRoute } from '../router'
 import { useReader, useSchedule } from '../hooks'
@@ -152,8 +154,57 @@ function HotTopics() {
   )
 }
 
+const LIST_SUBJECTS = [['Phy', 'Physics'], ['Chem', 'Chemistry'], ['Math', 'Math'], ['Eng', 'English']] as const
+
+/** Map → Subject list: every syllabus chapter by subject and paper, with its study artifact (artifacts.json). */
+function SubjectList() {
+  return (
+    <div className="stack sl">
+      {LIST_SUBJECTS.map(([s, label]) => {
+        const rows = artifactChapters.filter((c) => c.subject === s)
+        const n = readyCount(s)
+        return (
+          <details key={s} className="panel sl-sub" open>
+            <summary>
+              <span>{label}</span>
+              {rows.length > 0 && <span className="sl-count">· {n.ready}/{n.total} artifacts ready</span>}
+            </summary>
+            <div className="panel-b">
+              {rows.length === 0 ? (
+                <p className="muted">No chapters added yet</p>
+              ) : (
+                ([1, 2] as const).map((paper) => {
+                  const list = rows.filter((c) => c.paper === paper).sort((a, b) => a.no - b.no)
+                  if (!list.length) return null
+                  return (
+                    <section key={paper} className="sl-paper">
+                      <h3>{paper === 1 ? '1st paper' : '2nd paper'}</h3>
+                      <ol className="sl-list">
+                        {list.map((c) => (
+                          <li key={`${c.paper}-${c.no}`} className={`sl-row ${c.status !== 'ready' ? 'not-ready' : ''}`}>
+                            <span className="sl-no">{bn(c.no)}</span>
+                            <span className="sl-name">{c.name}</span>
+                            <ArtifactLinks rows={[c]} compact />
+                          </li>
+                        ))}
+                      </ol>
+                    </section>
+                  )
+                })
+              )}
+            </div>
+          </details>
+        )
+      })}
+    </div>
+  )
+}
+
+type MapMode = 'importance' | 'list'
+
 export function MapView() {
   const route = useRoute()
+  const mode: MapMode = route.query.get('view') === 'list' ? 'list' : 'importance'
   const stored = (() => {
     try {
       return localStorage.getItem('mist-tab')
@@ -170,8 +221,27 @@ export function MapView() {
     }
     go(href.map(t))
   }
+  const toggle = (
+    <div className="seg slide map-mode" role="group" aria-label="Map view" style={{ ['--i' as string]: mode === 'list' ? 1 : 0, ['--n' as string]: 2 }}>
+      <button type="button" aria-pressed={mode === 'importance'} onClick={() => mode !== 'importance' && go(href.map(tab), true)}>Importance map</button>
+      <button type="button" aria-pressed={mode === 'list'} onClick={() => mode !== 'list' && go('#/map?view=list', true)}>Subject list</button>
+    </div>
+  )
+  if (mode === 'list')
+    return (
+      <div className="view">
+        {toggle}
+        <div className="page-h">
+          <div className="eyebrow">Study artifacts</div>
+          <h1>Subject list</h1>
+          <p className="small">Every HSC chapter in syllabus order, with its study artifact. Links open in a new tab.</p>
+        </div>
+        <SubjectList />
+      </div>
+    )
   return (
     <div className="view">
+      {toggle}
       <div className="page-h">
         <div className="eyebrow">MIST Unit-A · <span className="eb-bn">বিগত বছরের প্রশ্ন বিশ্লেষণ</span></div>
         <h1>MIST অধ্যায়ভিত্তিক গুরুত্ব তালিকা</h1>

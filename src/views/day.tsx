@@ -14,6 +14,8 @@ import { useReader, useToday } from '../hooks'
 import { TopicControls } from '../planner/PlanTools'
 import { Check, FieldCheck, Panel, QuestionRow, Rating, SubjectChip, TierPill } from '../components/ui'
 import type { Chapter } from '../data/types'
+import { artifactsForPlan } from '../data/artifacts'
+import { ArtifactLinks } from '../components/ArtifactLinks'
 
 export function KindBadges({ item }: { item: PlanItem }) {
   return (
@@ -198,6 +200,7 @@ export function DayTasks({ row, sched }: { row: Row; sched: Schedule }) {
       {row.items.map((item) => (
         <div key={item.key} className="stack" style={{ gap: 6 }}>
           <ItemHeader item={item} />
+          <ArtifactLinks rows={artifactsForPlan(item)} />
           {item.k !== 'buf' && <TopicControls row={row} item={item} sched={sched} today={today} />}
           <ItemTasks row={row} item={item} />
         </div>
@@ -261,12 +264,13 @@ export function OverdueList({ sched, today }: { sched: Schedule; today: string }
       {[...byDate.entries()].map(([date, tasks]) => (
         <div key={date} className="stack" style={{ gap: 2 }}>
           <div className="row-flex" style={{ justifyContent: 'space-between' }}>
-            <div className="small"><b>{dateBn(date)}</b> · {tasks[0].item.ch} <span className="muted">({dateEn(date)})</span></div>
+            <div className="small"><b>{dateBn(date)}</b> · {[...new Set(tasks.map((t) => t.item.ch))].join(' + ')} <span className="muted">({dateEn(date)})</span></div>
             <span className="row-flex">
               <button className="btn sm" disabled={!catchUp} onClick={() => tasks.forEach(move)}>Move all{catchUp ? ` to ${dateBn(catchUp.eff!)}` : ''}</button>
               <button className="btn sm" onClick={() => confirm(`Clear all ${tasks.length} unfinished tasks from ${dateEn(date)}?`) && tasks.forEach(clear)}>Clear all</button>
             </span>
           </div>
+          {[...new Set(tasks.map((t) => t.item))].map((it) => <ArtifactLinks key={it.key} rows={artifactsForPlan(it)} />)}
           {tasks.map((t) => (
             <div key={t.key} className="task-row">
               <div className="grow"><TaskLine t={t} /></div>

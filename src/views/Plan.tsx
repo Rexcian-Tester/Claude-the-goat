@@ -20,6 +20,8 @@ import { DuesView, EditNote, EditorView, PartTag, PlanTabs, TopicControls, type 
 import { commitEdits, currentEdits, useCanEdit } from '../planner/actions'
 import { setOrder } from '../logic/planEdits'
 import { toast } from '../components/ui'
+import { artifactsForPlan } from '../data/artifacts'
+import { ArtifactLinks } from '../components/ArtifactLinks'
 
 type St = 'done' | 'partial' | 'overdue' | 'todo'
 function rowStatus(r: Reader, row: Row, rows: Row[], today: string) {
@@ -132,6 +134,7 @@ function ItemLine({ row, sched, today }: { row: Row; sched: Schedule; today: str
             {it.m && <div className="note">{it.m}</div>}
             {it.src && it.date !== row.date && <div className="small moved-from">↪ planned for {dateBn(it.date)}</div>}
             <EditNote item={it} />
+            <ArtifactLinks rows={artifactsForPlan(it)} />
             {it.k !== 'buf' && <TopicControls row={row} item={it} sched={sched} today={today} />}
           </div>
         )

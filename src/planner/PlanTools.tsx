@@ -11,6 +11,8 @@ import { store, useStoreVersion } from '../store/store'
 import { syncNow } from '../store/syncClient'
 import { useReader } from '../hooks'
 import { Sheet, SubjectChip, toast } from '../components/ui'
+import { artifactsForPlan } from '../data/artifacts'
+import { ArtifactLinks } from '../components/ArtifactLinks'
 import { commitEdits, currentEdits, planHistory, resetPlan, restoreVersion, undoLast, useCanEdit, versionTime } from './actions'
 
 export type PlanTab = 'plan' | 'dues' | 'edit'
@@ -274,6 +276,7 @@ function DueRow({ d, can, rows, onReschedule }: { d: Due; can: boolean; rows: Ro
           {item.src && item.date !== row.date ? ` · planned for ${dateBn(item.date)}` : ''} · {d.ticked}/{d.total}
         </div>
         <EditNote item={item} />
+        <ArtifactLinks rows={artifactsForPlan(item)} />
       </div>
       <div className="due-act">
         <StatusSwitch row={row} item={item} rows={rows} />
