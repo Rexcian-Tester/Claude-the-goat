@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { dateBn, dateEn, dateLongBn, WD_BN } from '../data/bn'
 import { addDays, diffDays, weekdayIndex } from '../data/dhaka'
 import { studyPlan } from '../data/load'
-import { EXAM_DATE, PLAN_REBASE, PLAN_START, SYLLABUS_END, endgameKind } from '../data/plan'
+import { COUNTDOWN_TO, EXAM_DATE, PLAN_REBASE, PLAN_START, SYLLABUS_END, endgameKind } from '../data/plan'
 import { isEndgame, phaseOf } from '../logic/behind'
 import type { Row } from '../logic/schedule'
 import { useSchedule, useToday } from '../hooks'
@@ -118,7 +118,7 @@ export function TodayView() {
 
       <StartDay />
 
-      <Countdown target={EXAM_DATE} from={PLAN_REBASE} title={`Countdown to ${dateLongBn(EXAM_DATE)}`} sub={`MIST exam · syllabus ends ${dateEn(SYLLABUS_END)}`} />
+      <Countdown target={COUNTDOWN_TO} from={PLAN_REBASE} title={`Countdown to ${dateLongBn(COUNTDOWN_TO)}`} sub={`Syllabus ends ${dateEn(SYLLABUS_END)} · MIST exam ${dateEn(EXAM_DATE)} ${EXAM_DATE.slice(0, 4)}`} />
 
       <div className="grid2 habits">
         <RemindersCard />

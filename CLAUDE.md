@@ -23,7 +23,7 @@ Progress syncs through a Pages Function + KV (`functions/api/sync.ts`). See `REA
   Dues/overdue/days behind/overall completion/burn-up/shift). Plan v2 from 6 Nov: Prime Phase to `meta.syllabusEnd`
   (11 Dec), Revision Phase 12 Dec – 18 Jan (বৃত্ত, সরলরেখা ও কণিক, then 36 days of subject `R` রিভিশন + English);
   endgame 19–21 Jan light revision + rest (`meta.revision`, `meta.rest` null), exam 22 Jan 2027 (`meta.exam`; the
-  Today countdown and the days-left badge count to it). Items from a reorganisation carry `ix` (10+ for 27 Oct, 20+
+  days-left badge counts to it; the Today countdown counts to `meta.countdownTo`, 10 Dec). Items from a reorganisation carry `ix` (10+ for 27 Oct, 20+
   for 6 Nov, so keys never collide with the plan they replaced on the same date) and `tk` (tick key per micro-task:
   a reused micro-task keeps its original key, so its tick carries over; "moved" keys stay per item, `PlanItem.mks`).
   A chapter counts finished if finished in any plan version (`eraOf`). Planner edits never move topics across the

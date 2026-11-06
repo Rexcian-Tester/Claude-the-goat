@@ -63,6 +63,8 @@ export interface StudyPlanJson {
     rebase: string
     /** every date the plan was reorganised, oldest first (the last is `rebase`) */
     reorganised?: string[]
+    /** the date the Today countdown counts down to (00:00 Bangladesh time that day) */
+    countdownTo?: string
     /** last day of the syllabus (the Today countdown) */
     syllabusEnd: string
     /** chapters left out on purpose (Priority Map shows them as skipped; not counted as remaining work) */

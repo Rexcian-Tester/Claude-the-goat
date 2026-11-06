@@ -52,6 +52,8 @@ export const PLAN_REBASE = studyPlan.meta.rebase
 /** every reorganisation date (27 Oct, 6 Nov); the plan "version" a day belongs to is how many of them it is on or after */
 export const PLAN_ERAS: string[] = studyPlan.meta.reorganised ?? [PLAN_REBASE]
 export const eraOf = (date: string) => PLAN_ERAS.filter((d) => date >= d).length
+/** the Today countdown's target (10 Dec), else the exam */
+export const COUNTDOWN_TO = studyPlan.meta.countdownTo ?? studyPlan.meta.exam
 /** last syllabus day; the Revision Phase follows */
 export const SYLLABUS_END = studyPlan.meta.syllabusEnd
 
