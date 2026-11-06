@@ -3,7 +3,7 @@ import { allChapters } from '../data/catalog'
 import type { Kind } from '../data/types'
 import { applyEdits, type PlanEdits } from './planEdits'
 
-/** original date -> effective date, or 'unscheduled' (didn't fit before 15 Dec). Empty = original plan. */
+/** original date -> effective date, or 'unscheduled' (didn't fit by PLAN_LAST). Empty = original plan. */
 export type Shifts = Record<string, string>
 
 export interface Row extends PlanDay {
@@ -22,7 +22,7 @@ export interface Schedule {
   byEff: Map<string, Row>
   byOrig: Map<string, Row>
   slots: Map<string, EffSlot[]>
-  /** study days that no longer fit before 15 Dec */
+  /** study days that no longer fit by PLAN_LAST */
   unscheduled: Row[]
   /** catch-up days used up by a shift */
   absorbed: Row[]

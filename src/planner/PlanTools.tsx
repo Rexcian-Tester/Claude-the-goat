@@ -312,7 +312,7 @@ export function DuesView({ sched, today }: { sched: Schedule; today: string }) {
       {n === 0 && <div className="empty">Nothing due. Every past topic is done. 💪</div>}
       <DueGroup title="Overdue" sub="from days that have passed" list={d.overdue} can={can.ok} rows={sched.rows} open={setSel} />
       <DueGroup title="Rescheduled" sub="moved or split, still to do" list={d.rescheduled} can={can.ok} rows={sched.rows} open={setSel} />
-      <DueGroup title="Unscheduled" sub="days that no longer fit before 15 Dec" list={d.unscheduled} can={can.ok} rows={sched.rows} open={setSel} />
+      <DueGroup title="Unscheduled" sub={`days that no longer fit by ${dateEn(PLAN_LAST)}`} list={d.unscheduled} can={can.ok} rows={sched.rows} open={setSel} />
       {d.recentDone.length > 0 && (
         <details className="panel">
           <summary>Done in the last week · {d.recentDone.length}</summary>

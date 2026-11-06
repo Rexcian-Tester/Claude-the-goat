@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo } from 'react'
-import { bn } from './data/bn'
+import { bn, dateEn } from './data/bn'
 import { behindInfo, lagLabel, phaseOf } from './logic/behind'
-import { PLAN_START } from './data/plan'
+import { EXAM_DATE, PLAN_START } from './data/plan'
 import { diffDays } from './data/dhaka'
 import { cameBack, href, rememberScroll, restoredScroll, useRoute } from './router'
 import { useReader, useSchedule, useToday } from './hooks'
@@ -61,7 +61,7 @@ function TopBar() {
         <div className="tb-row">
           <a className="brand" href={href.today()} aria-label="MIST Prep home"><Logo /><span className="brand-t">MIST Prep</span></a>
           <div className="chips">
-            <span className="chip-s" role="img" aria-label={`${diffDays(today, '2026-12-19')} days left until the exam`} title="Days until 19 December 2026"><span className="lg" aria-hidden="true">{diffDays(today, '2026-12-19')} {diffDays(today, '2026-12-19') === 1 ? 'day' : 'days'} left</span><span className="sm" aria-hidden="true">{diffDays(today, '2026-12-19')}d</span></span>
+            <span className="chip-s" role="img" aria-label={`${diffDays(today, EXAM_DATE)} days left until the exam`} title={`Days until the MIST exam, ${dateEn(EXAM_DATE)} ${EXAM_DATE.slice(0, 4)}`}><span className="lg" aria-hidden="true">{diffDays(today, EXAM_DATE)} {diffDays(today, EXAM_DATE) === 1 ? 'day' : 'days'} left</span><span className="sm" aria-hidden="true">{diffDays(today, EXAM_DATE)}d</span></span>
             {phase === 'endgame' || phase === 'rest' || phase === 'exam' ? (
               <a className="chip-s ok" href={href.today()}>Endgame</a>
             ) : phase === 'before' ? (

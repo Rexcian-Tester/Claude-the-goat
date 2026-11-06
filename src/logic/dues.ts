@@ -33,7 +33,7 @@ export interface DuesList {
   overdue: Due[]
   /** topics you moved or split, still not finished (they stay due until done) */
   rescheduled: Due[]
-  /** unfinished topics on days that no longer fit before 15 Dec */
+  /** unfinished topics on days that no longer fit by PLAN_LAST */
   unscheduled: Due[]
   /** finished in the last week (so a Done can be switched back to Due) */
   recentDone: Due[]

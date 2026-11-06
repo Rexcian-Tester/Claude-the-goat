@@ -13,14 +13,14 @@ export interface ShiftPreview {
   debt: number // unfinished study days before today
   moves: ShiftMove[]
   consumedBuffers: Row[] // catch-up days absorbed by the slip
-  unscheduled: Row[] // rows that no longer fit before 15 Dec
+  unscheduled: Row[] // rows that no longer fit by PLAN_LAST
   shifts: Shifts // the full new `plan:shift` value if accepted
 }
 
 /**
  * "Shift remaining days" preview. Unfinished past study days are re-slotted from today, later days move
  * down, and catch-up days are absorbed first. Days already completed stay where they are. Nothing beyond
- * PLAN_LAST (17 Dec, the last Revision Phase day) is used: 18–19 Dec are protected. Pure: the caller decides whether to save `shifts`.
+ * PLAN_LAST (the last Revision Phase day) is used: the endgame days before the exam are protected. Pure: the caller decides whether to save `shifts`.
  */
 export function previewShift(all: Row[], today: string, r: Reader): ShiftPreview {
   // only the current plan shifts; old-plan days (before the rebase) are history

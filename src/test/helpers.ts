@@ -10,5 +10,5 @@ export function ticked(dates: string[], extra: Record<string, unknown> = {}) {
   for (const d of dates) for (const t of ownTasks(planDays.find((x) => x.date === d)!)) m[t.tk] = true
   return mapReader(m)
 }
-/** all non-buffer dates strictly before `before` */
-export const studyDatesBefore = (before: string) => planDays.filter((d) => !d.isBuffer && d.date < before).map((d) => d.date)
+/** all current-plan (not history) study dates strictly before `before` */
+export const studyDatesBefore = (before: string) => planDays.filter((d) => !d.isBuffer && !d.archived && d.date < before).map((d) => d.date)

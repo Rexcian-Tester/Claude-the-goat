@@ -50,7 +50,7 @@ function Confidence({ id }: { id: string }) {
       <div className="row-flex" style={{ justifyContent: 'space-between' }}>
         <span className="small">1 · shaky</span><span className="small">5 · solid</span>
       </div>
-      <div className="small">Update this after each revision. Chapters at 2 or below join the 15–17 Dec revision list.</div>
+      <div className="small">Update this after each revision. Chapters at 2 or below join the revision list.</div>
       {v !== undefined && <div><button className="btn sm" onClick={() => store.set(k, null)}>Clear rating</button></div>}
     </div>
   )

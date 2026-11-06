@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { dateBn } from '../data/bn'
+import { dateBn, dateEn } from '../data/bn'
+import { PLAN_LAST } from '../data/plan'
 import { studyPlan } from '../data/load'
 import { behindInfo } from '../logic/behind'
 import { K } from '../logic/keys'
@@ -30,8 +31,8 @@ export function ShiftSheet({ sched, today, onClose }: { sched: Schedule; today: 
           </div>
           {p.unscheduled.length > 0 && (
             <div className="banner bad">
-              <b>{p.unscheduled.length} day{p.unscheduled.length === 1 ? '' : 's'} will not fit before 15 December</b>
-              <span>15–18 December are protected, so these are parked as "Unscheduled" rather than dropped. Decide what to cut using the order below:</span>
+              <b>{p.unscheduled.length} day{p.unscheduled.length === 1 ? '' : 's'} will not fit by {dateEn(PLAN_LAST)}</b>
+              <span>The last days before the exam are protected, so these are parked as "Unscheduled" rather than dropped. Decide what to cut using the order below:</span>
               <ol>{studyPlan.meta.ifBehind.slice(1, 3).map((m, i) => <li key={i}>{m}</li>)}</ol>
               <ul>{p.unscheduled.map((row) => <li key={row.date}>{row.items.map((i) => i.ch).join(' + ')} <span className="muted">(was {dateBn(row.date)})</span></li>)}</ul>
             </div>

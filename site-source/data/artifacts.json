@@ -22,7 +22,7 @@
   {"subject": "Phy", "paper": 2, "no": 9, "name": "পরমাণুর মডেল ও নিউক্লিয়ার পদার্থবিজ্ঞান", "status": "ready", "link": "https://claude.ai/artifact/85TZsFPb4y33nY28L91amg", "extras": []},
   {"subject": "Phy", "paper": 2, "no": 10, "name": "সেমিকন্ডাক্টর ও ইলেকট্রনিক্স", "status": "coming-soon", "link": null, "extras": []},
   {"subject": "Phy", "paper": 2, "no": 11, "name": "জ্যোতির্বিজ্ঞান", "status": "coming-soon", "link": null, "extras": []},
-  {"subject": "Chem", "paper": 1, "no": 1, "name": "ল্যাবরেটরির নিরাপদ ব্যবহার", "status": "none", "link": null, "extras": [{"label": "Chem 1st MCQ bank", "url": "https://claude.ai/artifact/C7YPz1vJpwc5QtRg4LKHyy"}]},
+  {"subject": "Chem", "paper": 1, "no": 1, "name": "ল্যাবরেটরির নিরাপদ ব্যবহার", "status": "none", "link": null, "extras": []},
   {"subject": "Chem", "paper": 1, "no": 2, "name": "গুণগত রসায়ন", "status": "ready", "link": "https://claude.ai/artifact/CkaVURCARkh2yQjm9Udjny", "extras": [{"label": "Pattern guide", "url": "https://claude.ai/artifact/M63kL2RjH88m5rbQoyobko"}]},
   {"subject": "Chem", "paper": 1, "no": 3, "name": "মৌলের পর্যায়বৃত্ত ধর্ম ও রাসায়নিক বন্ধন", "status": "ready", "link": "https://claude.ai/artifact/PzF2pCaAW4NvxnJbxKvKTk", "extras": [{"label": "Pattern guide", "url": "https://claude.ai/artifact/E4T4gQe2QEnpHR2FJkTGss"}]},
   {"subject": "Chem", "paper": 1, "no": 4, "name": "রাসায়নিক পরিবর্তন", "status": "ready", "link": "https://claude.ai/artifact/JBnSeSxqyfhrpYXcc7WGe1", "extras": []},

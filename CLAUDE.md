@@ -1,6 +1,6 @@
 # MIST Prep: notes for Claude
 
-Personal study site for the MIST Unit-A exam (19 Dec 2026). Vite + React + TypeScript PWA, hosted on
+Personal study site for the MIST Unit-A exam (22 Jan 2027; moved from 19 Dec 2026). Vite + React + TypeScript PWA, hosted on
 **Cloudflare Pages** (project `project-1-rx`), which builds automatically from the `main` branch.
 Progress syncs through a Pages Function + KV (`functions/api/sync.ts`). See `README.md` for setup.
 
@@ -18,14 +18,16 @@ Progress syncs through a Pages Function + KV (`functions/api/sync.ts`). See `REA
   round-trips byte-identically (`q`, `rate` and the 4th column of `trackerChanges` are written as floats, e.g. `8.0`;
   no trailing newline). A day with `items: []` is a **free day** (`isFree`): never owed, not a catch-up day;
   an optional day `note` is shown instead of the generic text.
-- **Plan reorganised 27 Oct 2026** (`meta.rebase`): days before it are the old plan, kept byte-identical as history
-  (`PlanDay.archived`: never owed, not in Dues/overdue/days behind/overall completion/burn-up/shift). From 27 Oct:
-  Prime Phase to `meta.syllabusEnd` (5 Dec, the Today countdown), then Revision Phase 6–17 Dec (বৃত্ত, সরলরেখা ও
-  কণিক, then 10 days of subject `R` রিভিশন); 18 Dec rest, 19 Dec exam (`meta.revision` is empty; endgame = 18–19 Dec).
-  New items carry `ix` (10+, so their keys never collide with old items on the same date) and `tk` (tick key per
-  micro-task: a micro-task reused from the old plan keeps its old key, so its tick carries over; "moved" keys stay
-  per item, `PlanItem.mks`). A chapter counts finished if finished in the old plan or the new. Planner edits never
-  move topics across 27 Oct. `plan:shift` was replaced by `plan:shift:v2` (old shift kept, unused).
+- **Plan reorganised twice** (`meta.reorganised`: 27 Oct 2026, then 6 Nov 2026 "MIST Plan v2"; `meta.rebase` is the
+  latest): days before the rebase are kept byte-identical as history (`PlanDay.archived`: never owed, not in
+  Dues/overdue/days behind/overall completion/burn-up/shift). Plan v2 from 6 Nov: Prime Phase to `meta.syllabusEnd`
+  (11 Dec), Revision Phase 12 Dec – 18 Jan (বৃত্ত, সরলরেখা ও কণিক, then 36 days of subject `R` রিভিশন + English);
+  endgame 19–21 Jan light revision + rest (`meta.revision`, `meta.rest` null), exam 22 Jan 2027 (`meta.exam`; the
+  Today countdown and the days-left badge count to it). Items from a reorganisation carry `ix` (10+ for 27 Oct, 20+
+  for 6 Nov, so keys never collide with the plan they replaced on the same date) and `tk` (tick key per micro-task:
+  a reused micro-task keeps its original key, so its tick carries over; "moved" keys stay per item, `PlanItem.mks`).
+  A chapter counts finished if finished in any plan version (`eraOf`). Planner edits never move topics across the
+  latest rebase. `plan:shift` was replaced by `plan:shift:v2` (old shift kept, unused).
   `meta.skippedByChoice` (বাস্তব সংখ্যা ও অসমতা, যোগাশ্রয়ী প্রোগ্রাম) show "নিজের সিদ্ধান্তে বাদ" on the Priority Map.
   `src/planner/markFinished.ts` once marked the owner's finished old-plan chapters Done (marker `plan:finished:2026-10-27`).
 - Study artifacts: `site-source/data/artifacts.json` (one line per HSC chapter: subject, paper, no, Bangla name,

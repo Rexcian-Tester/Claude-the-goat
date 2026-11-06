@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { studyPlan } from '../data/load'
-import { PLAN_REBASE, SYLLABUS_END, planDays } from '../data/plan'
+import { PLAN_ERAS, PLAN_REBASE, SYLLABUS_END, eraOf, planDays } from '../data/plan'
 import { chapterByName } from '../data/catalog'
 import { ownTasks, topicMark } from '../logic/dayStatus'
 import { topicOn } from '../logic/dues'
@@ -13,14 +13,16 @@ import { sched } from './helpers'
 
 const row = (d: string) => sched.byOrig.get(d)!
 
-describe('plan reorganised on 27 Oct', () => {
-  it('keeps the old plan before 27 Oct exactly, and marks it as history', () => {
-    expect(PLAN_REBASE).toBe('2026-10-27')
-    expect(SYLLABUS_END).toBe('2026-12-05')
+describe('plan reorganised on 27 Oct, and again on 6 Nov (Plan v2)', () => {
+  it('keeps every earlier day exactly, and marks it as history', () => {
+    expect(PLAN_ERAS).toEqual(['2026-10-27', '2026-11-06'])
+    expect(PLAN_REBASE).toBe('2026-11-06')
+    expect(SYLLABUS_END).toBe('2026-12-11')
+    expect([eraOf('2026-10-26'), eraOf('2026-10-27'), eraOf('2026-11-05'), eraOf('2026-11-06')]).toEqual([0, 1, 1, 2])
+    // the original plan's items keep their position-based keys (no ix, no tk)
+    for (const d of studyPlan.days.filter((x) => x.date < '2026-10-27')) for (const it of d.items) expect(it.ix === undefined && it.tk === undefined).toBe(true)
     const old = studyPlan.days.filter((d) => d.date < PLAN_REBASE)
-    expect(old).toHaveLength(27)
-    // old items keep their position-based keys (no ix, no tk)
-    for (const d of old) for (const it of d.items) expect(it.ix === undefined && it.tk === undefined).toBe(true)
+    expect(old).toHaveLength(37)
     expect(planDays.filter((d) => d.archived).map((d) => d.date)).toEqual(old.map((d) => d.date))
     expect(row('2026-10-26').items[0].ch).toBe('অন্তরীকরণ')
   })
@@ -58,11 +60,11 @@ describe('plan reorganised on 27 Oct', () => {
     expect(p1.tks[0]).toBe('task:2026-10-08:0:0')
   })
 
-  it('an old-plan topic moved past 27 Oct stays on its old day', () => {
-    const it = row('2026-10-22').items[0] // ফাংশন (old plan)
-    const days = applyEdits(planDays, movePart(undefined, it.key, it.topicList.length, '0', '2026-10-30', ''))
-    expect(days.find((d) => d.date === '2026-10-22')!.items.some((i) => i.src === it.key)).toBe(true)
-    expect(days.find((d) => d.date === '2026-10-30')!.items.some((i) => i.src === it.key)).toBe(false)
+  it('a topic from before 6 Nov moved into the current plan stays on its old day', () => {
+    const it = row('2026-11-05').items[0] // বিপরীত ত্রিকোণমিতিক (27 Oct plan)
+    const days = applyEdits(planDays, movePart(undefined, it.key, it.topicList.length, '0', '2026-11-10', ''))
+    expect(days.find((d) => d.date === '2026-11-05')!.items.some((i) => i.src === it.key)).toBe(true)
+    expect(days.find((d) => d.date === '2026-11-10')!.items.some((i) => i.src === it.key)).toBe(false)
   })
 
   it('a chapter finished in the old plan stays finished, even though the new plan has it again', () => {
@@ -123,5 +125,35 @@ describe('one-time Done for the chapters you finished in the old plan', () => {
     const parts = s.rows.flatMap((d) => d.items).filter((i) => i.src === it.key)
     expect(parts).toHaveLength(2)
     for (const p of parts) expect(marks).toContain(`task:${it.key}${p.pid !== '0' ? `#${p.pid}` : ''}:status`)
+  })
+})
+
+describe('Plan v2 (from 6 Nov)', () => {
+  it('reuses each micro-task with its tick, so ticks made earlier carry over', () => {
+    // যোগজীকরণ (9–12 Nov) keeps the original plan's 3–6 Nov keys; মৌলের … বন্ধন (20–21 Nov) the October ones
+    expect(row('2026-11-09').items[0].tks).toEqual(['task:2026-11-03:0:0', 'task:2026-11-03:0:1'])
+    expect(row('2026-11-21').items[0].tks).toEqual(['task:2026-10-20:0:1', 'task:2026-10-20:0:2', 'task:2026-10-20:0:3'])
+    // 6 Nov's স্থির তড়িৎ is the same topic on the same day: same key, so a Due/Done mark on it stays
+    expect(row('2026-11-06').items[0].key).toBe('2026-11-06:10')
+    for (const d of planDays.filter((x) => x.date > '2026-11-06')) for (const it of d.items) expect(it.itemIdx).toBeGreaterThanOrEqual(20)
+  })
+
+  it('chapters finished in the 27 Oct plan stay finished', () => {
+    const jt = chapterByName('Math', 'জটিল সংখ্যা')!
+    const r = mapReader({ [`task:${row('2026-10-31').items[0].key}:status`]: 'done' })
+    expect(chapterCompletion(r, sched, (c) => c.id === jt.id).done).toBe(1)
+  })
+
+  it("follows the owner's table: syllabus to 11 Dec, revision 12 Dec – 18 Jan, exam 22 Jan 2027", () => {
+    const ch = (d: string) => row(d).items.map((i) => i.ch)
+    expect(ch('2026-11-06')).toEqual(['স্থির তড়িৎ', 'ত্রিকোণমিতিক অনুপাত ও সংযুক্ত কোণ'])
+    expect(ch('2026-11-08')).toEqual(['বিপরীত ত্রিকোণমিতিক ফাংশন ও ত্রিকোণমিতিক সমীকরণ', 'চল তড়িৎ'])
+    expect(ch('2026-11-19')).toEqual(['ভৌত জগৎ ও পরিমাপ', 'অর্থনৈতিক রসায়ন', 'ল্যাবরেটরির নিরাপদ ব্যবহার'])
+    expect(ch('2026-11-26')).toEqual(['তড়িৎ চৌম্বক আবেশ ও পরিবর্তী প্রবাহ'])
+    expect(ch('2026-12-11')).toEqual(['সমতলে বস্তুকণার গতি'])
+    expect(ch('2026-12-12')).toEqual(['বৃত্ত'])
+    expect(ch('2027-01-18')).toEqual(['রিভিশন'])
+    expect(studyPlan.meta.exam).toBe('2027-01-22')
+    expect(studyPlan.meta.revision).toEqual(['2027-01-19', '2027-01-20', '2027-01-21'])
   })
 })

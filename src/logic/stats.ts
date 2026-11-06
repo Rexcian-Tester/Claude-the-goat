@@ -1,6 +1,6 @@
 import { addDays, diffDays } from '../data/dhaka'
 import { allChapters, chaptersBySubject, realQuestions, allQuestions } from '../data/catalog'
-import { PLAN_REBASE, PLAN_START, PLAN_LAST, planDays, type PlanItem } from '../data/plan'
+import { eraOf, PLAN_REBASE, PLAN_START, PLAN_LAST, planDays, type PlanItem } from '../data/plan'
 import { repeats } from '../data/repeats'
 import type { Chapter, Subject, Tier } from '../data/types'
 import { dayProgress, ownTasks, taskState, topicMark, topicMarkKey } from './dayStatus'
@@ -46,8 +46,8 @@ export const overallCompletion = (r: Reader, rows: Row[]) => {
 export const subjectCompletion = (r: Reader, rows: Row[], s: 'P' | 'C' | 'M') => taskCounts(r, rows, (i) => i.s === s)
 
 /** Whole chapters finished: a chapter counts when every day it appears on is done for it (all its parts, by
- *  ticks or your Done), in the old plan or in the current one (finished once stays finished). `started` = some
- *  of it done. */
+ *  ticks or your Done) in any one version of the plan (the original, the 27 Oct one or the current one):
+ *  finished once stays finished. `started` = some of it done. */
 export function chapterCompletion(r: Reader, sched: Pick<Schedule, 'rows' | 'slots'>, filter: (c: Chapter) => boolean) {
   let done = 0
   let total = 0
@@ -57,12 +57,9 @@ export function chapterCompletion(r: Reader, sched: Pick<Schedule, 'rows' | 'slo
     const slots = (sched.slots.get(c.id) ?? []).filter((s) => s.item.k !== 'buf')
     if (!slots.length) continue
     total++
-    const states = slots.map((s) => ({ old: s.row.archived, d: topicOn(r, s.row, s.item, sched.rows) }))
-    const finished = (old: boolean) => {
-      const part = states.filter((x) => x.old === old)
-      return part.length > 0 && part.every((x) => x.d.done)
-    }
-    if (finished(true) || finished(false)) done++
+    const states = slots.map((s) => ({ era: eraOf(s.row.date), d: topicOn(r, s.row, s.item, sched.rows) }))
+    const finished = (era: number) => states.filter((x) => x.era === era).every((x) => x.d.done)
+    if ([...new Set(states.map((x) => x.era))].some(finished)) done++
     else if (states.some((x) => x.d.done || x.d.ticked > 0)) started++
   }
   return { done, total, started, pct: total ? done / total : 0 }
@@ -102,17 +99,13 @@ export function chapterQuestionStats(r: Reader, ch: Chapter): QStats & { mtTotal
   return out
 }
 
-/** Chapter progress for the map/search: micro-task ratio of the plan days it appears in. A chapter on both
- *  old-plan and current days shows the further along of the two (finished once stays finished). */
+/** Chapter progress for the map/search: micro-task ratio of the plan days it appears in. A chapter in more than
+ *  one version of the plan shows the version it is furthest along in (finished once stays finished). */
 export function chapterProgress(r: Reader, rows: Row[], slots: { row: Row }[], chapterId?: string): { ratio: number; state: 'not started' | 'in progress' | 'done' } {
   void chapterId
-  const old = slots.filter((s) => s.row.archived)
-  if (old.length && old.length < slots.length) {
-    const a = progressOf(r, rows, old)
-    const b = progressOf(r, rows, slots.filter((s) => !s.row.archived))
-    return a.ratio >= b.ratio ? a : b
-  }
-  return progressOf(r, rows, slots)
+  const eras = [...new Set(slots.map((s) => eraOf(s.row.date)))]
+  if (eras.length < 2) return progressOf(r, rows, slots)
+  return eras.map((e) => progressOf(r, rows, slots.filter((s) => eraOf(s.row.date) === e))).reduce((a, b) => (b.ratio > a.ratio ? b : a))
 }
 function progressOf(r: Reader, rows: Row[], slots: { row: Row }[]): { ratio: number; state: 'not started' | 'in progress' | 'done' } {
   let done = 0
@@ -231,7 +224,7 @@ export type RevisionItem =
   | { kind: 'repeat'; id: string; chapter?: Chapter; tier: Tier; label: string; where: string }
   | { kind: 'chapter'; id: string; chapter: Chapter; tier: Tier; confidence: number }
 
-/** 15–17 Dec revision list: wrong/revisit questions, every Repeats entry, chapters with confidence ≤ 2. Sorted by tier. */
+/** Revision list: wrong/revisit questions, every Repeats entry, chapters with confidence ≤ 2. Sorted by tier. */
 export function revisionList(r: Reader): RevisionItem[] {
   const items: RevisionItem[] = []
   for (const c of allChapters) {

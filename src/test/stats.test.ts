@@ -49,9 +49,9 @@ describe('progress stats', () => {
     expect(streak(r, sched.rows, '2026-10-04')).toBe(3)
     expect(streak(r, sched.rows, '2026-10-05')).toBe(0) // 4 Oct missed -> broken
   })
-  it('burn-up: planned follows the calendar, actual follows completions (current plan, from 27 Oct)', () => {
-    const b = burnUp(ticked(['2026-10-27']), sched.rows, '2026-10-29')
-    expect(b.map((x) => x.date)).toEqual(['2026-10-27', '2026-10-28', '2026-10-29'])
+  it('burn-up: planned follows the calendar, actual follows completions (current plan, from 6 Nov)', () => {
+    const b = burnUp(ticked(['2026-11-06']), sched.rows, '2026-11-08')
+    expect(b.map((x) => x.date)).toEqual(['2026-11-06', '2026-11-07', '2026-11-08'])
     expect(b[2].planned).toBe(3)
     expect(b[2].actual).toBe(1)
   })

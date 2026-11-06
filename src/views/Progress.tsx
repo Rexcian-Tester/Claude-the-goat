@@ -285,7 +285,7 @@ export function ProgressView() {
         )}
       </div>
 
-      <Panel title={`Revision list for 15–17 Dec · ${bn(rev.length)} items`}>
+      <Panel title={`Revision list · ${bn(rev.length)} items`}>
         <RevisionListCard />
       </Panel>
       <p className="small">Average this week's hours: {fmt1(movingAvg(hours).filter((x): x is number => x !== undefined).at(-1) ?? 0)}</p>

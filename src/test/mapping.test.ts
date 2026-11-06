@@ -11,7 +11,7 @@ describe('plan <-> priority-map mapping', () => {
 
   it('Revision Phase (R) items map to nothing', () => {
     const x = studyPlan.days.flatMap((d) => d.items).filter((i) => i.s === 'X' || i.s === 'R')
-    expect(x.length).toBe(10)
+    expect(x.length).toBe(36) // the current Revision Phase, 14 Dec – 18 Jan
     for (const it of x) expect(chaptersForItem(it)).toEqual([])
   })
 
@@ -41,14 +41,15 @@ describe('plan <-> priority-map mapping', () => {
     expect(questionById.size).toBe(allQuestions.length)
   })
 
-  it('plan is continuous 30 Sep – 17 Dec with Day 0 first (syllabus to 5 Dec, Revision Phase 6–17 Dec)', () => {
+  it('plan is continuous 30 Sep – 18 Jan with Day 0 first (syllabus to 11 Dec, Revision Phase 12 Dec – 18 Jan)', () => {
     expect(planDays[0].date).toBe('2026-09-30')
     expect(planDays[0].dayNo).toBe(0)
-    expect(planDays.at(-1)!.date).toBe('2026-12-17')
-    expect(planDays.length).toBe(79)
+    expect(planDays.at(-1)!.date).toBe('2027-01-18')
+    expect(planDays.length).toBe(111)
     planDays.forEach((d, i) => expect(d.date).toBe(new Date(Date.UTC(2026, 8, 30 + i)).toISOString().slice(0, 10)))
-    expect(planDays.filter((d) => d.phase === 'Prime Phase').map((d) => d.date)).toEqual(planDays.filter((d) => d.date >= '2026-10-27' && d.date <= '2026-12-05').map((d) => d.date))
-    expect(planDays.filter((d) => d.phase === 'Revision Phase')).toHaveLength(12)
+    expect(planDays.filter((d) => d.phase === 'Prime Phase').map((d) => d.date)).toEqual(planDays.filter((d) => d.date >= '2026-10-27' && d.date <= '2026-12-11').map((d) => d.date))
+    expect(planDays.filter((d) => d.phase === 'Revision Phase').map((d) => d.date)).toEqual(planDays.filter((d) => d.date >= '2026-12-12').map((d) => d.date))
+    expect(studyPlan.meta.exam).toBe('2027-01-22')
   })
 
   it('labels a class day followed by practice', () => {

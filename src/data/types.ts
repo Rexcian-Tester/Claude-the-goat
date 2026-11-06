@@ -49,7 +49,8 @@ export interface StudyPlanJson {
     studyWindow: string
     day0: string
     revision: string[]
-    rest: string
+    /** a pure rest day before the exam, if any */
+    rest: string | null
     exam: string
     timezone: string
     kinds: Record<Kind, string>
@@ -60,6 +61,8 @@ export interface StudyPlanJson {
     intentionallyExcluded: string[]
     /** the plan was reorganised from this date; earlier days are kept as history and never owed */
     rebase: string
+    /** every date the plan was reorganised, oldest first (the last is `rebase`) */
+    reorganised?: string[]
     /** last day of the syllabus (the Today countdown) */
     syllabusEnd: string
     /** chapters left out on purpose (Priority Map shows them as skipped; not counted as remaining work) */

@@ -49,3 +49,12 @@ describe('study artifacts (artifacts.json)', () => {
     expect(artifactsForPlan({ s: 'R', ch: 'রিভিশন' })).toEqual([])
   })
 })
+
+describe('removed links', () => {
+  it('the friend\'s MCQ bank is gone; ল্যাবরেটরির নিরাপদ ব্যবহার has no artifact', () => {
+    const all = artifactChapters.flatMap((c) => [c.link, ...c.extras.map((e) => e.url)])
+    expect(all.some((u) => u?.includes('C7YPz1vJpwc5QtRg4LKHyy'))).toBe(false)
+    const lab = findArtifact('Chem', 'ল্যাবরেটরির নিরাপদ ব্যবহার')!
+    expect(lab).toMatchObject({ status: 'none', link: null, extras: [] })
+  })
+})

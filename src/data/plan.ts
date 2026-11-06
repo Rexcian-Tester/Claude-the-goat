@@ -46,10 +46,13 @@ export const PLAN_LAST = studyPlan.days[studyPlan.days.length - 1].date
 export const REVISION_DATES = studyPlan.meta.revision
 export const REST_DATE = studyPlan.meta.rest
 export const EXAM_DATE = studyPlan.meta.exam
-export const ENDGAME_START = REVISION_DATES[0] ?? REST_DATE
+export const ENDGAME_START = REVISION_DATES[0] ?? REST_DATE ?? EXAM_DATE
 /** the plan was reorganised from this date (27 Oct); earlier days are history */
 export const PLAN_REBASE = studyPlan.meta.rebase
-/** last syllabus day (5 Dec); the Revision Phase follows */
+/** every reorganisation date (27 Oct, 6 Nov); the plan "version" a day belongs to is how many of them it is on or after */
+export const PLAN_ERAS: string[] = studyPlan.meta.reorganised ?? [PLAN_REBASE]
+export const eraOf = (date: string) => PLAN_ERAS.filter((d) => date >= d).length
+/** last syllabus day; the Revision Phase follows */
 export const SYLLABUS_END = studyPlan.meta.syllabusEnd
 
 export const planDays: PlanDay[] = studyPlan.days.map((d, i) => {
@@ -121,7 +124,7 @@ export function lastSlotDate(chapterId: string): string | null {
 export type EndgameKind = 'revision' | 'rest' | 'exam'
 export const endgameRows: { date: string; kind: EndgameKind }[] = [
   ...REVISION_DATES.map((date) => ({ date, kind: 'revision' as const })),
-  { date: REST_DATE, kind: 'rest' as const },
+  ...(REST_DATE ? [{ date: REST_DATE, kind: 'rest' as const }] : []),
   { date: EXAM_DATE, kind: 'exam' as const },
 ]
 export const endgameKind = (iso: string): EndgameKind | null => endgameRows.find((r) => r.date === iso)?.kind ?? null

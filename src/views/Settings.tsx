@@ -88,7 +88,7 @@ export function SettingsView() {
         <h2>Test date</h2>
         <p className="small">Pretend it's another day (Asia/Dhaka), for previewing endgame mode or a catch-up scenario. This stays on this device only and is never synced. Today is <b>{today}</b>{ov ? ' (overridden)' : ''}.</p>
         <div className="row-flex">
-          <input className="input" style={{ width: 180 }} type="date" value={ov ?? ''} min="2026-09-01" max="2026-12-31" onChange={(e) => changeTodayOverride(e.target.value || null)} aria-label="Test date" />
+          <input className="input" style={{ width: 180 }} type="date" value={ov ?? ''} min="2026-09-01" max="2027-01-31" onChange={(e) => changeTodayOverride(e.target.value || null)} aria-label="Test date" />
           {ov && <button className="btn" onClick={() => changeTodayOverride(null)}>Back to real today</button>}
         </div>
       </div>
