@@ -29,7 +29,8 @@ export function previewShift(all: Row[], today: string, r: Reader): ShiftPreview
   const late = rows.filter((x) => !x.isBuffer && !progress.get(x.date) && x.eff !== null && x.eff < today)
   // rows parked by an earlier shift stay lowest priority, and come back if a slot frees up
   const parked = rows.filter((x) => !x.isBuffer && x.eff === null && !progress.get(x.date))
-  const fixed = rows.filter((x) => x.eff !== null && x.eff >= today && progress.get(x.date) && !x.isBuffer)
+  // completed days stay put, and so do empty days with a purpose (an exam day, the rest day)
+  const fixed = rows.filter((x) => x.eff !== null && x.eff >= today && ((progress.get(x.date) && !x.isBuffer) || x.isFree))
   const fixedDates = new Set(fixed.map((x) => x.eff!))
   const future = rows
     .filter((x) => x.eff !== null && x.eff >= today && !fixedDates.has(x.eff!))

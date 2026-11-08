@@ -10,11 +10,11 @@ describe('behind / ahead', () => {
     expect(b.showBanner).toBe(false)
   })
 
-  it('counts from the reorganised plan: On plan on 6 Nov (Plan v2), whatever was left before', () => {
-    // nothing ticked at all: every day before 6 Nov is history, not owed
-    expect(behindInfo('2026-11-06', sched.rows, mapReader({})).lag).toBe(0)
-    expect(lagLabel(behindInfo('2026-11-06', sched.rows, mapReader({})).lag)).toBe('On plan')
-    expect(behindInfo('2026-11-07', sched.rows, mapReader({})).lag).toBe(1)
+  it('counts from the reorganised plan: On plan on 8 Nov (Plan v3), whatever was left before', () => {
+    // nothing ticked at all: every day before 8 Nov is history, not owed
+    expect(behindInfo('2026-11-08', sched.rows, mapReader({})).lag).toBe(0)
+    expect(lagLabel(behindInfo('2026-11-08', sched.rows, mapReader({})).lag)).toBe('On plan')
+    expect(behindInfo('2026-11-09', sched.rows, mapReader({})).lag).toBe(1)
   })
 
   it('exactly on plan: everything before today ticked', () => {
@@ -44,24 +44,25 @@ describe('behind / ahead', () => {
   })
 
   it('a manually-marked day counts as done; a partly ticked day does not', () => {
-    const today = '2026-11-09'
-    const r = ticked(['2026-11-06', '2026-11-07'], { 'day:2026-11-08:done': true })
+    const today = '2026-11-11'
+    const r = ticked(['2026-11-08', '2026-11-09'], { 'day:2026-11-10:done': true })
     expect(behindInfo(today, sched.rows, r).lag).toBe(0)
-    const t8 = sched.byOrig.get('2026-11-08')!.items[1].tks[0]
+    const t8 = sched.byOrig.get('2026-11-10')!.items[1].tks[0]
     expect(behindInfo(today, sched.rows, mapReader({ [t8]: true })).lag).toBe(3)
   })
 
   it('days left counts to the exam on 22 Jan 2027 and phase follows the Dhaka date', () => {
-    expect(behindInfo('2026-11-06', sched.rows, mapReader({})).daysLeft).toBe(77)
+    expect(behindInfo('2026-11-08', sched.rows, mapReader({})).daysLeft).toBe(75)
     expect(behindInfo('2027-01-22', sched.rows, mapReader({})).daysLeft).toBe(0)
     expect(phaseOf('2026-09-29')).toBe('before')
     expect(phaseOf('2026-10-05')).toBe('study')
-    // the Revision Phase (12 Dec – 18 Jan) is plan days; 19–21 Jan light revision + rest; 22 Jan exam
+    // plan days to 20 Jan; 21 Jan rest; 22 Jan MIST; CU prep plan days 23–29 Jan; after that the plan is over
     expect(phaseOf('2026-12-15')).toBe('study')
-    expect(phaseOf('2027-01-18')).toBe('study')
-    expect(phaseOf('2027-01-19')).toBe('endgame')
-    expect(phaseOf('2027-01-21')).toBe('endgame')
+    expect(phaseOf('2027-01-20')).toBe('study')
+    expect(phaseOf('2027-01-21')).toBe('rest')
     expect(phaseOf('2027-01-22')).toBe('exam')
-    expect(phaseOf('2027-01-23')).toBe('after')
+    expect(phaseOf('2027-01-23')).toBe('study')
+    expect(phaseOf('2027-01-29')).toBe('study')
+    expect(phaseOf('2027-01-30')).toBe('after')
   })
 })

@@ -65,12 +65,12 @@ describe('shift preview (never automatic)', () => {
   })
 
   it('old-plan days are never pulled into the current plan', () => {
-    const p = previewShift(sched.rows, '2026-11-06', mapReader({}))
+    const p = previewShift(sched.rows, '2026-11-08', mapReader({}))
     expect(p.debt).toBe(0)
     expect(p.moves).toEqual([])
   })
 
-  it('3 days behind on 20 Nov: work moves down; what no longer fits by 18 Jan is reported, not dropped', () => {
+  it('3 days behind on 20 Nov: work moves down; what no longer fits by 29 Jan is reported, not dropped; exam and rest days stay', () => {
     const today = '2026-11-20'
     const r = ticked(studyDatesBefore(today).slice(0, -3))
     const p = previewShift(sched.rows, today, r)
@@ -79,8 +79,13 @@ describe('shift preview (never automatic)', () => {
     // the three unfinished days now start today
     expect(p.moves.slice(0, 3).map((m) => m.to)).toEqual(['2026-11-20', '2026-11-21', '2026-11-22'])
     expect(p.unscheduled.length).toBe(3)
-    expect(Object.values(p.shifts).every((v) => v === 'unscheduled' || v <= '2027-01-18')).toBe(true)
-    expect(Object.keys(p.shifts).every((d) => d >= '2026-11-06')).toBe(true)
+    expect(Object.values(p.shifts).every((v) => v === 'unscheduled' || v <= '2027-01-29')).toBe(true)
+    expect(Object.keys(p.shifts).every((d) => d >= '2026-11-08')).toBe(true)
+    // the SUST exam day, the rest day and the MIST exam day are never moved or taken
+    for (const d of ['2027-01-17', '2027-01-21', '2027-01-22']) {
+      expect(p.shifts[d]).toBeUndefined()
+      expect(Object.values(p.shifts)).not.toContain(d)
+    }
   })
 
   it('accepting the preview fixes the behind count; nothing changes before that', () => {

@@ -18,13 +18,16 @@ Progress syncs through a Pages Function + KV (`functions/api/sync.ts`). See `REA
   round-trips byte-identically (`q`, `rate` and the 4th column of `trackerChanges` are written as floats, e.g. `8.0`;
   no trailing newline). A day with `items: []` is a **free day** (`isFree`): never owed, not a catch-up day;
   an optional day `note` is shown instead of the generic text.
-- **Plan reorganised twice** (`meta.reorganised`: 27 Oct 2026, then 6 Nov 2026 "MIST Plan v2"; `meta.rebase` is the
-  latest): days before the rebase are kept byte-identical as history (`PlanDay.archived`: never owed, not in
-  Dues/overdue/days behind/overall completion/burn-up/shift). Plan v2 from 6 Nov: Prime Phase to `meta.syllabusEnd`
-  (11 Dec), Revision Phase 12 Dec – 18 Jan (বৃত্ত, সরলরেখা ও কণিক, then 36 days of subject `R` রিভিশন + English);
-  endgame 19–21 Jan light revision + rest (`meta.revision`, `meta.rest` null), exam 22 Jan 2027 (`meta.exam`; the
-  days-left badge counts to it; the Today countdown counts to `meta.countdownTo`, 10 Dec). Items from a reorganisation carry `ix` (10+ for 27 Oct, 20+
-  for 6 Nov, so keys never collide with the plan they replaced on the same date) and `tk` (tick key per micro-task:
+- **Plan reorganised three times** (`meta.reorganised`: 27 Oct, 6 Nov "MIST Plan v2", 8 Nov "MIST Plan v3" = v2 two
+  days later; `meta.rebase` is the latest): days before the rebase are kept byte-identical as history
+  (`PlanDay.archived`: never owed, not in Dues/overdue/days behind/overall completion/burn-up/shift). Plan v3 from
+  8 Nov: Prime Phase to `meta.syllabusEnd` (13 Dec); Revision Phase 14 Dec – 22 Jan (বৃত্ত, সরলরেখা ও কণিক, 31 days of
+  subject `R` রিভিশন + English to 15 Jan, SUST warm-up 16 Jan, then empty "free" days with a `note` for the SUST exam
+  17 Jan, rest 21 Jan (`meta.rest`) and MIST 22 Jan, MIST final 18–20 Jan); CU Phase 23–29 Jan (CU prep; CU exam 30 Jan).
+  The plan continues after the exam, so `phaseOf` checks exam / rest / endgame dates before plan days; free days are
+  never owed and never moved by a shift. Exam 22 Jan 2027 (`meta.exam`; the days-left badge counts to it, "MIST ✓"
+  after); the Today countdown counts to `meta.countdownTo` (10 Dec). Items from a reorganisation carry `ix` (10+ /
+  20+ / 30+, so keys never collide with the plan they replaced on the same date) and `tk` (tick key per micro-task:
   a reused micro-task keeps its original key, so its tick carries over; "moved" keys stay per item, `PlanItem.mks`).
   A chapter counts finished if finished in any plan version (`eraOf`). Planner edits never move topics across the
   latest rebase. `plan:shift` was replaced by `plan:shift:v2` (old shift kept, unused).

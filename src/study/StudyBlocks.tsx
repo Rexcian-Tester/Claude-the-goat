@@ -239,7 +239,7 @@ function TodayTasks() {
         </span>
       </div>
       {isEndgame(today) || phase === 'after' ? (
-        <p className="muted">The study plan is over: revision list and model tests. See <a href={href.today()}>Today</a>.</p>
+        <p className="muted">No plan topics today. See <a href={href.today()}>Today</a>.</p>
       ) : phase === 'before' ? (
         <p className="muted">The plan hasn't started yet.</p>
       ) : !row ? (

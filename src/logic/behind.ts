@@ -1,15 +1,19 @@
 import { diffDays } from '../data/dhaka'
-import { EXAM_DATE, PLAN_LAST, PLAN_START, ENDGAME_START, REST_DATE } from '../data/plan'
+import { EXAM_DATE, PLAN_LAST, PLAN_START, ENDGAME_START, REST_DATE, REVISION_DATES } from '../data/plan'
 import { dayProgress } from './dayStatus'
 import type { Reader } from './reader'
 import type { Row } from './schedule'
 
 export type Phase = 'before' | 'study' | 'endgame' | 'rest' | 'exam' | 'after'
 
+/** The exam day, the rest day and endgame revision days win over plan days on the same date (since Plan v3 the
+ *  plan continues after MIST with CU prep, so plan days can come after the exam). */
 export function phaseOf(today: string): Phase {
   if (today < PLAN_START) return 'before'
-  if (today <= PLAN_LAST) return 'study'
   if (today === EXAM_DATE) return 'exam'
+  if (REST_DATE && today === REST_DATE) return 'rest'
+  if (REVISION_DATES.includes(today)) return 'endgame'
+  if (today <= PLAN_LAST) return 'study'
   if (today > EXAM_DATE) return 'after'
   if (today >= ENDGAME_START && today < (REST_DATE ?? EXAM_DATE)) return 'endgame'
   return 'rest'

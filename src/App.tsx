@@ -61,7 +61,7 @@ function TopBar() {
         <div className="tb-row">
           <a className="brand" href={href.today()} aria-label="MIST Prep home"><Logo /><span className="brand-t">MIST Prep</span></a>
           <div className="chips">
-            <span className="chip-s" role="img" aria-label={`${diffDays(today, EXAM_DATE)} days left until the exam`} title={`Days until the MIST exam, ${dateEn(EXAM_DATE)} ${EXAM_DATE.slice(0, 4)}`}><span className="lg" aria-hidden="true">{diffDays(today, EXAM_DATE)} {diffDays(today, EXAM_DATE) === 1 ? 'day' : 'days'} left</span><span className="sm" aria-hidden="true">{diffDays(today, EXAM_DATE)}d</span></span>
+            <span className="chip-s" role="img" aria-label={`${diffDays(today, EXAM_DATE)} days left until the exam`} title={`Days until the MIST exam, ${dateEn(EXAM_DATE)} ${EXAM_DATE.slice(0, 4)}`}><span className="lg" aria-hidden="true">{diffDays(today, EXAM_DATE) < 0 ? 'MIST done' : `${diffDays(today, EXAM_DATE)} ${diffDays(today, EXAM_DATE) === 1 ? 'day' : 'days'} left`}</span><span className="sm" aria-hidden="true">{diffDays(today, EXAM_DATE) < 0 ? 'MIST ✓' : `${diffDays(today, EXAM_DATE)}d`}</span></span>
             {phase === 'endgame' || phase === 'rest' || phase === 'exam' ? (
               <a className="chip-s ok" href={href.today()}>Endgame</a>
             ) : phase === 'before' ? (

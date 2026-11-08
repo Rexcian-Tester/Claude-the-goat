@@ -122,7 +122,7 @@ export function EndgameView({ today }: { today: string }) {
   if (today > EXAM_DATE)
     return (
       <div className="view">
-        <div className="page-h"><h1>The exam is over</h1></div>
+        <div className="page-h"><h1>The MIST exam is over</h1></div>
         <div className="banner info">Well done for getting through it. Your data stays here; see <a href={href.progress()}>Progress</a> for the full picture.</div>
         <MyExams today={today} />
       </div>

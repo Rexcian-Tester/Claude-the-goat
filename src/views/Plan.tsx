@@ -90,7 +90,7 @@ function ItemLine({ row, sched, today }: { row: Row; sched: Schedule; today: str
   const r = useReader()
   const rows = sched.rows
   const re = useReorder(row)
-  if (row.isFree) return row.note ? <div className="free-note">✓ {row.note}</div> : <div className="topics-t muted">খালি দিন · এই দিনের কাজ অন্য দিনে সরানো হয়েছে</div>
+  if (row.isFree) return row.note ? <div className="free-note">{row.date < today ? '✓ ' : ''}{row.note}</div> : <div className="topics-t muted">খালি দিন · এই দিনের কাজ অন্য দিনে সরানো হয়েছে</div>
   const many = row.items.length > 1
   return (
     <div className="items" ref={re.box}>
