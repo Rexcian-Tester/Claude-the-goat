@@ -91,6 +91,24 @@ export interface ArtifactChapter {
 }
 export interface ArtifactsJson { _readme: string; chapters: ArtifactChapter[] }
 
+/** site-source/data/exams.json: admission exams (display only) */
+export interface Exam {
+  /** short label for tags, e.g. "RU C" */
+  tag: string
+  name: string
+  unit: string
+  /** YYYY-MM-DD, Bangladesh time */
+  date: string
+  /** 24-hour HH:MM */
+  time: string
+  format: string
+  calculator: string
+  subjects: string
+  /** the main exam (MIST) */
+  main?: boolean
+}
+export interface ExamsJson { _readme: string; source: string; exams: Exam[] }
+
 export interface Repeat { subject: string; question: string; where: string; match: string }
 export interface PriorityExtrasJson {
   findings: string[]

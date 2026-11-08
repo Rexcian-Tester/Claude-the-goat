@@ -11,6 +11,7 @@ import { useReader, useSchedule } from '../hooks'
 import { Timer } from '../components/Timer'
 import { FieldCheck, TierPill } from '../components/ui'
 import { Accountability, RemindersCard } from './Habits'
+import { MyExams } from '../components/MyExams'
 
 const DEFAULT_EXAM = [
   'Admit card',
@@ -123,6 +124,7 @@ export function EndgameView({ today }: { today: string }) {
       <div className="view">
         <div className="page-h"><h1>The exam is over</h1></div>
         <div className="banner info">Well done for getting through it. Your data stays here; see <a href={href.progress()}>Progress</a> for the full picture.</div>
+        <MyExams today={today} />
       </div>
     )
   if (today === EXAM_DATE)
@@ -131,6 +133,7 @@ export function EndgameView({ today }: { today: string }) {
         <div className="page-h"><div className="eyebrow"><span className="eb-bn">{dateLongBn(today)}</span></div><h1>Today is the MIST exam</h1></div>
         <div className="card accent"><h2>You've done the work.</h2><p>Read each question fully, take the marks you can get first, and keep an eye on time.</p></div>
         <ExamChecklist />
+        <MyExams today={today} />
       </div>
     )
   if (today === REST_DATE)
@@ -142,6 +145,7 @@ export function EndgameView({ today }: { today: string }) {
           <p>No new problems, no re-solving. Sleep on time. The exam is tomorrow.</p>
         </div>
         <ExamChecklist />
+        <MyExams today={today} />
       </div>
     )
   return (
@@ -151,6 +155,7 @@ export function EndgameView({ today }: { today: string }) {
         <h1>Revision and model tests</h1>
         <p className="small">One full timed paper this morning, then fix every mistake. Re-solve the Repeats list.</p>
       </div>
+      <MyExams today={today} />
       <div className="card accent">
         <h2>Timed model test</h2>
         <Timer id="model-test" minutes={minutes} onMinutes={(m) => store.set(K.exam('minutes'), m)} label="Pens down. Now mark it and fix every mistake." big />

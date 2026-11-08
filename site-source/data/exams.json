@@ -1,0 +1,10 @@
+{
+ "_readme": "Admission exams shown in the My exams card (Today) and tagged on the Plan. One line per exam; edit a date or time here and it changes everywhere. date: YYYY-MM-DD (Bangladesh time) · time: 24-hour HH:MM · main: true for MIST. Display only: the study plan and its counters do not read this.",
+ "source": "Dates/rules from 2025–26 circulars via admission-calendar.com — confirm when 2026–27 circulars publish.",
+ "exams": [
+  {"tag": "RU C", "name": "RU", "unit": "C Unit, Science", "date": "2027-01-09", "time": "11:00", "format": "MCQ, 100 marks, 1 hr, −0.25 negative", "calculator": "Not allowed", "subjects": "Physics, Chemistry, Math, ICT (small)"},
+  {"tag": "SUST A1", "name": "SUST", "unit": "A1 Unit", "date": "2027-01-17", "time": "15:00", "format": "MCQ, 80 marks, 1 hr 30 min, −0.20 negative", "calculator": "Allowed", "subjects": "Physics, Chemistry, Math, English"},
+  {"tag": "MIST A", "name": "MIST", "unit": "Unit A, Engineering", "date": "2027-01-22", "time": "10:00", "format": "Written, 200 marks, 3 hr", "calculator": "Allowed", "subjects": "Math 80, Physics 60, Chemistry 40, English 20", "main": true},
+  {"tag": "CU A", "name": "CU", "unit": "A Unit, Science", "date": "2027-01-30", "time": "11:00", "format": "MCQ, 100 marks, 1 hr, −0.25 negative", "calculator": "Allowed (simple ≤100MS only)", "subjects": "English + Physics, Chemistry, Math"}
+ ]
+}

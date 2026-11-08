@@ -13,6 +13,7 @@ import { Sheet } from '../components/ui'
 import { BehindBanner } from './BehindBanner'
 import { DayBody, DayMini, ItemHeader, OverdueJump, OverdueList } from './day'
 import { EndgameView, PaperChecklist } from './Endgame'
+import { MyExams } from '../components/MyExams'
 import { Accountability, RemindersCard } from './Habits'
 import { usePomo } from '../study/engine'
 import { timerView, useTick } from '../study/StudyBlocks'
@@ -119,6 +120,8 @@ export function TodayView() {
       <StartDay />
 
       <Countdown target={COUNTDOWN_TO} from={PLAN_REBASE} title={`Countdown to ${dateLongBn(COUNTDOWN_TO)}`} sub={`Syllabus ends ${dateEn(SYLLABUS_END)} · MIST exam ${dateEn(EXAM_DATE)} ${EXAM_DATE.slice(0, 4)}`} />
+
+      <MyExams today={today} />
 
       <div className="grid2 habits">
         <RemindersCard />

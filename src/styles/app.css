@@ -883,3 +883,22 @@ a:focus-visible,button:focus-visible,summary:focus-visible,[tabindex]:focus-visi
 .sl-name{font:600 15.5px var(--body);line-height:1.35}
 .sl-row.not-ready .sl-name{color:var(--muted)}
 @media (max-width:420px){.sl-row{grid-template-columns:20px minmax(0,1fr) auto;gap:6px 8px}.sl-name{font-size:15px}.art.compact .art-btn{padding:0 10px;font-size:13.5px}.art.compact .art-more{max-width:150px}}
+/* My exams (Today) */
+.mx-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.mx{border:1px solid var(--line);border-radius:var(--radius);padding:10px 12px;display:flex;flex-direction:column;gap:2px;color:var(--muted)}
+.mx-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.mx-name{font:600 15px var(--body);color:var(--ink)}
+.mx-unit{font-weight:500;color:var(--muted)}
+.mx-left{font:600 14px var(--body);white-space:nowrap}
+.mx.main{border-color:color-mix(in srgb,var(--accent) 60%,var(--line));background:color-mix(in srgb,var(--accent-soft) 55%,var(--panel));padding:14px;color:var(--ink)}
+.mx.main .mx-name{font-size:18px}
+.mx.main .mx-left{font-size:17px;color:var(--accent)}
+.mx-main{background:var(--accent);color:var(--panel);margin-left:6px;vertical-align:2px}
+.mx.past{opacity:.55}
+.mx-note{margin:2px 0 0;font-style:italic}
+/* Plan: exam tags */
+.exam-tag{display:inline-block;font:600 12px var(--body);padding:1px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
+.cell .exam-tag{font-size:9px;line-height:1.25;padding:1px 3px;margin-top:2px;white-space:normal;overflow-wrap:anywhere;border-radius:4px}
+/* month cells that are endgame/exam days keep the small cell padding, not the endgame tile's */
+.cell.eg{padding:5px;border-radius:9px;box-shadow:none;gap:2px}
+.cell.eg.exam{background:var(--accent);color:var(--panel);border-style:solid}

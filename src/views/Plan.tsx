@@ -22,6 +22,7 @@ import { setOrder } from '../logic/planEdits'
 import { toast } from '../components/ui'
 import { artifactsForPlan } from '../data/artifacts'
 import { ArtifactLinks } from '../components/ArtifactLinks'
+import { examOn, exams } from '../data/exams'
 
 type St = 'done' | 'partial' | 'overdue' | 'todo'
 function rowStatus(r: Reader, row: Row, rows: Row[], today: string) {
@@ -159,6 +160,7 @@ function DayRow({ row, today, sched }: { row: Row; today: string; sched: Schedul
         <span className="dd">{eff ? bn(Number(eff.slice(8))) : '—'}</span>
         <span className="mm">{eff ? `${MONTH_BN[Number(eff.slice(5, 7)) - 1]} · ${WD_BN[weekdayIndex(eff)]}বার` : 'Unscheduled'}</span>
         <span className="ix">Day {row.dayNo}{eff === today ? ' · today' : ''}{eff && eff !== row.date ? ` · was ${dateEn(row.date)}` : ''}</span>
+        {eff && examOn(eff) && <span className="exam-tag">📝 {examOn(eff)!.tag}</span>}
       </a>
       <div className="body"><ItemLine row={row} sched={sched} today={today} /></div>
       <div className="ratio">
@@ -200,7 +202,7 @@ function MonthGrid({ sched, today }: { sched: Schedule; today: string }) {
         const cells: (string | null)[] = []
         for (let w = 0; w < all.length; w += 7) {
           const week = all.slice(w, w + 7)
-          if (week.some((d) => d && (sched.byEff.has(d) || endgameKind(d)))) cells.push(...week)
+          if (week.some((d) => d && (sched.byEff.has(d) || endgameKind(d) || examOn(d)))) cells.push(...week)
         }
         if (!cells.length) return null
         return (
@@ -220,6 +222,7 @@ function MonthGrid({ sched, today }: { sched: Schedule; today: string }) {
                       <span className="cn">{bn(day)}</span>
                       <span className="cs">{row.items.map((it) => <i key={it.key} className={it.s}>{SUB_LETTER[it.s]}</i>)}</span>
                       <span className="pr"><i style={{ width: `${p.ratio * 100}%` }} /></span>
+                      {examOn(d) && <span className="exam-tag">📝 {examOn(d)!.tag}</span>}
                     </a>
                   )
                 }
@@ -227,7 +230,15 @@ function MonthGrid({ sched, today }: { sched: Schedule; today: string }) {
                   <a key={d} className={`cell eg ${eg === 'exam' ? 'exam' : ''} ${d === today ? 'is-today' : ''}`} href={href.plan(d)} aria-label={`${dateBn(d)}: ${eg}`}>
                     <span className="cn">{bn(day)}</span>
                     <span style={{ fontSize: 10 }}>{eg === 'revision' ? 'রিভিশন' : eg === 'rest' ? 'বিশ্রাম' : 'MIST'}</span>
+                    {examOn(d) && eg !== 'exam' && <span className="exam-tag">📝 {examOn(d)!.tag}</span>}
                   </a>
+                )
+                // an admission exam after the plan (CU, 30 Jan): just its tag
+                if (examOn(d)) return (
+                  <div key={d} className="cell eg" aria-label={`${dateBn(d)}: ${examOn(d)!.name} exam`}>
+                    <span className="cn">{bn(day)}</span>
+                    <span className="exam-tag">📝 {examOn(d)!.tag}</span>
+                  </div>
                 )
                 return <div key={d} className="cell empty-c" />
               })}
@@ -428,10 +439,16 @@ const PlanBody = memo(function PlanBody({ today, sched, view, setView }: { today
             return (
               <a key={e.date} className={`eg ${e.date === EXAM_DATE ? 'exam' : ''}`} href={href.plan(ds[0])} style={{ color: 'inherit', textDecoration: 'none' }}>
                 <span className="dn">{label}</span>
-                <p className="small">{e.what}</p>
+                <p className="small">{e.what}{examOn(ds[0]) && <> <span className="exam-tag">📝 {examOn(ds[0])!.tag}</span></>}</p>
               </a>
             )
           })}
+          {exams.filter((x) => !x.main && !sched.byEff.has(x.date) && !endgameKind(x.date)).map((x) => (
+            <div key={x.tag} className="eg">
+              <span className="dn">{dateBn(x.date)}</span>
+              <p className="small"><span className="exam-tag">📝 {x.tag}</span> {x.name} admission exam</p>
+            </div>
+          ))}
         </div>
       </section>
 
