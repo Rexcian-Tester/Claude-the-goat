@@ -106,8 +106,40 @@ export interface Exam {
   subjects: string
   /** the main exam (MIST) */
   main?: boolean
+  /** study links shown right in the card (exams with no guide page) */
+  links?: { label: string; url: string }[]
 }
-export interface ExamsJson { _readme: string; source: string; exams: Exam[] }
+/** An exam whose date is not announced yet (IUT): no Plan tag, no countdown. */
+export interface UndatedExam extends Omit<Exam, 'date' | 'time'> {
+  date: null
+  time: null
+  /** e.g. "Mar/Apr 2027? (date not announced)" */
+  when: string
+}
+export interface ExamsJson { _readme: string; source: string; exams: (Exam | UndatedExam)[] }
+
+/** site-source/data/exam-guides.json: one guide page per exam (#/exam/<slug>), keyed by Exam.tag. Display only. */
+export interface ExamGuide {
+  slug: string
+  title: string
+  kind: string
+  /** [label, value] key facts */
+  stats: [string, string][]
+  /** [subject, questions, marks] */
+  split: [string, number, number][]
+  perQ: number
+  history: string[]
+  /** which papers the chapter counts come from */
+  topFrom: string
+  top: { subject: 'Physics' | 'Chemistry' | 'Math'; chapters: [string, number][] }[]
+  /** English question types: [type, how many in the real papers] */
+  english: [string, number][]
+  tips: string[]
+  /** [label, url, note] */
+  links: [string, string, string][]
+  source: string
+}
+export interface ExamGuidesJson { _readme: string; guides: Record<string, ExamGuide> }
 
 export interface Repeat { subject: string; question: string; where: string; match: string }
 export interface PriorityExtrasJson {

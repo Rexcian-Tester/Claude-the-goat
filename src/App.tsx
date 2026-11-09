@@ -14,6 +14,7 @@ import { MapView } from './views/Map'
 import { ChapterView } from './views/Chapter'
 import { ProgressView } from './views/Progress'
 import { SettingsView } from './views/Settings'
+import { ExamGuideView } from './views/ExamGuide'
 import { SearchSheet } from './views/Search'
 import { FocusView } from './views/Focus'
 import { RoutineView } from './views/Routine'
@@ -45,7 +46,7 @@ function TopBar() {
   const phase = phaseOf(today)
   const mac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform)
   const nav: { name: string; label: string; short?: string; to: string; cur: boolean }[] = [
-    { name: 'today', label: 'Today', to: href.today(), cur: route.name === 'today' },
+    { name: 'today', label: 'Today', to: href.today(), cur: route.name === 'today' || route.name === 'exam' },
     { name: 'plan', label: 'Plan', to: href.plan(), cur: route.name === 'plan' },
     { name: 'map', label: 'Priority Map', short: 'Map', to: href.map(), cur: route.name === 'map' || route.name === 'chapter' },
     { name: 'progress', label: 'Progress', to: href.progress(), cur: route.name === 'progress' },
@@ -141,6 +142,7 @@ export function App() {
         {route.name === 'focus' && <FocusView />}
         {route.name === 'routine' && <RoutineView />}
         {route.name === 'settings' && <SettingsView />}
+        {route.name === 'exam' && <ExamGuideView />}
       </main>
       {searchOpen && <SearchSheet />}
       <ReminderPopup />

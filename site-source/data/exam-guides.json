@@ -1,0 +1,674 @@
+{
+ "_readme": "Exam guide pages (#/exam/<slug>), opened from the My exams card. Keyed by the exam tag in exams.json. top = most asked chapters in real papers (counted from the question-bank artifacts). links open in a new tab. Display only.",
+ "guides": {
+  "MIST A": {
+   "slug": "mist",
+   "title": "MIST · Unit A (Engineering)",
+   "kind": "Written exam, you write every answer",
+   "stats": [
+    [
+     "Total",
+     "200 marks"
+    ],
+    [
+     "Time",
+     "3 hours (180 min)"
+    ],
+    [
+     "Questions",
+     "50 written × 4 marks"
+    ],
+    [
+     "Negative",
+     "None (written)"
+    ],
+    [
+     "Calculator",
+     "Allowed"
+    ],
+    [
+     "Pace",
+     "≈ 3.6 min per question"
+    ]
+   ],
+   "split": [
+    [
+     "Math",
+     20,
+     80
+    ],
+    [
+     "Physics",
+     15,
+     60
+    ],
+    [
+     "Chemistry",
+     10,
+     40
+    ],
+    [
+     "English",
+     5,
+     20
+    ]
+   ],
+   "perQ": 4,
+   "history": [
+    "2025-26 (latest) and all Udvash model tests: 50 questions × 4 marks, split Math 20 · Physics 15 · Chemistry 10 · English 5.",
+    "2023-24 and 2024-25: 40 questions × 5 marks, split Math 18 · Physics 14 · Chemistry 6 · English 2.",
+    "Both add up to 200 marks in 3 hours. Prepare for the newer 50-question layout: more, shorter questions."
+   ],
+   "topFrom": "3 real MIST papers (2023-24 → 2025-26)",
+   "top": [
+    {
+     "subject": "Math",
+     "chapters": [
+      [
+       "অন্তরীকরণ",
+       7
+      ],
+      [
+       "সরলরেখা",
+       5
+      ],
+      [
+       "যোগজীকরণ",
+       5
+      ],
+      [
+       "বিপরীত ত্রিকোণমিতিক ফাংশন ও ত্রিকোণমিতিক সমীকরণ",
+       5
+      ],
+      [
+       "বহুপদী ও বহুপদী সমীকরণ",
+       5
+      ],
+      [
+       "সংযুক্ত কোণের ত্রিকোণমিতিক অনুপাত",
+       4
+      ]
+     ]
+    },
+    {
+     "subject": "Physics",
+     "chapters": [
+      [
+       "স্থির তড়িৎ",
+       5
+      ],
+      [
+       "পরমাণুর মডেল ও নিউক্লিয়ার পদার্থবিজ্ঞান",
+       4
+      ],
+      [
+       "পদার্থের গাঠনিক ধর্ম",
+       4
+      ],
+      [
+       "গতিবিদ্যা",
+       3
+      ],
+      [
+       "মহাকর্ষ ও অভিকর্ষ",
+       3
+      ],
+      [
+       "নিউটনিয়ান বলবিদ্যা",
+       3
+      ]
+     ]
+    },
+    {
+     "subject": "Chemistry",
+     "chapters": [
+      [
+       "রাসায়নিক পরিবর্তন",
+       7
+      ],
+      [
+       "জৈব রসায়ন",
+       5
+      ],
+      [
+       "পরিমাণগত রসায়ন",
+       4
+      ],
+      [
+       "তড়িৎ রসায়ন",
+       2
+      ],
+      [
+       "মৌলের পর্যায়বৃত্ত ধর্ম ও রাসায়নিক বন্ধন",
+       2
+      ],
+      [
+       "পরিবেশ রসায়ন",
+       1
+      ]
+     ]
+    }
+   ],
+   "english": [
+    [
+     "Short paragraph (5 sentences)",
+     2
+    ],
+    [
+     "Fill in the blanks",
+     2
+    ],
+    [
+     "Translation বাংলা → English",
+     1
+    ],
+    [
+     "Translation English → বাংলা",
+     1
+    ],
+    [
+     "Error correction",
+     1
+    ],
+    [
+     "Sentence making / transformation",
+     1
+    ],
+    [
+     "Translation",
+     1
+    ]
+   ],
+   "tips": [
+    "Math is 80 of 200 marks (40%): it decides MIST. অন্তরীকরণ is asked the most, then সরলরেখা, যোগজীকরণ, inverse trigonometry and বহুপদী. In Physics স্থির তড়িৎ leads; in Chemistry রাসায়নিক পরিবর্তন.",
+    "Every answer is written, so there is no guessing and no negative marking. Write the formula and the key steps, then box the final answer, the way the Exam Engine solutions do.",
+    "Budget about 3½ minutes a question. If one is still stuck after about 6 minutes, leave space and come back at the end.",
+    "Physics and Chemistry answers are mostly short numericals: write the unit with every answer and practise on the calculator you will take in.",
+    "English is 20 marks in 5 small writing tasks: translation both ways, error correction, fill in the blanks, a 5-sentence paragraph and sentence making. Write a few by hand each week instead of only reading.",
+    "Sit at least one full 3-hour paper in the MIST Exam Engine before 22 Jan (the plan keeps 18–20 Jan for MIST final prep) and mark yourself honestly."
+   ],
+   "links": [
+    [
+     "MIST Exam Engine · Udvash QB",
+     "https://claude.ai/artifact/BZq9onvykyXP98PNV66xv5",
+     "Real papers 2023-24 → 2025-26 + model tests, timed, self-marked"
+    ],
+    [
+     "Math Mastery",
+     "https://claude.ai/artifact/6dgLAKj4t3W6K35kRPEsP5",
+     "MIST × IUT, switch to MIST"
+    ],
+    [
+     "Physics Mastery",
+     "https://claude.ai/artifact/At7Jmb8M5QFf3Yn4beuUfA",
+     "MIST × IUT, switch to MIST"
+    ],
+    [
+     "Chemistry Mastery",
+     "https://claude.ai/artifact/KeduwVBUGEKdzJBriQeQ9b",
+     "MIST × IUT, switch to MIST"
+    ],
+    [
+     "English Mastery",
+     "https://claude.ai/artifact/JKNJB3XrZUFRorjdZWbj8o",
+     "MIST × IUT, switch to MIST"
+    ]
+   ],
+   "source": "Pattern from the MIST Exam Engine (real 2023-24, 2024-25, 2025-26 papers and Udvash model tests)."
+  },
+  "SUST A1": {
+   "slug": "sust",
+   "title": "SUST · A1 Unit",
+   "kind": "MCQ exam, 4 options per question",
+   "stats": [
+    [
+     "Total",
+     "80 marks"
+    ],
+    [
+     "Time",
+     "1 hr 30 min (90 min)"
+    ],
+    [
+     "Questions",
+     "80 MCQ × 1 mark"
+    ],
+    [
+     "Negative",
+     "−0.20 per wrong (−0.25 before 2025-26)"
+    ],
+    [
+     "Calculator",
+     "Allowed"
+    ],
+    [
+     "Pace",
+     "≈ 67 sec per question"
+    ]
+   ],
+   "split": [
+    [
+     "Physics",
+     20,
+     20
+    ],
+    [
+     "Chemistry",
+     20,
+     20
+    ],
+    [
+     "Math",
+     20,
+     20
+    ],
+    [
+     "English",
+     20,
+     20
+    ]
+   ],
+   "perQ": 1,
+   "history": [
+    "2024-25 and 2025-26: 80 questions, 20 each from Physics, Chemistry, Math and English, 4 options each.",
+    "2025-26 cut the negative mark to −0.20 a wrong answer (it was −0.25).",
+    "2012-13 → 2019-20 had 65–70 questions with 5 options and only 10 English questions, so older papers are good practice but not the current balance."
+   ],
+   "topFrom": "12 real SUST papers (2011-12 → 2025-26)",
+   "top": [
+    {
+     "subject": "Physics",
+     "chapters": [
+      [
+       "নিউটনিয়ান বলবিদ্যা",
+       25
+      ],
+      [
+       "গতিবিদ্যা",
+       18
+      ],
+      [
+       "স্থির তড়িৎ",
+       17
+      ],
+      [
+       "আধুনিক পদার্থবিজ্ঞানের সূচনা",
+       15
+      ],
+      [
+       "তরঙ্গ",
+       14
+      ],
+      [
+       "তাপগতিবিদ্যা",
+       12
+      ]
+     ]
+    },
+    {
+     "subject": "Chemistry",
+     "chapters": [
+      [
+       "জৈব রসায়ন",
+       62
+      ],
+      [
+       "মৌলের পর্যায়বৃত্ত ধর্ম ও রাসায়নিক বন্ধন",
+       40
+      ],
+      [
+       "রাসায়নিক পরিবর্তন",
+       39
+      ],
+      [
+       "গুণগত রসায়ন",
+       27
+      ],
+      [
+       "পরিমাণগত রসায়ন",
+       23
+      ],
+      [
+       "পরিবেশ রসায়ন",
+       17
+      ]
+     ]
+    },
+    {
+     "subject": "Math",
+     "chapters": [
+      [
+       "অন্তরীকরণ",
+       35
+      ],
+      [
+       "যোগজীকরণ",
+       23
+      ],
+      [
+       "কণিক",
+       20
+      ],
+      [
+       "সরলরেখা",
+       18
+      ],
+      [
+       "বহুপদী ও বহুপদী সমীকরণ",
+       15
+      ],
+      [
+       "বৃত্ত",
+       15
+      ]
+     ]
+    }
+   ],
+   "english": [
+    [
+     "Idioms & phrases",
+     22
+    ],
+    [
+     "Prepositions",
+     18
+    ],
+    [
+     "Grammar",
+     18
+    ],
+    [
+     "Fill in the blanks",
+     18
+    ],
+    [
+     "Vocabulary",
+     18
+    ],
+    [
+     "Error spotting",
+     12
+    ],
+    [
+     "Inference / reading",
+     11
+    ],
+    [
+     "Sentence making / transformation",
+     10
+    ],
+    [
+     "Comprehension",
+     8
+    ],
+    [
+     "Narration",
+     5
+    ]
+   ],
+   "tips": [
+    "All four subjects carry the same 20 marks, English included. An English mark is worth exactly as much as a Physics mark, so do not leave English to the end.",
+    "Negative is only −0.20 with 4 options: a pure guess still averages +0.10, and after ruling out one option it averages about +0.20. Leave a question blank only when you cannot rule out anything and want to stay safe.",
+    "Chemistry leans heavily on জৈব রসায়ন (the most asked chapter by far). Physics on নিউটনিয়ান বলবিদ্যা and গতিবিদ্যা. Math on অন্তরীকরণ and যোগজীকরণ.",
+    "English: idioms, prepositions, grammar, fill in the blanks and vocabulary come up most. Short daily drills work better than one long session.",
+    "About 67 seconds a question. Do one pass answering everything you know, then a second pass for the rest.",
+    "The exam starts at 3:00 PM. On the SUST warm-up day (16 Jan) do a timed 90-minute paper in the afternoon to match."
+   ],
+   "links": [
+    [
+     "SUST Question Bank · Exam Mode",
+     "https://claude.ai/artifact/MqPKHPnDB8VMpjVinFeftQ",
+     "Real papers 2011-12 → 2025-26 + 5 model tests"
+    ],
+    [
+     "Physics Master · SUST",
+     "https://claude.ai/artifact/BvzTxDzAhu8oZDDGuPp1SV",
+     ""
+    ],
+    [
+     "Chemistry Master · SUST",
+     "https://claude.ai/artifact/56V42GLVARofufpaj9bv5V",
+     ""
+    ],
+    [
+     "Math Master · SUST",
+     "https://claude.ai/artifact/P1gYX6rxGqsvs7joNjfupp",
+     ""
+    ],
+    [
+     "English Master · SUST",
+     "https://claude.ai/artifact/66GrR3waBesauR1urmokzi",
+     ""
+    ]
+   ],
+   "source": "Pattern from the SUST Question Bank (real papers 2011-12 → 2025-26)."
+  },
+  "CU A": {
+   "slug": "cu",
+   "title": "CU · A Unit (Science)",
+   "kind": "MCQ exam, 4 options per question",
+   "stats": [
+    [
+     "Total",
+     "100 marks (circular)"
+    ],
+    [
+     "Time",
+     "1 hour (60 min)"
+    ],
+    [
+     "Your questions",
+     "90 MCQ: English 15 + 25 each"
+    ],
+    [
+     "Negative",
+     "−0.25 per wrong"
+    ],
+    [
+     "Calculator",
+     "Simple only (≤ 100MS)"
+    ],
+    [
+     "Pace",
+     "≈ 40 sec per question"
+    ]
+   ],
+   "split": [
+    [
+     "English",
+     15,
+     15
+    ],
+    [
+     "Physics",
+     25,
+     25
+    ],
+    [
+     "Chemistry",
+     25,
+     25
+    ],
+    [
+     "Math",
+     25,
+     25
+    ]
+   ],
+   "perQ": 1,
+   "history": [
+    "2018-19 → 2024-25: English 15 and Physics, Chemistry, Math 25 each in every paper, 4 options.",
+    "2017-18 was smaller (English 10, 20 each) and 2016-17 had 5 options.",
+    "The question bank leaves out বাংলা and জীববিজ্ঞান: your set is English + Physics, Chemistry, Math."
+   ],
+   "topFrom": "15 real CU papers (2016-17 → 2024-25)",
+   "top": [
+    {
+     "subject": "Physics",
+     "chapters": [
+      [
+       "আধুনিক পদার্থবিজ্ঞানের সূচনা",
+       29
+      ],
+      [
+       "মহাকর্ষ ও অভিকর্ষ",
+       24
+      ],
+      [
+       "পরমাণুর মডেল ও নিউক্লিয়ার পদার্থবিজ্ঞান",
+       24
+      ],
+      [
+       "নিউটনিয়ান বলবিদ্যা",
+       23
+      ],
+      [
+       "তরঙ্গ",
+       21
+      ],
+      [
+       "চল তড়িৎ",
+       21
+      ]
+     ]
+    },
+    {
+     "subject": "Chemistry",
+     "chapters": [
+      [
+       "জৈব রসায়ন",
+       109
+      ],
+      [
+       "গুণগত রসায়ন",
+       58
+      ],
+      [
+       "মৌলের পর্যায়বৃত্ত ধর্ম ও রাসায়নিক বন্ধন",
+       46
+      ],
+      [
+       "পরিমাণগত রসায়ন",
+       44
+      ],
+      [
+       "রাসায়নিক পরিবর্তন",
+       43
+      ],
+      [
+       "পরিবেশ রসায়ন",
+       33
+      ]
+     ]
+    },
+    {
+     "subject": "Math",
+     "chapters": [
+      [
+       "অন্তরীকরণ",
+       46
+      ],
+      [
+       "বাস্তব সংখ্যা ও অসমতা",
+       36
+      ],
+      [
+       "ফাংশন ও ফাংশনের লেখচিত্র",
+       30
+      ],
+      [
+       "সরলরেখা",
+       29
+      ],
+      [
+       "যোগজীকরণ",
+       26
+      ],
+      [
+       "বহুপদী ও বহুপদী সমীকরণ",
+       20
+      ]
+     ]
+    }
+   ],
+   "english": [
+    [
+     "Fill in the blanks",
+     62
+    ],
+    [
+     "Clauses",
+     26
+    ],
+    [
+     "Idioms & phrases",
+     19
+    ],
+    [
+     "Prepositions",
+     19
+    ],
+    [
+     "Vocabulary",
+     14
+    ],
+    [
+     "Synonyms",
+     13
+    ],
+    [
+     "Error spotting",
+     10
+    ],
+    [
+     "Tag questions",
+     9
+    ],
+    [
+     "Voice",
+     8
+    ],
+    [
+     "Antonyms",
+     6
+    ]
+   ],
+   "tips": [
+    "CU is the fastest paper: 90 questions in 60 minutes, about 40 seconds each. Speed and recall matter more than long working.",
+    "Negative is −0.25 with 4 options: a blind guess averages about +0.06, but after ruling out one option it averages about +0.17. Answer when you can cut at least one option.",
+    "বাস্তব সংখ্যা ও অসমতা is the second most asked CU Math chapter, but it is on your নিজের সিদ্ধান্তে বাদ list. The CU Phase (23–29 Jan) is a good time to learn just its common MCQ types.",
+    "Chemistry: জৈব রসায়ন is asked more than any other chapter, then গুণগত রসায়ন. Physics: আধুনিক পদার্থবিজ্ঞানের সূচনা, মহাকর্ষ ও অভিকর্ষ and নিউক্লিয়ার physics.",
+    "English (15): fill in the blanks is by far the biggest type, then clauses, idioms and prepositions. Recent papers add a short passage.",
+    "Only a simple calculator (≤ 100MS) is allowed. Practise the numericals with that kind, not a scientific one with extra functions."
+   ],
+   "links": [
+    [
+     "CU Question Bank · Exam Engine",
+     "https://claude.ai/artifact/LNbAVXVYBhgo2RehuAJwhp",
+     "15 real papers 2016-17 → 2024-25, timed, −0.25"
+    ],
+    [
+     "CU Physics Master",
+     "https://claude.ai/artifact/LT3qkK7o5EDRKzuQ6gRVbf",
+     ""
+    ],
+    [
+     "CU Chemistry Master",
+     "https://claude.ai/artifact/PpfokKQVPmuMTB6gYEgjfx",
+     ""
+    ],
+    [
+     "CU Math Master",
+     "https://claude.ai/artifact/DQ9L6ivUkvJTgvncj8HWyH",
+     ""
+    ],
+    [
+     "CU English Master",
+     "https://claude.ai/artifact/Kv2J15XfNR8dCkjUEkNYvJ",
+     ""
+    ]
+   ],
+   "source": "Pattern from the CU Question Bank (15 real papers 2016-17 → 2024-25). Total marks from the 2025-26 circular; confirm when the 2026-27 circular is out."
+  }
+ }
+}

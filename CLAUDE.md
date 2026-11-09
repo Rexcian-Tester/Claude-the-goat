@@ -41,6 +41,12 @@ Progress syncs through a Pages Function + KV (`functions/api/sync.ts`). See `REA
 - Admission exams: `site-source/data/exams.json` (RU C 9 Jan, SUST A1 17 Jan, MIST 22 Jan = `main`, CU A 30 Jan; one
   line each, edit dates there). `src/components/MyExams.tsx` is the "My exams" card (Today under the countdown, and the
   endgame screens); the Plan tags those dates ("📝 RU C") in the list, Month grid and Endgame tiles. Display only.
+  An exam with `"date": null` (IUT, "just for fun", Mar/Apr?) shows last in the card with its `when` text and `links`
+  inline, and gets no Plan tag or countdown (`undatedExams` in `src/data/exams.ts`).
+- Exam guide pages: `site-source/data/exam-guides.json` (keyed by exam tag: MIST A, SUST A1, CU A; RU has none on
+  purpose). Tapping that exam in My exams opens `#/exam/<slug>` (`src/views/ExamGuide.tsx`): pattern and marks, past
+  layouts, guidelines, most asked chapters (counted from the owner's question-bank artifacts) and study artifact links.
+  Display only.
 - Progress keys are allow-listed in `src/sync/merge.ts` (`KEY_RE`); new synced keys must use an existing prefix
   (e.g. `day:<date>:…`). Keys are position-based (`task:<date>:<item>:<i>`), so moving topics on a day that
   already has ticks loses those ticks.

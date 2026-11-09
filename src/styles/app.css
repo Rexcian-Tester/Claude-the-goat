@@ -896,9 +896,47 @@ a:focus-visible,button:focus-visible,summary:focus-visible,[tabindex]:focus-visi
 .mx-main{background:var(--accent);color:var(--panel);margin-left:6px;vertical-align:2px}
 .mx.past{opacity:.55}
 .mx-note{margin:2px 0 0;font-style:italic}
+/* My exams: rows with a guide page are links; an undated exam (IUT) shows its links inline */
+.mx.has-guide{padding:0}
+.mx-a{display:flex;flex-direction:column;gap:2px;padding:10px 12px;color:inherit;text-decoration:none;border-radius:inherit;transition:background .15s}
+.mx.main.has-guide .mx-a{padding:14px}
+.mx-a:hover{background:color-mix(in srgb,var(--accent-soft) 40%,transparent)}
+.mx-a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mx-open{margin-top:4px;font-weight:600;color:var(--accent)}
+.mx.undated{border-style:dashed}
+.mx-fun{margin-left:6px;vertical-align:2px;background:var(--line);color:var(--muted)}
+.mx-links{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.mx-links .btn{font-size:13px;min-height:34px;padding:0 10px}
+/* Exam guide page (#/exam/<slug>) */
+.exam-guide .eg-left{font:600 15px var(--body);color:var(--accent)}
+.eg-kind{margin:0}
+.eg-stats .stat b{font-size:17px;line-height:1.25}
+.eg-stats .stat{gap:2px}
+.eg-split{width:100%;border-collapse:collapse;font-size:15px}
+.eg-split th{font:600 12px var(--body);color:var(--muted);text-align:left;padding:4px 6px}
+.eg-split td{padding:7px 6px;border-top:1px solid var(--line)}
+.eg-split tfoot td{font-weight:700}
+.eg-split .num{white-space:nowrap}
+.eg-barcell{width:38%}
+.eg-hist{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.eg-tips{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;line-height:1.5}
+.eg-top{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.eg-sub h3{font-size:15px;margin:0 0 6px}
+.eg-sub ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.eg-sub li{display:grid;grid-template-columns:1fr auto;grid-template-rows:auto 6px;column-gap:8px;row-gap:3px;align-items:center}
+.eg-sub li .bar{grid-column:1 / -1;height:6px}
+.eg-ch{min-width:0;overflow-wrap:anywhere}
+.eg-art{margin-left:6px;text-decoration:none}
+.eg-ch .tag{margin-left:6px}
+.eg-count{font-weight:700}
+.eg-links{display:flex;flex-direction:column;gap:8px}
+.eg-link{justify-content:flex-start;text-align:left;padding:8px 14px;min-height:48px}
+.eg-lt{display:flex;flex-direction:column}
+.eg-lt small{font-weight:400;font-size:12px;opacity:.8}
 /* Plan: exam tags */
 .exam-tag{display:inline-block;font:600 12px var(--body);padding:1px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
 .cell .exam-tag{font-size:9px;line-height:1.25;padding:1px 3px;margin-top:2px;white-space:normal;overflow-wrap:anywhere;border-radius:4px}
 /* month cells that are endgame/exam days keep the small cell padding, not the endgame tile's */
 .cell.eg{padding:5px;border-radius:9px;box-shadow:none;gap:2px}
 .cell.eg.exam{background:var(--accent);color:var(--panel);border-style:solid}
+.exam-guide .row-flex{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
