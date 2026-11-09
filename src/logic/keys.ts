@@ -17,6 +17,8 @@ export const K = {
   edits: 'plan:edits',
   /** a saved earlier version of `edits`, { at, label, edits } */
   planVersion: (at: number) => `plan:hist:${at}`,
+  /** announced date of an exam that has none in exams.json (IUT), { date: 'YYYY-MM-DD', time: 'HH:MM' | '' } */
+  examDate: (tag: string) => `plan:examdate:${tag}`,
   paper: (id: string) => `endgame:papers:${id}`,
   exam: (id: string) => `endgame:exam:${id}`,
   rev: (id: string) => `endgame:rev:${id}`,

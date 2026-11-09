@@ -41,9 +41,10 @@ Progress syncs through a Pages Function + KV (`functions/api/sync.ts`). See `REA
 - Admission exams: `site-source/data/exams.json` (RU C 9 Jan, SUST A1 17 Jan, MIST 22 Jan = `main`, CU A 30 Jan; one
   line each, edit dates there). `src/components/MyExams.tsx` is the "My exams" card (Today under the countdown, and the
   endgame screens); the Plan tags those dates ("📝 RU C") in the list, Month grid and Endgame tiles. Display only.
-  An exam with `"date": null` (IUT, "just for fun", Mar/Apr?) shows last in the card with its `when` text and `links`
-  inline, and gets no Plan tag or countdown (`undatedExams` in `src/data/exams.ts`).
-- Exam guide pages: `site-source/data/exam-guides.json` (keyed by exam tag: MIST A, SUST A1, CU A; RU has none on
+  An exam with `"date": null` (IUT, Mar/Apr?) shows last in the card with its `when` text until its date is set on its
+  guide page: the synced field `plan:examdate:<tag>` (`{ date, time }`, `setExamDate` in `src/data/exams.ts`), after
+  which it counts down and gets a Plan tag like the others. Use `examList()` / `undatedList()` (they read that field).
+- Exam guide pages: `site-source/data/exam-guides.json` (keyed by exam tag: MIST A, SUST A1, CU A, IUT; RU has none on
   purpose). Tapping that exam in My exams opens `#/exam/<slug>` (`src/views/ExamGuide.tsx`): pattern and marks, past
   layouts, guidelines, most asked chapters (counted from the owner's question-bank artifacts) and study artifact links.
   Display only.

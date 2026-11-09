@@ -669,6 +669,225 @@
     ]
    ],
    "source": "Pattern from the CU Question Bank (15 real papers 2016-17 → 2024-25). Total marks from the 2025-26 circular; confirm when the 2026-27 circular is out."
+  },
+  "IUT": {
+   "slug": "iut",
+   "title": "IUT · Engineering",
+   "kind": "MCQ exam, 4 options per question, the whole paper is in English",
+   "stats": [
+    [
+     "Total",
+     "100 marks"
+    ],
+    [
+     "Time",
+     "2 hours (120 min)"
+    ],
+    [
+     "Questions",
+     "100 MCQ × 1 mark"
+    ],
+    [
+     "Negative",
+     "−0.25 per wrong"
+    ],
+    [
+     "Calculator",
+     "Check the circular"
+    ],
+    [
+     "Pace",
+     "≈ 72 sec per question"
+    ]
+   ],
+   "split": [
+    [
+     "Physics",
+     35,
+     35
+    ],
+    [
+     "Math",
+     35,
+     35
+    ],
+    [
+     "Chemistry",
+     15,
+     15
+    ],
+    [
+     "English",
+     15,
+     15
+    ]
+   ],
+   "perQ": 1,
+   "history": [
+    "2021-22 → 2025-26: the same layout every year: 100 questions in 2 hours, Physics 35 · Math 35 · Chemistry 15 · English 15, 4 options each.",
+    "Every question, Physics, Chemistry and Math included, is written in English."
+   ],
+   "topFrom": "5 real IUT papers (2021-22 → 2025-26)",
+   "top": [
+    {
+     "subject": "Physics",
+     "chapters": [
+      [
+       "চল তড়িৎ",
+       18
+      ],
+      [
+       "কাজ, শক্তি ও ক্ষমতা",
+       15
+      ],
+      [
+       "তাপগতিবিদ্যা",
+       15
+      ],
+      [
+       "সেমিকন্ডাক্টর ও ইলেকট্রনিক্স",
+       13
+      ],
+      [
+       "নিউটনিয়ান বলবিদ্যা",
+       11
+      ],
+      [
+       "স্থির তড়িৎ",
+       11
+      ]
+     ]
+    },
+    {
+     "subject": "Math",
+     "chapters": [
+      [
+       "অন্তরীকরণ",
+       21
+      ],
+      [
+       "যোগজীকরণ",
+       16
+      ],
+      [
+       "ম্যাট্রিক্স ও নির্ণায়ক",
+       14
+      ],
+      [
+       "কণিক",
+       14
+      ],
+      [
+       "স্থিতিবিদ্যা",
+       14
+      ],
+      [
+       "সমতলে বস্তুকণার গতি",
+       14
+      ]
+     ]
+    },
+    {
+     "subject": "Chemistry",
+     "chapters": [
+      [
+       "রাসায়নিক পরিবর্তন",
+       21
+      ],
+      [
+       "জৈব রসায়ন",
+       16
+      ],
+      [
+       "পরিমাণগত রসায়ন",
+       12
+      ],
+      [
+       "তড়িৎ রসায়ন",
+       11
+      ],
+      [
+       "গুণগত রসায়ন",
+       7
+      ],
+      [
+       "মৌলের পর্যায়বৃত্ত ধর্ম ও রাসায়নিক বন্ধন",
+       3
+      ]
+     ]
+    }
+   ],
+   "english": [
+    [
+     "Synonyms",
+     17
+    ],
+    [
+     "Antonyms",
+     15
+    ],
+    [
+     "Fill in the blanks",
+     15
+    ],
+    [
+     "Cloze test (passage with blanks)",
+     12
+    ],
+    [
+     "Reading comprehension",
+     7
+    ],
+    [
+     "Logical reasoning",
+     5
+    ],
+    [
+     "Error correction",
+     3
+    ],
+    [
+     "Vocabulary",
+     1
+    ]
+   ],
+   "tips": [
+    "Physics and Math are 70 of 100 marks. Chemistry and English are only 15 each, so spend your IUT time mostly on Physics and Math.",
+    "The whole paper is in English. Learn the English names of terms and formulas (bulk modulus, drift velocity, Hall voltage, Schwarzschild radius…) and practise reading English word problems quickly.",
+    "Most questions are real numericals (satellite orbits, crane power, circuits), not one-line recall. Your MIST written practice carries over directly: same chapters, just with options.",
+    "IUT Math also asks স্থিতিবিদ্যা and সমতলে বস্তুকণার গতি (statics and projectiles), each as often as কণিক. Do not skip them.",
+    "Negative is −0.25 with 4 options: a blind guess averages about +0.06, after ruling out one option about +0.17. Answer when you can cut at least one option.",
+    "About 72 seconds a question, and many numericals take longer. Do a fast first pass, skip long ones, then come back.",
+    "English (15): synonyms, antonyms, fill in the blanks and a cloze passage come up most, plus a reading passage."
+   ],
+   "links": [
+    [
+     "IUT Exam Engine · Udvash QB",
+     "https://claude.ai/artifact/GgUb1wULf2sqWEKNry573U",
+     "Real papers 2021-22 → 2025-26 + 3 model tests, timed, −0.25"
+    ],
+    [
+     "Physics Mastery",
+     "https://claude.ai/artifact/At7Jmb8M5QFf3Yn4beuUfA",
+     "MIST × IUT, switch to IUT"
+    ],
+    [
+     "Math Mastery",
+     "https://claude.ai/artifact/6dgLAKj4t3W6K35kRPEsP5",
+     "MIST × IUT, switch to IUT"
+    ],
+    [
+     "Chemistry Mastery",
+     "https://claude.ai/artifact/KeduwVBUGEKdzJBriQeQ9b",
+     "MIST × IUT, switch to IUT"
+    ],
+    [
+     "English Mastery",
+     "https://claude.ai/artifact/JKNJB3XrZUFRorjdZWbj8o",
+     "MIST × IUT, switch to IUT"
+    ]
+   ],
+   "source": "Pattern from the IUT Exam Engine (real papers 2021-22 → 2025-26). The date is not announced yet: set it on this page once the circular is out."
   }
  }
 }

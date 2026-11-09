@@ -22,7 +22,7 @@ import { setOrder } from '../logic/planEdits'
 import { toast } from '../components/ui'
 import { artifactsForPlan } from '../data/artifacts'
 import { ArtifactLinks } from '../components/ArtifactLinks'
-import { examOn, exams } from '../data/exams'
+import { examList, examOn } from '../data/exams'
 
 type St = 'done' | 'partial' | 'overdue' | 'todo'
 function rowStatus(r: Reader, row: Row, rows: Row[], today: string) {
@@ -443,7 +443,7 @@ const PlanBody = memo(function PlanBody({ today, sched, view, setView }: { today
               </a>
             )
           })}
-          {exams.filter((x) => !x.main && !sched.byEff.has(x.date) && !endgameKind(x.date)).map((x) => (
+          {examList().filter((x) => !x.main && !sched.byEff.has(x.date) && !endgameKind(x.date)).map((x) => (
             <div key={x.tag} className="eg">
               <span className="dn">{dateBn(x.date)}</span>
               <p className="small"><span className="exam-tag">📝 {x.tag}</span> {x.name} admission exam</p>

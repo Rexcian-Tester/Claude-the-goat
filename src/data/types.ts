@@ -106,8 +106,8 @@ export interface Exam {
   subjects: string
   /** the main exam (MIST) */
   main?: boolean
-  /** study links shown right in the card (exams with no guide page) */
-  links?: { label: string; url: string }[]
+  /** the date was set on the guide page (synced), not in exams.json */
+  dateSet?: boolean
 }
 /** An exam whose date is not announced yet (IUT): no Plan tag, no countdown. */
 export interface UndatedExam extends Omit<Exam, 'date' | 'time'> {

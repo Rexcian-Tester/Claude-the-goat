@@ -1,10 +1,12 @@
 import { findArtifact } from '../data/artifacts'
 import { dateEn } from '../data/bn'
 import { diffDays, weekdayIndex } from '../data/dhaka'
-import { examBySlug, time12 } from '../data/exams'
+import { useState } from 'react'
+import { examBySlug, setDateOf, setExamDate, time12 } from '../data/exams'
 import type { Subject } from '../data/types'
 import { useToday } from '../hooks'
 import { href, useRoute } from '../router'
+import { useStoreVersion } from '../store/store'
 
 const WD = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const SUBJ: Record<string, Subject> = { Physics: 'Phy', Chemistry: 'Chem', Math: 'Math' }
@@ -14,10 +16,11 @@ const left = (n: number) => (n > 1 ? `${n} days left` : n === 1 ? 'Tomorrow' : n
 export function ExamGuideView() {
   const route = useRoute()
   const today = useToday()
+  useStoreVersion()
   const found = examBySlug(route.param)
   if (!found) return <div className="empty">No guide for this exam. <a href={href.today()}>Back to Today</a></div>
   const { exam: e, guide: g } = found
-  const n = diffDays(today, e.date)
+  const n = e.date ? diffDays(today, e.date) : null
   const totalQ = g.split.reduce((s, x) => s + x[1], 0)
   const totalM = g.split.reduce((s, x) => s + x[2], 0)
   const maxM = Math.max(...g.split.map((x) => x[2]))
@@ -28,11 +31,19 @@ export function ExamGuideView() {
         <h1>{g.title}</h1>
         <div className="row-flex">
           {e.main && <span className="tag mx-main">Main</span>}
-          <span className="small">{WD[weekdayIndex(e.date)]} {dateEn(e.date)} {e.date.slice(0, 4)} · {time12(e.time)}</span>
-          <span className="eg-left num">{left(n)}</span>
+          {e.date ? (
+            <>
+              <span className="small">{WD[weekdayIndex(e.date)]} {dateEn(e.date)} {e.date.slice(0, 4)} · {time12(e.time ?? '')}</span>
+              <span className="eg-left num">{left(n!)}</span>
+            </>
+          ) : (
+            <span className="small">{'when' in e ? e.when : 'Date not announced'}</span>
+          )}
         </div>
         <p className="small eg-kind">{g.kind}</p>
       </div>
+
+      {(e.date === null || ('dateSet' in e && e.dateSet)) && <ExamDateCard key={JSON.stringify(setDateOf(e.tag) ?? null)} tag={e.tag} name={e.name} />}
 
       <section className="card" aria-label="Question pattern">
         <h2>Question pattern</h2>
@@ -120,5 +131,29 @@ export function ExamGuideView() {
 
       <p className="small mx-note">{g.source}</p>
     </div>
+  )
+}
+
+/** Set the announced date of an exam that has none in exams.json (IUT). Synced, so every device shows it. */
+function ExamDateCard({ tag, name }: { tag: string; name: string }) {
+  const cur = setDateOf(tag)
+  const [date, setDate] = useState(cur?.date ?? '')
+  const [time, setTime] = useState(cur?.time ?? '')
+  const changed = date !== (cur?.date ?? '') || time !== (cur?.time ?? '')
+  return (
+    <section className="card" aria-label={`${name} exam date`}>
+      <h2>Exam date</h2>
+      <p className="small">
+        {cur ? `Set: ${dateEn(cur.date)} ${cur.date.slice(0, 4)} · ${time12(cur.time)}. It shows in My exams and on the Plan on every synced device.` : `Not announced yet. When the ${name} circular is out, enter the date here: it syncs to your other devices, counts down in My exams and gets a tag on the Plan.`}
+      </p>
+      <div className="eg-date">
+        <label>Date<input type="date" value={date} onChange={(ev) => setDate(ev.target.value)} /></label>
+        <label>Time (optional)<input type="time" value={time} onChange={(ev) => setTime(ev.target.value)} /></label>
+        <button type="button" className="btn primary" disabled={!date || !changed} onClick={() => setExamDate(tag, { date, time })}>Save date</button>
+        {cur && (
+          <button type="button" className="btn" onClick={() => { setExamDate(tag, null); setDate(''); setTime('') }}>Clear</button>
+        )}
+      </div>
+    </section>
   )
 }
