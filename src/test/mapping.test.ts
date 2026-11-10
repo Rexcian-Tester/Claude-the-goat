@@ -23,9 +23,9 @@ describe('plan <-> priority-map mapping', () => {
     }
   })
 
-  it('every priority-map chapter is scheduled, except the ones skipped by choice', () => {
+  it('every priority-map chapter is scheduled, except the ones skipped by choice (and তড়িৎ চৌম্বক আবেশ, off the plan since v3.1)', () => {
     const unscheduled = allChapters.filter((c) => (chapterSlots.get(c.id) ?? []).length === 0)
-    expect(unscheduled.map((c) => c.n).sort()).toEqual([...SKIPPED_BY_CHOICE].sort())
+    expect(unscheduled.map((c) => c.n).sort()).toEqual([...SKIPPED_BY_CHOICE, 'তড়িৎ চৌম্বক আবেশ ও পরিবর্তী প্রবাহ'].sort())
     expect([...SKIPPED_BY_CHOICE].sort()).toEqual(['বাস্তব সংখ্যা ও অসমতা', 'যোগাশ্রয়ী প্রোগ্রাম'].sort())
     for (const n of SKIPPED_BY_CHOICE) expect(chapterByName('Math', n)).toBeDefined()
   })

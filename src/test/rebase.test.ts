@@ -133,13 +133,17 @@ describe('Plan v3.1 (from 10 Nov: Plan v3 one day later from 11 Nov)', () => {
     // যোগজীকরণ (12–15 Nov) keeps the original plan's 3–6 Nov keys; মৌলের … বন্ধন (23–24 Nov) the October ones
     expect(row('2026-11-12').items[0].tks).toEqual(['task:2026-11-03:0:0', 'task:2026-11-03:0:1'])
     expect(row('2026-11-24').items[0].tks).toEqual(['task:2026-10-20:0:1', 'task:2026-10-20:0:2', 'task:2026-10-20:0:3'])
-    // Plan v3's 8–9 Nov are history now; স্থির তড়িৎ (10 Nov), the ত্রিকোণমিতি leftover (13 Nov) and বিপরীত (11 Nov) keep their ticks
+    // 8–9 Nov are history (স্থির তড়িৎ, partial), sharing 10 Nov's tick keys; both ত্রিকোণমিতি leftovers sit on 13 Nov
     expect(row('2026-11-09').archived).toBe(true)
+    expect(row('2026-11-08').items.map((i) => i.ch)).toEqual(['স্থির তড়িৎ'])
+    expect(row('2026-11-09').items.map((i) => i.ch)).toEqual(['স্থির তড়িৎ'])
     expect(row('2026-11-10').items[0].tks).toEqual(row('2026-11-08').items[0].tks)
-    expect(row('2026-11-13').items[1].tks).toEqual(row('2026-11-08').items[1].tks)
-    expect(row('2026-11-11').items[0].tks.slice(0, 2)).toEqual(row('2026-11-09').items[0].tks)
+    expect(row('2026-11-09').items[0].tks).toEqual(row('2026-11-08').items[0].tks)
+    expect(row('2026-11-13').items[1].tks).toHaveLength(9)
+    expect(row('2026-11-13').items[2].tks).toHaveLength(3)
     expect(row('2026-11-10').items[0].key).toBe('2026-11-10:40')
     for (const d of planDays.filter((x) => x.date >= '2026-11-10' && x.date <= '2026-12-31')) for (const it of d.items) expect(it.itemIdx).toBeGreaterThanOrEqual(40)
+    expect(studyPlan.meta.countdownTo).toBe('2026-12-14')
   })
 
   it('chapters finished in the 27 Oct plan stay finished', () => {
@@ -150,11 +154,12 @@ describe('Plan v3.1 (from 10 Nov: Plan v3 one day later from 11 Nov)', () => {
 
   it("follows the owner's v3.1 table: syllabus to 14 Dec, revision 15 Dec – 15 Jan, SUST 17 Jan, MIST 22 Jan, CU prep to 29 Jan", () => {
     const ch = (d: string) => row(d).items.map((i) => i.ch)
-    expect(ch('2026-11-10')).toEqual(['স্থির তড়িৎ', 'চল তড়িৎ'])
-    expect(ch('2026-11-11')).toEqual(['বিপরীত ত্রিকোণমিতিক ফাংশন ও ত্রিকোণমিতিক সমীকরণ'])
-    expect(ch('2026-11-13')).toEqual(['যোগজীকরণ', 'ত্রিকোণমিতিক অনুপাত ও সংযুক্ত কোণ'])
+    expect(ch('2026-11-10')).toEqual(['স্থির তড়িৎ'])
+    expect(ch('2026-11-11')).toEqual(['চল তড়িৎ'])
+    expect(ch('2026-11-13')).toEqual(['যোগজীকরণ', 'ত্রিকোণমিতিক অনুপাত ও সংযুক্ত কোণ', 'বিপরীত ত্রিকোণমিতিক ফাংশন ও ত্রিকোণমিতিক সমীকরণ'])
     expect(ch('2026-11-22')).toEqual(['ভৌত জগৎ ও পরিমাপ', 'অর্থনৈতিক রসায়ন', 'ল্যাবরেটরির নিরাপদ ব্যবহার'])
-    expect(ch('2026-11-29')).toEqual(['তড়িৎ চৌম্বক আবেশ ও পরিবর্তী প্রবাহ'])
+    expect(ch('2026-11-29')).toEqual(['তড়িৎ প্রবাহের চৌম্বক ক্রিয়া ও চুম্বকত্ব'])
+    expect(ch('2026-11-30')).toEqual(['তড়িৎ প্রবাহের চৌম্বক ক্রিয়া ও চুম্বকত্ব'])
     expect(ch('2026-12-14')).toEqual(['সমতলে বস্তুকণার গতি'])
     expect(ch('2026-12-15')).toEqual(['বৃত্ত'])
     expect(ch('2026-12-17')).toEqual(['রিভিশন'])
