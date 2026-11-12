@@ -15,6 +15,7 @@ import { ChapterView } from './views/Chapter'
 import { ProgressView } from './views/Progress'
 import { SettingsView } from './views/Settings'
 import { ExamGuideView } from './views/ExamGuide'
+import { ExamsView } from './views/Exams'
 import { SearchSheet } from './views/Search'
 import { FocusView } from './views/Focus'
 import { RoutineView } from './views/Routine'
@@ -54,6 +55,7 @@ function TopBar() {
     { name: 'map', label: 'Priority Map', short: 'Map', to: href.map(), cur: route.name === 'map' || route.name === 'chapter' },
     { name: 'progress', label: 'Progress', to: href.progress(), cur: route.name === 'progress' },
     { name: 'focus', label: 'Focus', to: href.focus(), cur: route.name === 'focus' },
+    { name: 'exams', label: 'Exam', to: href.exams(), cur: route.name === 'exams' },
     { name: 'routine', label: 'Routine', to: href.routine(), cur: route.name === 'routine' },
   ]
   const lagCls = info.lag > 2 ? 'bad' : info.lag > 0 ? 'warn' : 'ok'
@@ -152,6 +154,7 @@ export function App() {
         {route.name === 'routine' && <RoutineView />}
         {route.name === 'settings' && <SettingsView />}
         {route.name === 'exam' && <ExamGuideView />}
+        {route.name === 'exams' && <ExamsView />}
       </main>
       {searchOpen && <SearchSheet />}
       <ReminderPopup />

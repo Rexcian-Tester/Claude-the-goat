@@ -49,6 +49,13 @@ Progress syncs through a Pages Function + KV (`functions/api/sync.ts`). See `REA
   purpose). Tapping that exam in My exams opens `#/exam/<slug>` (`src/views/ExamGuide.tsx`): pattern and marks, past
   layouts, guidelines, most asked chapters (counted from the owner's question-bank artifacts) and study artifact links.
   Display only.
+- Exam tab (`#/exams`, nav between Focus and Routine, `src/views/Exams.tsx`): "Open Model Test Hub" button
+  (`hubHref` in `src/data/examSchedule.ts`: on Android an `intent://` link so an installed Hub app opens, falling back to
+  https://model-test-hub.pages.dev/#home; elsewhere a new tab) and the exam routine from
+  `site-source/data/exam-schedule.json` (97 Hub exams + 5 real exams, one line each). The routine is locked: "Edit
+  schedule" asks first; a row opens a form (Save / Delete); edits are saved whole in the synced field `plan:examsched`
+  (`{ rows, at }`, null = the file) and the version before the last change in `plan:examsched:prev` (Undo; Reset goes
+  back to the file).
 - Progress keys are allow-listed in `src/sync/merge.ts` (`KEY_RE`); new synced keys must use an existing prefix
   (e.g. `day:<date>:…`). Keys are position-based (`task:<date>:<item>:<i>`), so moving topics on a day that
   already has ticks loses those ticks.

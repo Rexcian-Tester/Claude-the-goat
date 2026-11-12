@@ -1,12 +1,12 @@
 import { useSyncExternalStore } from 'react'
 
-export type RouteName = 'today' | 'plan' | 'map' | 'chapter' | 'progress' | 'focus' | 'routine' | 'settings' | 'exam'
+export type RouteName = 'today' | 'plan' | 'map' | 'chapter' | 'progress' | 'focus' | 'routine' | 'settings' | 'exam' | 'exams'
 export interface Route {
   name: RouteName
   param?: string
   query: URLSearchParams
 }
-const NAMES: RouteName[] = ['today', 'plan', 'map', 'chapter', 'progress', 'focus', 'routine', 'settings', 'exam']
+const NAMES: RouteName[] = ['today', 'plan', 'map', 'chapter', 'progress', 'focus', 'routine', 'settings', 'exam', 'exams']
 
 export function parse(hash: string): Route {
   const raw = hash.replace(/^#/, '') || '/today'
@@ -36,6 +36,8 @@ export const href = {
   settings: () => '#/settings',
   /** an exam's guide page, e.g. #/exam/mist */
   exam: (slug: string) => `#/exam/${slug}`,
+  /** the Exam tab: Model Test Hub button and the exam routine */
+  exams: () => '#/exams',
 }
 
 /* ---------- history bookkeeping ----------

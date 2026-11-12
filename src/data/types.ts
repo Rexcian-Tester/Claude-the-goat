@@ -162,3 +162,22 @@ export interface Chapter extends Omit<RawChapter, 'topics'> {
   paper: 1 | 2
   topics: Topic[]
 }
+
+/** site-source/data/exam-schedule.json: the Exam tab's routine (Model Test Hub schedule + real exams) */
+export interface ExamRow {
+  id: string
+  /** YYYY-MM-DD, Bangladesh time */
+  date: string
+  /** "1", "E3", "PF1", "SF", "FM" or "★" */
+  no: string
+  title: string
+  /** subject / paper · Written / MCQ, or the time of a real exam */
+  sub: string
+  /** "30 min · 52 marks" */
+  len: string
+  /** a real admission exam */
+  real?: boolean
+  /** your own note: Done, Skipped, a score… */
+  status?: string
+}
+export interface ExamScheduleJson { _readme: string; site: string; note: string; rows: ExamRow[] }

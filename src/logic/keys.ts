@@ -19,6 +19,10 @@ export const K = {
   planVersion: (at: number) => `plan:hist:${at}`,
   /** announced date of an exam that has none in exams.json (IUT), { date: 'YYYY-MM-DD', time: 'HH:MM' | '' } */
   examDate: (tag: string) => `plan:examdate:${tag}`,
+  /** your edited Exam tab schedule, { rows, at } (null = the file's schedule) */
+  examSched: 'plan:examsched',
+  /** the schedule before your last change (one-step Undo), same shape or null */
+  examSchedPrev: 'plan:examsched:prev',
   paper: (id: string) => `endgame:papers:${id}`,
   exam: (id: string) => `endgame:exam:${id}`,
   rev: (id: string) => `endgame:rev:${id}`,
