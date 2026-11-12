@@ -14,7 +14,7 @@ import { BehindBanner } from './BehindBanner'
 import { DayBody, DayMini, ItemHeader, OverdueJump, OverdueList } from './day'
 import { EndgameView, PaperChecklist } from './Endgame'
 import { MyExams } from '../components/MyExams'
-import { Accountability, RemindersCard } from './Habits'
+import { Accountability } from './Habits'
 import { usePomo } from '../study/engine'
 import { timerView, useTick } from '../study/StudyBlocks'
 
@@ -123,10 +123,7 @@ export function TodayView() {
 
       <MyExams today={today} />
 
-      <div className="grid2 habits">
-        <RemindersCard />
-        <Accountability sched={sched} />
-      </div>
+      <Accountability sched={sched} />
 
       <BehindBanner sched={sched} today={today} />
       <OverdueJump sched={sched} today={today} />

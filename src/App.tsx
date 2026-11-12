@@ -19,7 +19,6 @@ import { ExamsView } from './views/Exams'
 import { SearchSheet } from './views/Search'
 import { FocusView } from './views/Focus'
 import { RoutineView } from './views/Routine'
-import { ReminderPopup } from './views/Habits'
 import { StudyEngineHost } from './study/engine'
 
 /** The mark: a single gold numeral 1 in a thin gold frame. Same art as the favicon. */
@@ -157,7 +156,6 @@ export function App() {
         {route.name === 'exams' && <ExamsView />}
       </main>
       {searchOpen && <SearchSheet />}
-      <ReminderPopup />
       <StudyEngineHost />
       {updateReady && (
         <button type="button" className="update-bar" onClick={() => location.reload()}>

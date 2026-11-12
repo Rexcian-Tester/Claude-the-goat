@@ -10,7 +10,7 @@ import { store, useField } from '../store/store'
 import { useReader, useSchedule } from '../hooks'
 import { Timer } from '../components/Timer'
 import { FieldCheck, TierPill } from '../components/ui'
-import { Accountability, RemindersCard } from './Habits'
+import { Accountability } from './Habits'
 import { MyExams } from '../components/MyExams'
 
 const DEFAULT_EXAM = [
@@ -160,10 +160,7 @@ export function EndgameView({ today }: { today: string }) {
         <h2>Timed model test</h2>
         <Timer id="model-test" minutes={minutes} onMinutes={(m) => store.set(K.exam('minutes'), m)} label="Pens down. Now mark it and fix every mistake." big />
       </div>
-      <div className="grid2 habits">
-        <RemindersCard />
-        <Accountability sched={sched} />
-      </div>
+      <Accountability sched={sched} />
       <PaperChecklist />
       <RevisionListCard />
     </div>
