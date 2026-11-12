@@ -9,21 +9,22 @@ import { store } from '../store/store'
 vi.mock('../store/idb', () => ({ loadAll: async () => ({ fields: {}, meta: {} }), putFields: async () => {}, putMeta: async () => {}, clearFields: async () => {} }))
 
 describe('admission exams (exams.json)', () => {
-  it('lists the four dated exams in date order, MIST the only main one and on the plan\'s exam date', () => {
-    expect(examList().map((e) => `${e.date} ${e.tag}`)).toEqual(['2027-01-09 RU C', '2027-01-17 SUST A1', '2027-01-22 MIST A', '2027-01-30 CU A'])
+  it('lists the five dated exams in date order, MIST Unit A the only main one and on the plan\'s exam date', () => {
+    expect(examList().map((e) => `${e.date} ${e.tag}`)).toEqual(['2027-01-17 SUST A1', '2027-01-30 CU A', '2027-02-05 MIST C', '2027-02-06 MIST A', '2027-02-13 RU C'])
     expect(examList().filter((e) => e.main).map((e) => e.date)).toEqual([EXAM_DATE])
     expect(examOn('2027-01-17')?.name).toBe('SUST')
-    expect(examOn('2027-01-10')).toBeUndefined()
+    expect(examOn('2027-01-09')).toBeUndefined()
+    expect(examOn('2027-01-22')).toBeUndefined()
   })
   it('shows times in 12-hour form', () => {
-    expect(examList().map((e) => time12(e.time))).toEqual(['11:00 AM', '3:00 PM', '10:00 AM', '11:00 AM'])
+    expect(examList().map((e) => time12(e.time))).toEqual(['3:00 PM', '11:00 AM', '10:00 AM', '9:00 AM', '11:00 AM'])
     expect(time12('')).toBe('time TBA')
   })
 })
 
 describe('exam guide pages (exam-guides.json)', () => {
   it('MIST, SUST, CU and IUT have a page; RU keeps none; IUT starts undated', () => {
-    expect(examList().filter((e) => guideFor(e.tag)).map((e) => guideFor(e.tag)!.slug)).toEqual(['sust', 'mist', 'cu'])
+    expect(examList().filter((e) => guideFor(e.tag)).map((e) => guideFor(e.tag)!.slug)).toEqual(['sust', 'cu', 'mist'])
     expect(guideFor('RU C')).toBeUndefined()
     expect(undatedList().map((e) => e.tag)).toEqual(['IUT'])
     expect(examBySlug('iut')?.exam.date).toBeNull()
@@ -59,7 +60,7 @@ describe('setting the IUT date (synced field plan:examdate:IUT)', () => {
     expect(K.examDate('IUT')).toBe('plan:examdate:IUT')
     setExamDate('IUT', { date: '2027-03-20', time: '10:00' })
     expect(setDateOf('IUT')).toEqual({ date: '2027-03-20', time: '10:00' })
-    expect(examList().map((e) => e.tag)).toEqual(['RU C', 'SUST A1', 'MIST A', 'CU A', 'IUT'])
+    expect(examList().map((e) => e.tag)).toEqual(['SUST A1', 'CU A', 'MIST C', 'MIST A', 'RU C', 'IUT'])
     expect(examOn('2027-03-20')?.dateSet).toBe(true)
     expect(undatedList()).toEqual([])
     expect(examBySlug('iut')?.exam.date).toBe('2027-03-20')

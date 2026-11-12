@@ -17,7 +17,7 @@ describe('companion summary', () => {
     expect(s.today.topics.map((t) => t.en)).toEqual(row(THU).items.map((i) => i.en))
     expect(s.today.topics[0].tasks[0]).toEqual({ text: tasks[0].text, state: 'done' })
     expect(s.today.progress).toMatchObject({ ticked: 1, total: tasks.length, complete: false })
-    expect(s.daysToExam).toBe(99) // 15 Oct → 22 Jan 2027
+    expect(s.daysToExam).toBe(114) // 15 Oct → 6 Feb 2027
   })
 
   it('adds up study time and late starts per block, and keeps the routine', () => {
@@ -58,7 +58,7 @@ describe('companion summary', () => {
     expect(s.behind.lag).toBe(0)
     expect(s.overdue.count).toBe(0)
     // in the current plan, unticked earlier days are owed
-    const later = buildCompanionSummary({}, '2026-11-13', Date.parse('2026-11-13T06:00:00Z'))
+    const later = buildCompanionSummary({}, '2026-11-15', Date.parse('2026-11-15T06:00:00Z'))
     expect(later.behind.lag).toBe(3)
     expect(later.overdue.count).toBeGreaterThan(0)
     expect(s.upcoming.map((u) => u.date)).toEqual(['2026-10-16', '2026-10-17', '2026-10-18'])

@@ -11,7 +11,7 @@ describe('plan <-> priority-map mapping', () => {
 
   it('Revision Phase (R) items map to nothing', () => {
     const x = studyPlan.days.flatMap((d) => d.items).filter((i) => i.s === 'X' || i.s === 'R')
-    expect(x.length).toBe(41) // 30 revision days, SUST warm-up, 3 MIST final days, 7 CU prep days
+    expect(x.length).toBe(33) // 25 revision days, SUST warm-up, 7 CU prep days
     for (const it of x) expect(chaptersForItem(it)).toEqual([])
   })
 
@@ -41,19 +41,19 @@ describe('plan <-> priority-map mapping', () => {
     expect(questionById.size).toBe(allQuestions.length)
   })
 
-  it('plan is continuous 30 Sep – 29 Jan with Day 0 first (syllabus to 14 Dec, revision to 22 Jan, CU prep to 29 Jan)', () => {
+  it('plan is continuous 30 Sep – 29 Jan with Day 0 first (syllabus to 19 Dec, revision to 22 Jan, CU prep to 29 Jan)', () => {
     expect(planDays[0].date).toBe('2026-09-30')
     expect(planDays[0].dayNo).toBe(0)
     expect(planDays.at(-1)!.date).toBe('2027-01-29')
     expect(planDays.length).toBe(122)
     planDays.forEach((d, i) => expect(d.date).toBe(new Date(Date.UTC(2026, 8, 30 + i)).toISOString().slice(0, 10)))
     const between = (a: string, b: string) => planDays.filter((d) => d.date >= a && d.date <= b).map((d) => d.date)
-    expect(planDays.filter((d) => d.phase === 'Prime Phase').map((d) => d.date)).toEqual(between('2026-10-27', '2026-12-14'))
-    expect(planDays.filter((d) => d.phase === 'Revision Phase').map((d) => d.date)).toEqual(between('2026-12-15', '2027-01-22'))
+    expect(planDays.filter((d) => d.phase === 'Prime Phase').map((d) => d.date)).toEqual(between('2026-10-27', '2026-12-19'))
+    expect(planDays.filter((d) => d.phase === 'Revision Phase').map((d) => d.date)).toEqual(between('2026-12-20', '2027-01-22'))
     expect(planDays.filter((d) => d.phase === 'CU Phase').map((d) => d.date)).toEqual(between('2027-01-23', '2027-01-29'))
     // exam and rest days are empty days: never owed
-    expect(planDays.filter((d) => d.isFree && d.date > '2026-11-08').map((d) => `${d.date} ${d.note}`)).toEqual(['2027-01-17 SUST A1 exam, 3:00 PM', '2027-01-21 Rest', '2027-01-22 MIST exam, 10:00 AM'])
-    expect(studyPlan.meta.exam).toBe('2027-01-22')
+    expect(planDays.filter((d) => d.isFree && d.date > '2026-11-08').map((d) => `${d.date} ${d.note}`)).toEqual(['2027-01-17 SUST A1 exam, 3:00 PM', ...['18', '19', '20', '21', '22'].map((d) => `2027-01-${d} Revision (details to be added later)`)])
+    expect(studyPlan.meta.exam).toBe('2027-02-06')
   })
 
   it('labels a class day followed by practice', () => {

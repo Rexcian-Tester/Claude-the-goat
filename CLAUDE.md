@@ -1,6 +1,6 @@
 # MIST Prep: notes for Claude
 
-Personal study site for the MIST Unit-A exam (22 Jan 2027; moved from 19 Dec 2026). Vite + React + TypeScript PWA, hosted on
+Personal study site for the MIST Unit-A exam (6 Feb 2027, 9:00 AM; moved from 19 Dec 2026, then 22 Jan 2027). Vite + React + TypeScript PWA, hosted on
 **Cloudflare Pages** (project `project-1-rx`), which builds automatically from the `main` branch.
 Progress syncs through a Pages Function + KV (`functions/api/sync.ts`). See `README.md` for setup.
 
@@ -18,16 +18,17 @@ Progress syncs through a Pages Function + KV (`functions/api/sync.ts`). See `REA
   round-trips byte-identically (`q`, `rate` and the 4th column of `trackerChanges` are written as floats, e.g. `8.0`;
   no trailing newline). A day with `items: []` is a **free day** (`isFree`): never owed, not a catch-up day;
   an optional day `note` is shown instead of the generic text.
-- **Plan reorganised four times** (`meta.reorganised`: 27 Oct, 6 Nov "MIST Plan v2", 8 Nov "MIST Plan v3" = v2 two
-  days later, 10 Nov "MIST Plan v3.1" = v3 one day later from 11 Nov; `meta.rebase` is the latest): days before the rebase are kept byte-identical as history
-  (`PlanDay.archived`: never owed, not in Dues/overdue/days behind/overall completion/burn-up/shift). Plan v3.1 from
-  10 Nov: Prime Phase to `meta.syllabusEnd` (14 Dec; 8–9 Nov history = স্থির তড়িৎ partial; বিপরীত ত্রিকোণমিতি and the ত্রিকোণমিতি leftover sit on Fri 13 Nov as "pending" until the review; 29–30 Nov is তড়িৎ প্রবাহের চৌম্বক ক্রিয়া ও চুম্বকত্ব, so তড়িৎ চৌম্বক আবেশ ও পরিবর্তী প্রবাহ is off the plan); Revision Phase 15 Dec – 22 Jan (বৃত্ত, সরলরেখা ও কণিক, 30 days of
-  subject `R` রিভিশন + English to 15 Jan, SUST warm-up 16 Jan, then empty "free" days with a `note` for the SUST exam
-  17 Jan, rest 21 Jan (`meta.rest`) and MIST 22 Jan, MIST final 18–20 Jan); CU Phase 23–29 Jan (CU prep; CU exam 30 Jan).
+- **Plan reorganised five times** (`meta.reorganised`: 27 Oct, 6 Nov "MIST Plan v2", 8 Nov "MIST Plan v3" = v2 two
+  days later, 10 Nov "MIST Plan v3.1", 12 Nov "MIST Master Plan v4"; `meta.rebase` is the latest): days before the rebase are kept byte-identical as history
+  (`PlanDay.archived`: never owed, not in Dues/overdue/days behind/overall completion/burn-up/shift). Plan v4 from
+  12 Nov (one chapter entry per day, multi-day chapters as দিন n/m): Prime Phase to `meta.syllabusEnd` (19 Dec; 8–11 Nov are history; বিপরীত ত্রিকোণমিতি and the ত্রিকোণমিতি leftover sit on Fri 13 Nov as "pending" until the review; 2–3 Dec is তড়িৎ প্রবাহের চৌম্বক ক্রিয়া ও চুম্বকত্ব, so তড়িৎ চৌম্বক আবেশ ও পরিবর্তী প্রবাহ is off the plan); Revision Phase 20 Dec – 22 Jan (details to come from the owner: for now বৃত্ত, সরলরেখা ও কণিক, 25 days of
+  subject `R` রিভিশন to 15 Jan, SUST warm-up 16 Jan, a free day with a `note` for the SUST exam 17 Jan, and 18–22 Jan free
+  "Revision (details to be added later)" days); CU Phase 23–29 Jan (CU prep; CU exam 30 Jan). No rest day (`meta.rest` null);
+  MIST Unit C 5 Feb and Unit A 6 Feb (`meta.exam`) come after the last plan day.
   The plan continues after the exam, so `phaseOf` checks exam / rest / endgame dates before plan days; free days are
-  never owed and never moved by a shift. Exam 22 Jan 2027 (`meta.exam`; the days-left badge counts to it, "MIST ✓"
-  after); the Today countdown counts to `meta.countdownTo` (14 Dec, the syllabus end). Items from a reorganisation carry `ix` (10+ /
-  20+ / 30+ / 40+, so keys never collide with the plan they replaced on the same date) and `tk` (tick key per micro-task:
+  never owed and never moved by a shift. Exam 6 Feb 2027 (`meta.exam`; the days-left badge counts to 15 Dec, then to it, "MIST ✓"
+  after); the Today countdown counts to `meta.countdownTo` (19 Dec, the syllabus end). Items from a reorganisation carry `ix` (10+ /
+  20+ / 30+ / 40+ / 50+, so keys never collide with the plan they replaced on the same date) and `tk` (tick key per micro-task:
   a reused micro-task keeps its original key, so its tick carries over; "moved" keys stay per item, `PlanItem.mks`).
   A chapter counts finished if finished in any plan version (`eraOf`). Planner edits never move topics across the
   latest rebase. `plan:shift` was replaced by `plan:shift:v2` (old shift kept, unused).
@@ -38,7 +39,7 @@ Progress syncs through a Pages Function + KV (`functions/api/sync.ts`). See `REA
   Bangla name (spacing, ও/এবং and small spelling differences ignored; `SPLITS` for two-chapter topics); the
   "📘 Open artifact" button (`src/components/ArtifactLinks.tsx`) shows in Plan, a day's panel, Today and Dues, and
   Map → Subject list (`#/map?view=list`) lists every row. Display only: no synced keys.
-- Admission exams: `site-source/data/exams.json` (RU C 9 Jan, SUST A1 17 Jan, MIST 22 Jan = `main`, CU A 30 Jan; one
+- Admission exams: `site-source/data/exams.json` (SUST A1 17 Jan, CU A 30 Jan, MIST C 5 Feb, MIST A 6 Feb = `main`, RU C 13 Feb; one
   line each, edit dates there). `src/components/MyExams.tsx` is the "My exams" card (Today under the countdown, and the
   endgame screens); the Plan tags those dates ("📝 RU C") in the list, Month grid and Endgame tiles. Display only.
   An exam with `"date": null` (IUT, Mar/Apr?) shows last in the card with its `when` text until its date is set on its
