@@ -38,7 +38,7 @@ function Logo() {
 }
 
 /** the header's days-left badge counts to this date first (Bangladesh time) */
-const BADGE_TO = '2026-12-15'
+const BADGE_TO = '2027-01-17'
 
 function TopBar() {
   const route = useRoute()
@@ -68,10 +68,10 @@ function TopBar() {
           <a className="brand" href={href.today()} aria-label="MIST Prep home"><Logo /><span className="brand-t">MIST Prep</span></a>
           <div className="chips">
             {(() => {
-              // header badge counts to 15 Dec (start of revision), then to the MIST exam
+              // header badge counts to 17 Jan (SUST A1 exam), then to the MIST exam
               const to = today <= BADGE_TO ? BADGE_TO : EXAM_DATE
               const n = diffDays(today, to)
-              const what = to === BADGE_TO ? '15 December' : 'the MIST exam'
+              const what = to === BADGE_TO ? 'the SUST exam' : 'the MIST exam'
               return <span className="chip-s" role="img" aria-label={`${n} days left until ${what}`} title={`Days until ${what}, ${dateEn(to)} ${to.slice(0, 4)}`}><span className="lg" aria-hidden="true">{n < 0 ? 'MIST done' : `${n} ${n === 1 ? 'day' : 'days'} left`}</span><span className="sm" aria-hidden="true">{n < 0 ? 'MIST ✓' : `${n}d`}</span></span>
             })()}
             {phase === 'endgame' || phase === 'rest' || phase === 'exam' ? (

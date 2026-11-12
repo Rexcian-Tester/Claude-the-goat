@@ -26,7 +26,7 @@ Progress syncs through a Pages Function + KV (`functions/api/sync.ts`). See `REA
   "Revision (details to be added later)" days); CU Phase 23–29 Jan (CU prep; CU exam 30 Jan). No rest day (`meta.rest` null);
   MIST Unit C 5 Feb and Unit A 6 Feb (`meta.exam`) come after the last plan day.
   The plan continues after the exam, so `phaseOf` checks exam / rest / endgame dates before plan days; free days are
-  never owed and never moved by a shift. Exam 6 Feb 2027 (`meta.exam`; the days-left badge counts to 15 Dec, then to it, "MIST ✓"
+  never owed and never moved by a shift. Exam 6 Feb 2027 (`meta.exam`; the days-left badge counts to 17 Jan (SUST A1, `BADGE_TO` in `src/App.tsx`), then to it, "MIST ✓"
   after); the Today countdown counts to `meta.countdownTo` (19 Dec, the syllabus end). Items from a reorganisation carry `ix` (10+ /
   20+ / 30+ / 40+ / 50+, so keys never collide with the plan they replaced on the same date) and `tk` (tick key per micro-task:
   a reused micro-task keeps its original key, so its tick carries over; "moved" keys stay per item, `PlanItem.mks`).
