@@ -10,6 +10,8 @@ import { useStoreVersion } from '../store/store'
 const WD = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 const dayLabel = (d: string) => `${WD[weekdayIndex(d)]} ${dateEn(d)}`
+/** "1 · স্থির তড়িৎ (Written + MCQ)" */
+const label = (r: ExamRow) => `${r.no && r.no !== '★' ? `${r.no} · ` : ''}${r.title}${r.sub.includes('·') ? ` (${r.sub.split('·').pop()!.trim()})` : ''}`
 const monthOf = (d: string) => `${MONTHS[+d.slice(5, 7) - 1]} ${d.slice(0, 4)}`
 
 /** The Exam tab: a button to the Model Test Hub (its app if installed), then the exam routine. The routine is
@@ -21,7 +23,9 @@ export function ExamsView() {
   const [open, setOpen] = useState<ExamRow | null>(null)
   const rows = scheduleRows()
   const todays = rows.filter((r) => r.date === today)
-  const next = rows.find((r) => r.date > today)
+  // the next exam day, with every exam on it
+  const nextDate = rows.find((r) => r.date > today)?.date
+  const nexts = rows.filter((r) => r.date === nextDate)
   const unlock = () => {
     if (confirm('Unlock the exam routine for editing?\n\nChanges save and sync to your other devices. You can Undo the last change.')) setEditing(true)
   }
@@ -41,10 +45,13 @@ export function ExamsView() {
         {todays.length > 0 ? (
           <div className="ex-today">
             <b>Today</b>
-            {todays.map((r) => <span key={r.id}>{r.no && r.no !== '★' ? `${r.no} · ` : ''}{r.title}{r.sub.includes('·') ? ` (${r.sub.split('·').pop()!.trim()})` : ''}</span>)}
+            {todays.map((r) => <span key={r.id}>{label(r)}</span>)}
           </div>
-        ) : next ? (
-          <div className="ex-today"><b>Next exam</b><span>{dayLabel(next.date)} ({diffDays(today, next.date) === 1 ? 'tomorrow' : `in ${diffDays(today, next.date)} days`}): {next.title}</span></div>
+        ) : nextDate ? (
+          <div className="ex-today">
+            <b>{nexts.length > 1 ? 'Next exams' : 'Next exam'} · {dayLabel(nextDate)} ({diffDays(today, nextDate) === 1 ? 'tomorrow' : `in ${diffDays(today, nextDate)} days`})</b>
+            {nexts.map((r) => <span key={r.id}>{label(r)}</span>)}
+          </div>
         ) : null}
       </section>
 
