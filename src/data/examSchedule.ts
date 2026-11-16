@@ -10,18 +10,31 @@ export const scheduleNote = scheduleData.note
 export const defaultRows: ExamRow[] = scheduleData.rows
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
-interface Saved { rows: ExamRow[]; at: number }
+export const SCHEDULE_VERSION = scheduleData.version
+/** v: the schedule version it was saved under (none = before v5) */
+interface Saved { rows: ExamRow[]; at: number; v?: number }
 const clean = (r: unknown): ExamRow | null => {
   if (!r || typeof r !== 'object') return null
   const x = r as Record<string, unknown>
   if (typeof x.id !== 'string' || typeof x.date !== 'string' || !DATE_RE.test(x.date) || typeof x.title !== 'string') return null
   const s = (k: string) => (typeof x[k] === 'string' ? (x[k] as string) : '')
-  return { id: x.id, date: x.date, no: s('no'), title: x.title, sub: s('sub'), len: s('len'), ...(x.real === true ? { real: true } : {}), ...(s('status') ? { status: s('status') } : {}) }
+  return { id: x.id, date: x.date, no: s('no'), title: x.title, sub: s('sub'), len: s('len'), ...(x.real === true ? { real: true } : {}), ...(s('status') ? { status: s('status') } : {}), ...(x.debt === true ? { debt: true } : {}) }
+}
+const migrate = (r: ExamRow): ExamRow => {
+  const m = scheduleData.moves[r.id]
+  const out: ExamRow = { ...r, date: m.date }
+  if (m.debt) out.debt = true
+  else delete out.debt
+  return out
 }
 function read(key: string): Saved | null {
   const v = store.field(key)?.v as Partial<Saved> | null | undefined
   if (!v || !Array.isArray(v.rows)) return null
-  return { rows: v.rows.map(clean).filter((x): x is ExamRow => !!x), at: typeof v.at === 'number' ? v.at : 0 }
+  let rows = v.rows.map(clean).filter((x): x is ExamRow => !!x)
+  // saved before the current version (e.g. v4): move each built-in exam to its new date, keeping your statuses;
+  // nothing is written until your next change, so Undo still holds the copy as you left it
+  if (v.v !== SCHEDULE_VERSION) rows = rows.map((r) => (scheduleData.moves[r.id] ? migrate(r) : r))
+  return { rows, at: typeof v.at === 'number' ? v.at : 0, v: SCHEDULE_VERSION }
 }
 /** In date order (same-day rows keep their order). */
 export const sortRows = (rows: ExamRow[]) => rows.map((r, i) => [r, i] as const).sort((a, b) => a[0].date.localeCompare(b[0].date) || a[1] - b[1]).map(([r]) => r)
@@ -35,7 +48,7 @@ export const canUndo = () => store.field(K.examSchedPrev) !== undefined
 export function saveRows(rows: ExamRow[]) {
   store.setMany([
     [K.examSchedPrev, store.field(K.examSched)?.v ?? null],
-    [K.examSched, { rows: sortRows(rows), at: Date.now() } satisfies Saved],
+    [K.examSched, { rows: sortRows(rows), at: Date.now(), v: SCHEDULE_VERSION } satisfies Saved],
   ])
 }
 export const upsertRow = (row: ExamRow) => {

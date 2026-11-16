@@ -132,3 +132,21 @@ export const endgameRows: { date: string; kind: EndgameKind }[] = [
 export const endgameKind = (iso: string): EndgameKind | null => endgameRows.find((r) => r.date === iso)?.kind ?? null
 
 export const nextDay = (iso: string) => addDays(iso, 1)
+
+/** Debt (Plan v5): chapters left unfinished, on no date, each with a deadline. They keep their tick keys, never
+ *  count toward days behind or Dues, and drop out once every micro-task is ticked (or the topic is marked Done). */
+export interface DebtItem { id: string; deadline: string; why: string; item: PlanItem }
+export const debtItems: DebtItem[] = (studyPlan.meta.debt ?? []).map((x) => ({
+  id: x.id,
+  deadline: x.deadline,
+  why: x.why,
+  item: {
+    ...x.item,
+    key: `debt-${x.id}`,
+    date: '',
+    itemIdx: 0,
+    chapters: chaptersForItem(x.item),
+    tks: x.item.topicList.map((_, i) => x.item.tk?.[i] ?? `task:debt-${x.id}:${i}`),
+    mks: x.item.topicList.map((_, i) => `task-moved:debt-${x.id}:${i}`),
+  },
+}))

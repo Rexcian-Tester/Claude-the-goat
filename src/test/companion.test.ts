@@ -58,7 +58,7 @@ describe('companion summary', () => {
     expect(s.behind.lag).toBe(0)
     expect(s.overdue.count).toBe(0)
     // in the current plan, unticked earlier days are owed
-    const later = buildCompanionSummary({}, '2026-11-15', Date.parse('2026-11-15T06:00:00Z'))
+    const later = buildCompanionSummary({}, '2026-11-19', Date.parse('2026-11-19T06:00:00Z'))
     expect(later.behind.lag).toBe(3)
     expect(later.overdue.count).toBeGreaterThan(0)
     expect(s.upcoming.map((u) => u.date)).toEqual(['2026-10-16', '2026-10-17', '2026-10-18'])

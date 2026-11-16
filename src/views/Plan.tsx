@@ -367,6 +367,7 @@ function PlanHead({ today, sched }: { today: string; sched: Schedule }) {
     <div className="page-h">
       <div className="eyebrow">Study plan · {dateEn(PLAN_START)} {PLAN_START.slice(0, 4)} – {dateEn(EXAM_DATE)} {EXAM_DATE.slice(0, 4)}</div>
       <h1>Plan</h1>
+      {studyPlan.meta.locked && <p className="small plan-locked">🔒 {studyPlan.meta.locked}</p>}
       <p className="small">{counts.days} days from {dateEn(PLAN_REBASE)} to {dateEn(cur[cur.length - 1].date)} · {counts.cls} class days · {counts.half} half days · {counts.rev} revision days · days before {dateEn(PLAN_REBASE)} are kept as history · <b>{lagLabel(info.lag)}</b></p>
     </div>
   )

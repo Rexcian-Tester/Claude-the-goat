@@ -1,3 +1,4 @@
+import { DebtList } from '../components/Debt'
 import { useEffect, useState } from 'react'
 import { dateBn, dateEn, WD_BN } from '../data/bn'
 import { addDays, weekdayIndex } from '../data/dhaka'
@@ -309,6 +310,7 @@ export function DuesView({ sched, today }: { sched: Schedule; today: string }) {
     <div className="stack pe-view">
       <p className="small pe-intro">Every topic you haven't finished from past days, and every topic you moved or split, stays here until it's done. Mark <b>Done</b> when you've finished it; it fades in Plan and counts in Progress. Your Due / Done choice wins over the ticks.</p>
       {!can.ok && <div className="banner warn"><span>🔒 Rescheduling: {can.why}</span></div>}
+      <DebtList today={today} />
       {n === 0 && <div className="empty">Nothing due. Every past topic is done. 💪</div>}
       <DueGroup title="Overdue" sub="from days that have passed" list={d.overdue} can={can.ok} rows={sched.rows} open={setSel} />
       <DueGroup title="Rescheduled" sub="moved or split, still to do" list={d.rescheduled} can={can.ok} rows={sched.rows} open={setSel} />

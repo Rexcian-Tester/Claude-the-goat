@@ -21,7 +21,10 @@ export function ExamsView() {
   const today = useToday()
   const [editing, setEditing] = useState(false)
   const [open, setOpen] = useState<ExamRow | null>(null)
-  const rows = scheduleRows()
+  const all = scheduleRows()
+  // Debt exams sit on no date (their date is a deadline): listed apart, never as today's or the next exam
+  const debts = all.filter((r) => r.debt)
+  const rows = all.filter((r) => !r.debt)
   const todays = rows.filter((r) => r.date === today)
   // the next exam day, with every exam on it
   const nextDate = rows.find((r) => r.date > today)?.date
@@ -64,7 +67,7 @@ export function ExamsView() {
             <button type="button" className="btn sm" onClick={unlock}>✏️ Edit schedule</button>
           )}
         </div>
-        <p className="small">{rows.filter((r) => !r.real).length} exams · {scheduleNote}{isEdited() ? ' · edited by you' : ''}</p>
+        <p className="small">{all.filter((r) => !r.real).length} exams · {scheduleNote}{isEdited() ? ' · edited by you' : ''}</p>
         {editing && (
           <div className="ex-tools">
             <p className="small"><b>Editing is on.</b> Tap an exam to change or delete it.</p>
@@ -75,6 +78,25 @@ export function ExamsView() {
                 <button type="button" className="btn sm" onClick={() => confirm('Go back to the original schedule? Your edits are replaced (Undo brings them back).') && (resetToFile(), toast('Original schedule restored.'))}>Reset to original</button>
               )}
             </div>
+          </div>
+        )}
+        {debts.length > 0 && (
+          <div className="ex-debt">
+            <h3 className="ex-month">Debt · sit when chapter is done</h3>
+            <ol className="ex-list">
+              {debts.map((r) => {
+                const body = (
+                  <>
+                    <span className="ex-date">By {dayLabel(r.date)}</span>
+                    <span className="ex-no">{r.no}</span>
+                    <span className="ex-main"><span className="ex-title">{r.title}</span><span className="ex-sub small">{r.sub}</span></span>
+                    <span className="ex-len small">{r.len}{r.status && <span className="tag ex-status">{r.status}</span>}</span>
+                  </>
+                )
+                const cls = `ex-row debt ${r.date < today ? 'late' : ''} ${editing ? 'editable' : ''}`
+                return <li key={r.id}>{editing ? <button type="button" className={cls} onClick={() => setOpen(r)} aria-label={`Edit ${r.title}`}>{body}</button> : <div className={cls}>{body}</div>}</li>
+              })}
+            </ol>
           </div>
         )}
         <ol className="ex-list">
@@ -104,7 +126,7 @@ export function ExamsView() {
           })}
         </ol>
       </section>
-      {open && <RowEditor row={open} isNew={!rows.some((r) => r.id === open.id)} onClose={() => setOpen(null)} />}
+      {open && <RowEditor row={open} isNew={!all.some((r) => r.id === open.id)} onClose={() => setOpen(null)} />}
     </div>
   )
 }
@@ -117,6 +139,7 @@ function RowEditor({ row, isNew, onClose }: { row: ExamRow; isNew: boolean; onCl
     const out: ExamRow = { ...r, title: r.title.trim(), status: r.status?.trim() || undefined }
     if (!out.status) delete out.status
     if (!out.real) delete out.real
+    if (!out.debt) delete out.debt
     upsertRow(out)
     toast(isNew ? 'Exam added.' : 'Saved.')
     onClose()
@@ -135,6 +158,7 @@ function RowEditor({ row, isNew, onClose }: { row: ExamRow; isNew: boolean; onCl
           <datalist id="ex-status-list"><option value="Done" /><option value="Skipped" /><option value="Moved" /></datalist>
         </div>
         <label className="row-flex ex-real"><input type="checkbox" checked={!!r.real} onChange={(e) => setR({ ...r, real: e.target.checked })} /> Real admission exam</label>
+        <label className="row-flex ex-real"><input type="checkbox" checked={!!r.debt} onChange={(e) => setR({ ...r, debt: e.target.checked })} /> Debt (no fixed date: the date is the deadline)</label>
       </div>
       <div className="row-flex ex-btns">
         <button type="button" className="btn primary" disabled={!ok} onClick={save}>{isNew ? 'Add' : 'Save'}</button>

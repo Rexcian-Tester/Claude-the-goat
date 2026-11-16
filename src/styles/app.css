@@ -968,3 +968,16 @@ a:focus-visible,button:focus-visible,summary:focus-visible,[tabindex]:focus-visi
 .ex-form .wide{grid-column:1/-1}
 .ex-real{grid-column:1/-1;display:flex;gap:8px;align-items:center}
 @media (max-width:560px){.nav{gap:1px}.nav a{padding:0 4px;font-size:13.5px}.nav .sep{margin:8px 1px}}
+/* ---------- Debt (Plan v5) ---------- */
+.debt{border-color:color-mix(in srgb,var(--warn) 45%,var(--line))}
+.debt .card-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.debt-item{display:flex;flex-direction:column;gap:6px;padding:10px 0;border-top:1px solid var(--line)}
+.debt-h{display:flex;flex-wrap:wrap;gap:6px;align-items:baseline}
+.debt-dl{margin-left:auto}
+.debt-dl.soon,.debt-dl.late{background:var(--bad-soft);color:var(--bad)}
+.debt-why{margin:0}
+.debt-tasks{display:flex;flex-direction:column;gap:2px}
+.plan-locked{margin:0}
+.ex-debt{display:flex;flex-direction:column;gap:6px}
+.ex-row.debt{border-color:color-mix(in srgb,var(--warn) 55%,var(--line));border-style:dashed}
+.ex-row.debt.late{border-color:var(--bad)}

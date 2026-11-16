@@ -65,6 +65,10 @@ export interface StudyPlanJson {
     reorganised?: string[]
     /** the date the Today countdown counts down to (00:00 Bangladesh time that day) */
     countdownTo?: string
+    /** Plan v5: unfinished chapters with no date, only a deadline (Debt in Today and Plan → Dues) */
+    debt?: { id: string; deadline: string; why: string; item: RawPlanItem }[]
+    /** small line on the Plan page, e.g. "Plan v5 · locked Mon 16 Nov 2026" */
+    locked?: string
     /** last day of the syllabus (the Today countdown) */
     syllabusEnd: string
     /** chapters left out on purpose (Priority Map shows them as skipped; not counted as remaining work) */
@@ -179,5 +183,16 @@ export interface ExamRow {
   real?: boolean
   /** your own note: Done, Skipped, a score… */
   status?: string
+  /** Debt: on no fixed date; `date` is the deadline (sit it when the chapter is done) */
+  debt?: boolean
 }
-export interface ExamScheduleJson { _readme: string; site: string; note: string; rows: ExamRow[] }
+export interface ExamScheduleJson {
+  _readme: string
+  site: string
+  note: string
+  /** schedule version (5 = MIST Plan v5) */
+  version: number
+  rows: ExamRow[]
+  /** v5 date (and debt flag) of every built-in exam, by id: applied to a synced copy saved before v5 */
+  moves: Record<string, { date: string; debt?: boolean }>
+}

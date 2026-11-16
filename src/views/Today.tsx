@@ -12,6 +12,7 @@ import { href } from '../router'
 import { Sheet } from '../components/ui'
 import { BehindBanner } from './BehindBanner'
 import { DayBody, DayMini, ItemHeader, OverdueJump, OverdueList } from './day'
+import { DebtList } from '../components/Debt'
 import { EndgameView, PaperChecklist } from './Endgame'
 import { MyExams } from '../components/MyExams'
 import { Accountability } from './Habits'
@@ -153,6 +154,8 @@ export function TodayView() {
       {row?.items.some((it) => it.s === 'R') && <PaperChecklist />}
 
       <OverdueList sched={sched} today={today} />
+
+      <DebtList today={today} id="debt" />
 
       <div className="card">
         <h2>Tomorrow · {dateBn(tomorrowISO)}</h2>
