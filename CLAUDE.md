@@ -39,6 +39,10 @@ Progress syncs through a Pages Function + KV (`functions/api/sync.ts`). See `REA
   latest rebase. `plan:shift` was replaced by `plan:shift:v2` (old shift kept, unused).
   `meta.skippedByChoice` (বাস্তব সংখ্যা ও অসমতা, যোগাশ্রয়ী প্রোগ্রাম) show "নিজের সিদ্ধান্তে বাদ" on the Priority Map.
   `src/planner/markFinished.ts` once marked the owner's finished old-plan chapters Done (marker `plan:finished:2026-10-27`).
+- What was saved on a v5 topic still shows on its v6 topic (`src/logic/carryV5.ts`, map `site-source/data/plan-v5-topics.json`):
+  Due / Done, cleared and planner notes, read at run time; a v6 value wins and old fields are never deleted. Read marks
+  with `topicMark` / `taskState`, and edits with `currentEdits` / `buildSchedule`, never the raw keys. A future
+  reorganisation that changes topic keys needs the same carry-over.
 - Study artifacts: `site-source/data/artifacts.json` (one line per HSC chapter: subject, paper, no, Bangla name,
   status ready / coming-soon / none, link, extras, skipped). `src/data/artifacts.ts` matches a plan topic to its row by
   Bangla name (spacing, ও/এবং and small spelling differences ignored; `SPLITS` for two-chapter topics); the
@@ -57,7 +61,7 @@ Progress syncs through a Pages Function + KV (`functions/api/sync.ts`). See `REA
 - Exam tab (`#/exams`, nav between Focus and Routine, `src/views/Exams.tsx`): "Open Model Test Hub" button
   (`hubHref` in `src/data/examSchedule.ts`: on Android an `intent://` link so an installed Hub app opens, falling back to
   https://model-test-hub.pages.dev/#home; elsewhere a new tab) and the exam routine from
-  `site-source/data/exam-schedule.json` (97 Hub exams + 5 real exams, one line each; v6 dates; `debt: true` rows #1, #2 sit
+  `site-source/data/exam-schedule.json` (98 dated Hub exams + 5 real exams; `added` lists later exams, put once into synced copies, never by raising `version`; one line each; v6 dates; `debt: true` rows #1, #2 sit
   apart with their deadline as `date`; #3 sat 18 Nov, Done; `version` + `moves` show a synced copy saved under an older
   version with the current dates, keeping its statuses). The routine is locked: "Edit
   schedule" asks first; a row opens a form (Save / Delete); edits are saved whole in the synced field `plan:examsched`

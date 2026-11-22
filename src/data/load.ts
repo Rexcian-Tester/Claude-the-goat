@@ -5,6 +5,7 @@ import extrasJson from '../../site-source/data/priority-extras.json'
 import artifactsJson from '../../site-source/data/artifacts.json'
 import examsJson from '../../site-source/data/exams.json'
 import guidesJson from '../../site-source/data/exam-guides.json'
+import v5TopicsJson from '../../site-source/data/plan-v5-topics.json'
 import scheduleJson from '../../site-source/data/exam-schedule.json'
 import type { ArtifactsJson, ExamGuidesJson, ExamScheduleJson, ExamsJson, PriorityExtrasJson, PriorityMapJson, StudyPlanJson } from './types'
 
@@ -15,3 +16,4 @@ export const artifactsData = artifactsJson as unknown as ArtifactsJson
 export const examsData = examsJson as unknown as ExamsJson
 export const guidesData = guidesJson as unknown as ExamGuidesJson
 export const scheduleData = scheduleJson as unknown as ExamScheduleJson
+export const v5Topics = v5TopicsJson as Record<string, string[]>

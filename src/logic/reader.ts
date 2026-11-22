@@ -5,15 +5,19 @@ export interface Reader {
   get<T>(key: string): T | undefined
   /** last-write timestamp (ms) of a field */
   t(key: string): number | undefined
+  /** saved at all, even if since emptied */
+  has?(key: string): boolean
   /** bumps on every change; lets pure logic cache results per state (optional: test readers omit it) */
   version?(): number
 }
 export const storeReader: Reader = {
   get: (k) => store.get(k),
   t: (k) => store.field(k)?.t,
+  has: (k) => store.field(k) !== undefined,
   version: () => store.version,
 }
 export const mapReader = (m: Record<string, unknown>, t: Record<string, number> = {}): Reader => ({
   get: <T,>(k: string) => (m[k] === null ? undefined : (m[k] as T | undefined)),
   t: (k) => t[k],
+  has: (k) => k in m,
 })

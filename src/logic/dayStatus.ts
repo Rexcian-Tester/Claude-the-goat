@@ -1,4 +1,5 @@
 import { PLAN_REBASE, type PlanDay, type PlanItem } from '../data/plan'
+import { carriedCleared, carriedMark } from './carryV5'
 import { K } from './keys'
 import type { Reader } from './reader'
 import type { Row } from './schedule'
@@ -19,10 +20,11 @@ export type TaskState = 'done' | 'moved' | 'cleared' | 'open'
 /** Your own Due / Done for a topic (a chapter on a day). It wins over the topic's ticks and the day's
  *  "mark this day done": a topic you mark Due stays due even with every micro-task ticked. */
 export type TopicMark = 'due' | 'done'
-export const markKeyFor = (src: string, pid: string = '0') => `task:${src}${pid !== '0' ? `#${pid}` : ''}:status`
+export const markKeyFor = K.topicMark
 export const topicMarkKey = (item: PlanItem) => markKeyFor(item.src ?? item.key, item.pid ?? '0')
 export function topicMark(r: Reader, item: PlanItem): TopicMark | undefined {
-  const v = r.get<string>(topicMarkKey(item))
+  const key = topicMarkKey(item)
+  const v = r.get<string>(key) ?? carriedMark(r, key)
   return v === 'due' || v === 'done' ? v : undefined
 }
 
@@ -60,7 +62,7 @@ function memoFor(r: Reader, rows: Row[]): Memo | null {
 }
 export function taskState(r: Reader, t: TaskRef): TaskState {
   if (r.get<boolean>(t.tk)) return 'done'
-  const m = r.get<string>(t.mk)
+  const m = r.get<string>(t.mk) ?? carriedCleared(r, t.mk)
   if (m === 'cleared') return 'cleared'
   if (m) return 'moved'
   return 'open'

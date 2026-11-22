@@ -330,7 +330,7 @@ export function DuesView({ sched, today }: { sched: Schedule; today: string }) {
 function History({ can }: { can: boolean }) {
   useStoreVersion()
   const hist = planHistory()
-  const nEdited = Object.keys(currentEdits()?.topics ?? {}).length
+  const nEdited = Object.keys(currentEdits()?.topics ?? {}).filter((k) => itemByKey.has(k)).length
   const nOrdered = Object.keys(currentEdits()?.order ?? {}).length
   const day = versionBefore(hist, Date.now())
   return (

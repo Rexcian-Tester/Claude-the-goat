@@ -3856,6 +3856,21 @@
       "Review all mistakes"
      ],
      "ix": 60
+    },
+    {
+     "s": "R",
+     "ch": "SUST Final Model 2",
+     "part": "পরীক্ষার দিন",
+     "t": "Sit SUST Final Model 2 · Review all mistakes",
+     "k": "study",
+     "m": null,
+     "info": null,
+     "en": "Exam",
+     "topicList": [
+      "Sit SUST Final Model 2",
+      "Review all mistakes"
+     ],
+     "ix": 61
     }
    ],
    "phase": "Revision Phase",

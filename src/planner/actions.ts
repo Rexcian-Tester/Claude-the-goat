@@ -1,3 +1,4 @@
+import { carryNotes } from '../logic/carryV5'
 import { K } from '../logic/keys'
 import { EDITS_MAX_CHARS, EMPTY_EDITS, HISTORY_KEEP, HISTORY_MAX_CHARS, isEmptyEdits, undoTarget, type PlanEdits, type PlanVersion } from '../logic/planEdits'
 import { store } from '../store/store'
@@ -6,7 +7,7 @@ import { useSyncState } from '../store/syncClient'
 /* Saving plan edits. Every change first keeps a copy of how the plan looked before it (a version), so any
  * change can be undone. Versions sync too, so Undo works from any device. */
 
-export const currentEdits = () => store.get<PlanEdits>(K.edits)
+export const currentEdits = () => carryNotes(store.get<PlanEdits>(K.edits))
 
 export function planHistory(): PlanVersion[] {
   const out: PlanVersion[] = []

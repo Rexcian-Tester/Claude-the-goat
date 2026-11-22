@@ -93,6 +93,7 @@ export function fieldsReader(fields: Fields): Reader {
       return v === null || v === undefined ? undefined : (v as T)
     },
     t: () => undefined,
+    has: (k) => k in fields,
     // one request = one state, so the day-progress cache can be used throughout
     version: () => 1,
   }

@@ -27,6 +27,8 @@ export const K = {
   exam: (id: string) => `endgame:exam:${id}`,
   rev: (id: string) => `endgame:rev:${id}`,
   examCustom: 'endgame:examlist',
+  /** your Due / Done for a topic, or for one part of a split topic */
+  topicMark: (src: string, pid = '0') => `task:${src}${pid !== '0' ? `#${pid}` : ''}:status`,
   note: (id: string) => `note:${id}`,
   /** calendar date (Asia/Dhaka): 'yes' | 'close' | 'no', answer to "did you complete today's goal?" */
   goal: (date: string) => `day:${date}:goal`,

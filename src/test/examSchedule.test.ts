@@ -7,8 +7,8 @@ vi.mock('../store/idb', () => ({ loadAll: async () => ({ fields: {}, meta: {} })
 
 describe('Exam tab schedule (exam-schedule.json)', () => {
   beforeAll(() => store.init())
-  it('has the 97 Model Test Hub exams and the 5 real exams, in date order', () => {
-    expect(defaultRows.filter((r) => !r.real)).toHaveLength(97)
+  it('has the 98 dated Model Test Hub exams and the 5 real exams, in date order', () => {
+    expect(defaultRows.filter((r) => !r.real)).toHaveLength(98)
     expect(defaultRows.filter((r) => r.real).map((r) => `${r.date} ${r.title}`)).toEqual(['2027-01-17 SUST A1', '2027-01-30 CU A Unit', '2027-02-05 MIST Unit C', '2027-02-06 MIST Unit A', '2027-02-13 RU C Unit'])
     expect(new Set(defaultRows.map((r) => r.id)).size).toBe(defaultRows.length)
     const rows = scheduleRows()
@@ -30,7 +30,7 @@ describe('Exam tab schedule (exam-schedule.json)', () => {
     expect(['2026-12-30', '2026-12-31', '2027-01-01', '2027-01-02', '2027-01-03', '2027-01-04'].map((d) => on(d)[0])).toEqual(['PF1', 'PF2', 'PF3', 'PF4', 'PF5', 'PF6'])
     expect(on('2027-01-05')).toEqual([])
     expect(defaultRows.filter((r) => r.date === '2027-01-14').map((r) => r.sub)).toEqual(['Set 1 · MCQ', 'Set 2 · MCQ'])
-    expect(defaultRows.filter((r) => r.no === 'FM').map((r) => `${r.date} ${r.title}`)).toEqual(['2027-01-15 SUST Final Model', '2027-01-21 MIST Final Model 1', '2027-01-23 MIST Final Model 2', '2027-01-26 CU Final Model', '2027-02-01 MIST Final Model 3'])
+    expect(defaultRows.filter((r) => r.no === 'FM').map((r) => `${r.date} ${r.title}`)).toEqual(['2027-01-15 SUST Final Model', '2027-01-15 SUST Final Model 2', '2027-01-21 MIST Final Model 1', '2027-01-23 MIST Final Model 2', '2027-01-26 CU Final Model', '2027-02-01 MIST Final Model 3'])
   })
   it('a synced copy saved under an older version shows the v6 dates, keeping your statuses', () => {
     const old = defaultRows.map((r) => { const { status: _s, ...x } = r; return { ...x, date: r.id === 'x3' ? '2026-11-17' : r.date, debt: undefined } })
@@ -66,7 +66,7 @@ describe('Exam tab schedule (exam-schedule.json)', () => {
     expect(scheduleRows().at(-1)!.id).toBe(first.id)
     resetToFile()
     // junk from another device is ignored row by row
-    store.set(K.examSched, { rows: [{ id: 'a', date: 'soon', title: 'x' }, { id: 'b', date: '2026-12-01', title: 'Kept' }], at: 1 })
+    store.set(K.examSched, { rows: [{ id: 'a', date: 'soon', title: 'x' }, { id: 'b', date: '2026-12-01', title: 'Kept' }], at: 1, added: ['x103'] })
     expect(scheduleRows().map((r) => r.title)).toEqual(['Kept'])
     resetToFile()
   })

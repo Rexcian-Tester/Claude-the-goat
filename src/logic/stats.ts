@@ -3,6 +3,7 @@ import { allChapters, chaptersBySubject, realQuestions, allQuestions } from '../
 import { eraOf, PLAN_REBASE, PLAN_START, PLAN_LAST, planDays, type PlanItem } from '../data/plan'
 import { repeats } from '../data/repeats'
 import type { Chapter, Subject, Tier } from '../data/types'
+import { carriedAt } from './carryV5'
 import { dayProgress, ownTasks, taskState, topicMark, topicMarkKey } from './dayStatus'
 import { K, type QStatus } from './keys'
 import type { Reader } from './reader'
@@ -146,9 +147,9 @@ function completedOn(r: Reader, row: Row, rows: Row[]): string | null {
   const dp = dayProgress(r, row, rows)
   if (!dp.complete) return null
   let t = 0
-  for (const x of ownTasks(row)) t = Math.max(t, r.t(x.tk) ?? 0, r.t(x.mk) ?? 0)
+  for (const x of ownTasks(row)) t = Math.max(t, r.t(x.tk) ?? 0, r.t(x.mk) ?? carriedAt(r, x.mk) ?? 0)
   t = Math.max(t, r.t(K.dayDone(row.date)) ?? 0)
-  for (const it of row.items) t = Math.max(t, r.t(topicMarkKey(it)) ?? 0)
+  for (const it of row.items) t = Math.max(t, r.t(topicMarkKey(it)) ?? carriedAt(r, topicMarkKey(it)) ?? 0)
   return t ? new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Dhaka' }).format(new Date(t)) : row.date
 }
 export interface BurnPoint {

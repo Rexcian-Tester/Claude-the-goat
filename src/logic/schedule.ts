@@ -1,6 +1,7 @@
 import { planDays, PLAN_LAST, type PlanDay, type PlanItem } from '../data/plan'
 import { allChapters } from '../data/catalog'
 import type { Kind } from '../data/types'
+import { carryNotes } from './carryV5'
 import { applyEdits, type PlanEdits } from './planEdits'
 
 /** original date -> effective date, or 'unscheduled' (didn't fit by PLAN_LAST). Empty = original plan. */
@@ -31,7 +32,7 @@ export interface Schedule {
 
 export function buildSchedule(shifts: Shifts | undefined, edits?: PlanEdits): Schedule {
   const sh = shifts ?? {}
-  const rows: Row[] = applyEdits(planDays, edits).map((d) => {
+  const rows: Row[] = applyEdits(planDays, carryNotes(edits)).map((d) => {
     const o = sh[d.date]
     return { ...d, eff: o === undefined ? d.date : o === 'unscheduled' ? null : o }
   })

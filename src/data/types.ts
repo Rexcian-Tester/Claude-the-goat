@@ -193,6 +193,8 @@ export interface ExamScheduleJson {
   /** schedule version (6 = MIST Plan v6) */
   version: number
   rows: ExamRow[]
+  /** exams that joined later: put once into a synced copy that has not had them */
+  added: string[]
   /** v5 date (and debt flag) of every built-in exam, by id: applied to a synced copy saved before v5 */
   moves: Record<string, { date: string; debt?: boolean; status?: string }>
 }

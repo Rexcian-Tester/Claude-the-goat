@@ -20,6 +20,8 @@ export interface PlanEdits {
   topics: Record<string, { parts: EditPart[] }>
   /** the order you dragged a day's topics into: plan day (original date) -> topic keys, top first */
   order?: Record<string, string[]>
+  /** your v5 notes are already laid in (src/logic/carryV5.ts) */
+  carried?: true
 }
 export const EMPTY_EDITS: PlanEdits = { v: 1, topics: {} }
 export const isEmptyEdits = (e: PlanEdits | undefined) => !e || (Object.keys(e.topics).length === 0 && Object.keys(e.order ?? {}).length === 0)

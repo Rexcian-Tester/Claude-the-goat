@@ -12,7 +12,8 @@ export const defaultRows: ExamRow[] = scheduleData.rows
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 export const SCHEDULE_VERSION = scheduleData.version
 /** v: the schedule version it was saved under (none = before v5) */
-interface Saved { rows: ExamRow[]; at: number; v?: number }
+/** added: the later-added exams this copy has had (so one you delete stays deleted) */
+interface Saved { rows: ExamRow[]; at: number; v?: number; added?: string[] }
 const clean = (r: unknown): ExamRow | null => {
   if (!r || typeof r !== 'object') return null
   const x = r as Record<string, unknown>
@@ -35,6 +36,12 @@ function read(key: string): Saved | null {
   // saved before the current version (e.g. v4): move each built-in exam to its new date, keeping your statuses;
   // nothing is written until your next change, so Undo still holds the copy as you left it
   if (v.v !== SCHEDULE_VERSION) rows = rows.map((r) => (scheduleData.moves[r.id] ? migrate(r) : r))
+  const had = Array.isArray(v.added) ? v.added : []
+  for (const id of scheduleData.added) {
+    if (had.includes(id) || rows.some((r) => r.id === id)) continue
+    const row = defaultRows.find((r) => r.id === id)
+    if (row) rows.push(row)
+  }
   return { rows, at: typeof v.at === 'number' ? v.at : 0, v: SCHEDULE_VERSION }
 }
 /** In date order (same-day rows keep their order). */
@@ -49,7 +56,7 @@ export const canUndo = () => store.field(K.examSchedPrev) !== undefined
 export function saveRows(rows: ExamRow[]) {
   store.setMany([
     [K.examSchedPrev, store.field(K.examSched)?.v ?? null],
-    [K.examSched, { rows: sortRows(rows), at: Date.now(), v: SCHEDULE_VERSION } satisfies Saved],
+    [K.examSched, { rows: sortRows(rows), at: Date.now(), v: SCHEDULE_VERSION, added: scheduleData.added } satisfies Saved],
   ])
 }
 export const upsertRow = (row: ExamRow) => {
