@@ -50,10 +50,11 @@ describe('progress stats', () => {
     expect(streak(r, sched.rows, '2026-10-05')).toBe(0) // 4 Oct missed -> broken
   })
   it('burn-up: planned follows the calendar, actual follows completions (current plan, from 12 Nov)', () => {
-    const b = burnUp(ticked(['2026-11-16']), sched.rows, '2026-11-18')
-    expect(b.map((x) => x.date)).toEqual(['2026-11-16', '2026-11-17', '2026-11-18'])
-    expect(b[2].planned).toBe(3)
-    expect(b[2].actual).toBe(1)
+    const b = burnUp(ticked(['2026-11-23']), sched.rows, '2026-11-25')
+    expect(b.map((x) => x.date)).toEqual(['2026-11-22', '2026-11-23', '2026-11-24', '2026-11-25'])
+    // 22 Nov is a label-only day: nothing planned
+    expect(b[3].planned).toBe(3)
+    expect(b[3].actual).toBe(1)
   })
   it('7-day moving average ignores gaps and only shows on days with data', () => {
     expect(movingAvg([2, undefined, 4], 7)).toEqual([2, undefined, 3])

@@ -115,26 +115,26 @@ describe('dues', () => {
   it('lists unfinished past topics and rescheduled ones until done', async () => {
     const { duesList } = await import('../logic/dues')
     // 1 Dec (current plan) has two topics, like 1 Oct had
-    const d30 = planDays.find((d) => d.date === '2026-12-04')!
+    const d30 = planDays.find((d) => d.date === '2026-12-09')!
     const c = d30.items[0]
-    const e = movePart(undefined, c.key, c.topicList.length, '0', '2026-12-06', 'later')
+    const e = movePart(undefined, c.key, c.topicList.length, '0', '2026-12-11', 'later')
     const sched = buildSchedule(undefined, e)
     const empty = mapReader({})
-    let d = duesList(empty, sched.rows, '2026-12-05')
+    let d = duesList(empty, sched.rows, '2026-12-10')
     // 1 Dec's other topic is overdue; the moved topic is rescheduled (not overdue)
-    expect(d.overdue.some((x) => x.row.date === '2026-12-04')).toBe(true)
+    expect(d.overdue.some((x) => x.row.date === '2026-12-09')).toBe(true)
     expect(d.overdue.some((x) => x.item.src === c.key)).toBe(false)
     expect(d.rescheduled.map((x) => x.item.src)).toContain(c.key)
     // ticking all of it moves it to "done in the last week"
-    d = duesList(mapReader(Object.fromEntries(c.tks.map((k) => [k, true]))), sched.rows, '2026-12-07')
+    d = duesList(mapReader(Object.fromEntries(c.tks.map((k) => [k, true]))), sched.rows, '2026-12-12')
     expect(d.rescheduled.some((x) => x.item.src === c.key)).toBe(false)
     expect(d.overdue.some((x) => x.item.src === c.key)).toBe(false)
     expect(d.recentDone.some((x) => x.item.src === c.key)).toBe(true)
     // a day marked done clears its topics from Dues
-    d = duesList(mapReader({ 'day:2026-12-04:done': true }), sched.rows, '2026-12-05')
-    expect(d.overdue.some((x) => x.row.date === '2026-12-04')).toBe(false)
+    d = duesList(mapReader({ 'day:2026-12-09:done': true }), sched.rows, '2026-12-10')
+    expect(d.overdue.some((x) => x.row.date === '2026-12-09')).toBe(false)
     // days before the current plan (6 Nov) are history: never in Dues
-    expect(duesList(empty, sched.rows, '2026-12-05').overdue.some((x) => x.row.date < '2026-11-06')).toBe(false)
+    expect(duesList(empty, sched.rows, '2026-12-10').overdue.some((x) => x.row.date < '2026-11-06')).toBe(false)
   })
 })
 
@@ -157,21 +157,21 @@ describe('topic Due / Done marks', () => {
     const { duesList, topicOn } = await import('../logic/dues')
     const { behindInfo } = await import('../logic/behind')
     const sched = buildSchedule(undefined)
-    const row = sched.byOrig.get('2026-12-04')!
+    const row = sched.byOrig.get('2026-12-09')!
     const [a, b] = row.items
     const allTicked = Object.fromEntries(row.items.flatMap((i) => i.tks).map((k) => [k, true]))
     // the current plan's earlier days (12–30 Nov) are done
-    const before = Object.fromEntries(Array.from({ length: 18 }, (_, i) => new Date(Date.UTC(2026, 10, 16 + i)).toISOString().slice(0, 10)).map((d) => [`day:${d}:done`, true]))
+    const before = Object.fromEntries(Array.from({ length: 17 }, (_, i) => new Date(Date.UTC(2026, 10, 22 + i)).toISOString().slice(0, 10)).map((d) => [`day:${d}:done`, true]))
     // everything ticked: the day is done
     expect(dayProgress(mapReader(allTicked), row, sched.rows).complete).toBe(true)
     // mark one chapter Due: ticks stay, but the chapter and the day are not done, and it shows in Dues
     const due = mapReader({ ...allTicked, [topicMarkKey(a)]: 'due' })
     expect(topicOn(due, row, a, sched.rows)).toMatchObject({ done: false, ticked: a.tks.length, mark: 'due' })
     expect(dayProgress(due, row, sched.rows).complete).toBe(false)
-    expect(duesList(mapReader({ ...before, ...allTicked, [topicMarkKey(a)]: 'due' }), sched.rows, '2026-12-05').overdue.map((x) => x.item)).toEqual([a])
-    expect(behindInfo('2026-12-05', sched.rows, mapReader({ ...before, ...allTicked, [topicMarkKey(a)]: 'due' })).lag).toBe(1)
+    expect(duesList(mapReader({ ...before, ...allTicked, [topicMarkKey(a)]: 'due' }), sched.rows, '2026-12-10').overdue.map((x) => x.item)).toEqual([a])
+    expect(behindInfo('2026-12-10', sched.rows, mapReader({ ...before, ...allTicked, [topicMarkKey(a)]: 'due' })).lag).toBe(1)
     // Due also beats "mark this day done"
-    expect(dayProgress(mapReader({ 'day:2026-12-04:done': true, [topicMarkKey(a)]: 'due' }), row, sched.rows).complete).toBe(false)
+    expect(dayProgress(mapReader({ 'day:2026-12-09:done': true, [topicMarkKey(a)]: 'due' }), row, sched.rows).complete).toBe(false)
     // Done with nothing ticked: done; the day needs both chapters
     const done = mapReader({ [topicMarkKey(a)]: 'done', [topicMarkKey(b)]: 'done' })
     expect(dayProgress(done, row, sched.rows).complete).toBe(true)

@@ -190,9 +190,9 @@ export interface ExamScheduleJson {
   _readme: string
   site: string
   note: string
-  /** schedule version (5 = MIST Plan v5) */
+  /** schedule version (6 = MIST Plan v6) */
   version: number
   rows: ExamRow[]
   /** v5 date (and debt flag) of every built-in exam, by id: applied to a synced copy saved before v5 */
-  moves: Record<string, { date: string; debt?: boolean }>
+  moves: Record<string, { date: string; debt?: boolean; status?: string }>
 }

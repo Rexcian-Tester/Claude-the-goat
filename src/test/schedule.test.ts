@@ -23,16 +23,16 @@ describe('day progress', () => {
 
 describe('overdue', () => {
   // 12 Nov (current plan) has two topics; its tick keys are reused from the old plan, its "moved" keys are its own
-  const d30 = planDays.find((x) => x.date === '2026-11-16')!
+  const d30 = planDays.find((x) => x.date === '2026-11-23')!
   it('carries unticked tasks of a partly done past day, until cleared', () => {
-    const today = '2026-11-17'
+    const today = '2026-11-24'
     const n = ownTasks(d30).length
     const [t0, t1] = ownTasks(d30)
     const m = { [t0.tk]: true } as Record<string, unknown>
     const r = () => mapReader(m)
-    expect(overdueTasks(r(), sched.rows, today).filter((t) => t.date === '2026-11-16')).toHaveLength(n - 1)
+    expect(overdueTasks(r(), sched.rows, today).filter((t) => t.date === '2026-11-23')).toHaveLength(n - 1)
     m[t1.mk] = 'cleared'
-    expect(overdueTasks(r(), sched.rows, today).filter((t) => t.date === '2026-11-16')).toHaveLength(n - 2)
+    expect(overdueTasks(r(), sched.rows, today).filter((t) => t.date === '2026-11-23')).toHaveLength(n - 2)
   })
 
   it('old-plan days are history: never overdue', () => {
@@ -42,8 +42,8 @@ describe('overdue', () => {
 
   it('an old task moved to an old catch-up date (16 Nov) never lands on the current plan\'s 16 Nov', () => {
     const old = ownTasks(planDays.find((x) => x.date === '2026-10-12')!)[0]
-    const m = { [old.mk]: '2026-11-24' }
-    const p = dayProgress(mapReader(m), sched.byOrig.get('2026-11-24')!, sched.rows)
+    const m = { [old.mk]: '2026-12-01' }
+    const p = dayProgress(mapReader(m), sched.byOrig.get('2026-12-01')!, sched.rows)
     expect(p.tasks.some((t) => t.date === '2026-10-12')).toBe(false)
     // and the same topic on its current-plan day (27 Oct) is still open: the old "moved" does not carry
     const reused = ownTasks(sched.byOrig.get('2026-10-27')!).find((t) => t.tk === old.tk)!
@@ -52,35 +52,35 @@ describe('overdue', () => {
   })
 
   it('a manually completed past day has nothing overdue', () => {
-    expect(overdueTasks(mapReader({ 'day:2026-11-16:done': true }), sched.rows, '2026-11-17').filter((t) => t.date === '2026-11-16')).toHaveLength(0)
+    expect(overdueTasks(mapReader({ 'day:2026-11-23:done': true }), sched.rows, '2026-11-24').filter((t) => t.date === '2026-11-23')).toHaveLength(0)
   })
 })
 
 describe('shift preview (never automatic)', () => {
   it('does nothing when on plan', () => {
-    const today = '2026-11-26'
+    const today = '2026-12-03'
     const p = previewShift(sched.rows, today, ticked(studyDatesBefore(today)))
     expect(p.moves).toEqual([])
     expect(p.debt).toBe(0)
   })
 
   it('old-plan days are never pulled into the current plan', () => {
-    const p = previewShift(sched.rows, '2026-11-16', mapReader({}))
+    const p = previewShift(sched.rows, '2026-11-23', mapReader({}))
     expect(p.debt).toBe(0)
     expect(p.moves).toEqual([])
   })
 
   it('3 days behind on 20 Nov: work moves down; what no longer fits by 13 Feb is reported, not dropped; exam and rest days stay', () => {
-    const today = '2026-11-26'
+    const today = '2026-12-03'
     const r = ticked(studyDatesBefore(today).slice(0, -3))
     const p = previewShift(sched.rows, today, r)
     expect(p.debt).toBe(3)
     expect(p.consumedBuffers).toEqual([])
     // the three unfinished days now start today
-    expect(p.moves.slice(0, 3).map((m) => m.to)).toEqual(['2026-11-26', '2026-11-27', '2026-11-28'])
+    expect(p.moves.slice(0, 3).map((m) => m.to)).toEqual(['2026-12-03', '2026-12-04', '2026-12-05'])
     expect(p.unscheduled.length).toBe(3)
     expect(Object.values(p.shifts).every((v) => v === 'unscheduled' || v <= '2027-02-13')).toBe(true)
-    expect(Object.keys(p.shifts).every((d) => d >= '2026-11-16')).toBe(true)
+    expect(Object.keys(p.shifts).every((d) => d >= '2026-11-23')).toBe(true)
     // exam days and the rest day are never moved or taken
     for (const d of ['2027-01-16', '2027-01-17', '2027-01-30', '2027-02-05', '2027-02-06', '2027-02-13']) {
       expect(p.shifts[d]).toBeUndefined()
@@ -89,25 +89,25 @@ describe('shift preview (never automatic)', () => {
   })
 
   it('accepting the preview fixes the behind count; nothing changes before that', () => {
-    const today = '2026-11-26'
+    const today = '2026-12-03'
     const r = ticked(studyDatesBefore(today).slice(0, -3))
     expect(behindInfo(today, sched.rows, r).lag).toBe(3)
     const p = previewShift(sched.rows, today, r)
     const shifted = buildSchedule(p.shifts)
     expect(behindInfo(today, shifted.rows, r).lag).toBe(0)
     // original schedule is untouched
-    expect(sched.byOrig.get('2026-11-27')!.eff).toBe('2026-11-27')
+    expect(sched.byOrig.get('2026-12-04')!.eff).toBe('2026-12-04')
     // and a second preview on the shifted plan is a no-op
     expect(previewShift(shifted.rows, today, r).moves).toEqual([])
   })
 
   it('completed future days stay put', () => {
-    const today = '2026-11-26'
-    const r = ticked([...studyDatesBefore(today).slice(0, -2), '2026-11-28'])
+    const today = '2026-12-03'
+    const r = ticked([...studyDatesBefore(today).slice(0, -2), '2026-12-05'])
     const p = previewShift(sched.rows, today, r)
-    expect(p.moves.find((m) => m.row.date === '2026-11-28')).toBeUndefined()
+    expect(p.moves.find((m) => m.row.date === '2026-12-05')).toBeUndefined()
     const s = buildSchedule(p.shifts)
-    expect(s.byOrig.get('2026-11-28')!.eff).toBe('2026-11-28')
+    expect(s.byOrig.get('2026-12-05')!.eff).toBe('2026-12-05')
   })
 })
 

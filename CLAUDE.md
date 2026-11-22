@@ -18,21 +18,22 @@ Progress syncs through a Pages Function + KV (`functions/api/sync.ts`). See `REA
   round-trips byte-identically (`q`, `rate` and the 4th column of `trackerChanges` are written as floats, e.g. `8.0`;
   no trailing newline). A day with `items: []` is a **free day** (`isFree`): never owed, not a catch-up day;
   an optional day `note` is shown instead of the generic text.
-- **Plan reorganised six times** (`meta.reorganised`: 27 Oct, 6 Nov "MIST Plan v2", 8 Nov "v3", 10 Nov "v3.1", 12 Nov
-  "MIST Master Plan v4", 16 Nov "MIST Plan v5"; `meta.rebase` is the latest): days before the rebase are history
-  (`PlanDay.archived`: never owed, not in Dues/overdue/days behind/overall completion/burn-up/shift). Plan v5 from 16 Nov
-  (`meta.locked` line on the Plan page) = v4's study days 3 days later: Prime Phase to `meta.syllabusEnd` 22 Dec; 12–15 Nov
-  are emptied history days with note "Moved to Plan v5". **Debt** (`meta.debt`, `debtItems` in `src/data/plan.ts`,
-  `src/components/Debt.tsx`, on Today and Plan → Dues): স্থির তড়িৎ + চল তড়িৎ (by 26 Dec), ত্রিকোণমিতিক অনুপাত ও সংযুক্ত কোণ
-  (28 Dec), বিপরীত ত্রিকোণমিতি (30 Dec) on no date, keeping their tick keys; gone once all ticked or marked Done; never
-  counted as behind. Revision Phase 23 Dec – 13 Feb (no CU Phase): বৃত্ত + chapter exam #41, সরলরেখা ও কণিক, then one day
-  per exam of the Exam tab routine ("Sit … · Review all mistakes"), gap days, CU/MIST prep, RU MCQ prep; free days with a
+- **Plan reorganised seven times** (`meta.reorganised`: 27 Oct, 6 Nov "MIST Plan v2", 8 Nov "v3", 10 Nov "v3.1", 12 Nov
+  "MIST Master Plan v4", 16 Nov "MIST Plan v5", 22 Nov "MIST Plan v6"; `meta.rebase` is the latest): days before the rebase are history
+  (`PlanDay.archived`: never owed, not in Dues/overdue/days behind/overall completion/burn-up/shift). Plan v6 from 22 Nov
+  (`meta.locked` line on the Plan page): 22 Nov a label-only free day "যোগজীকরণ দিন ২ শুরু (Block D)", 23 Nov যোগজীকরণ দিন ২/৪,
+  24 Nov দিন ৩ + দিন ৪ (শেষ) (both days' micro-tasks), then v5's study days 5 days later: Prime Phase to `meta.syllabusEnd`
+  27 Dec. History: 12–15 Nov "Moved to Plan v5", 16 Nov যোগজীকরণ দিন ১/৪, 17–21 Nov "Moved to Plan v6". **Debt** (`meta.debt`, `debtItems` in `src/data/plan.ts`,
+  `src/components/Debt.tsx`, on Today and Plan → Dues): স্থির তড়িৎ + চল তড়িৎ, ত্রিকোণমিতিক অনুপাত ও সংযুক্ত কোণ,
+  বিপরীত ত্রিকোণমিতি (all by Mon 28 Dec) on no date, keeping their tick keys; gone once all ticked or marked Done; never
+  counted as behind. Revision Phase 28 Dec – 13 Feb (no CU Phase): বৃত্ত + chapter exam #41 (28 Dec), সরলরেখা ও কণিক (29 Dec), Paper Finals
+  every day 30 Dec – 4 Jan, then (from 5 Jan, unchanged since v5) one day per exam of the Exam tab routine ("Sit … · Review all mistakes"), gap days, CU/MIST prep, RU MCQ prep; free days with a
   note for Rest 16 Jan, SUST 17 Jan, CU 30 Jan, Light day 31 Jan, MIST C 5 Feb, MIST A 6 Feb (`meta.exam`), RU C 13 Feb
   (the last plan day). No rest day in `meta.rest` (it would turn on the endgame screens early).
   The plan continues after the exam, so `phaseOf` checks exam / rest / endgame dates before plan days; free days are
   never owed and never moved by a shift. Exam 6 Feb 2027 (`meta.exam`; the days-left badge counts to 17 Jan (SUST A1, `BADGE_TO` in `src/App.tsx`), then to it, "MIST ✓"
-  after); the Today countdown counts to `meta.countdownTo` (22 Dec, the syllabus end). Items from a reorganisation carry `ix` (10+ /
-  20+ / 30+ / 40+ / 50+ / 60+, so keys never collide with the plan they replaced on the same date) and `tk` (tick key per micro-task:
+  after); the Today countdown counts to `meta.countdownTo` (27 Dec, the syllabus end). Items from a reorganisation carry `ix` (10+ /
+  20+ / 30+ / 40+ / 50+ / 60+ / 70+, so keys never collide with the plan they replaced on the same date) and `tk` (tick key per micro-task:
   a reused micro-task keeps its original key, so its tick carries over; "moved" keys stay per item, `PlanItem.mks`).
   A chapter counts finished if finished in any plan version (`eraOf`). Planner edits never move topics across the
   latest rebase. `plan:shift` was replaced by `plan:shift:v2` (old shift kept, unused).
@@ -56,9 +57,9 @@ Progress syncs through a Pages Function + KV (`functions/api/sync.ts`). See `REA
 - Exam tab (`#/exams`, nav between Focus and Routine, `src/views/Exams.tsx`): "Open Model Test Hub" button
   (`hubHref` in `src/data/examSchedule.ts`: on Android an `intent://` link so an installed Hub app opens, falling back to
   https://model-test-hub.pages.dev/#home; elsewhere a new tab) and the exam routine from
-  `site-source/data/exam-schedule.json` (97 Hub exams + 5 real exams, one line each; v5 dates; `debt: true` rows #1, #2 sit
-  apart with their deadline as `date`; `version` + `moves` show a synced copy saved before v5 with the v5 dates, keeping
-  its statuses). The routine is locked: "Edit
+  `site-source/data/exam-schedule.json` (97 Hub exams + 5 real exams, one line each; v6 dates; `debt: true` rows #1, #2 sit
+  apart with their deadline as `date`; #3 sat 18 Nov, Done; `version` + `moves` show a synced copy saved under an older
+  version with the current dates, keeping its statuses). The routine is locked: "Edit
   schedule" asks first; a row opens a form (Save / Delete); edits are saved whole in the synced field `plan:examsched`
   (`{ rows, at }`, null = the file) and the version before the last change in `plan:examsched:prev` (Undo; Reset goes
   back to the file).

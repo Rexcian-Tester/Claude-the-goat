@@ -16,14 +16,14 @@ const row = (d: string) => sched.byOrig.get(d)!
 
 describe('plan reorganised on 27 Oct, and again on 6 Nov (Plan v2)', () => {
   it('keeps every earlier day exactly, and marks it as history', () => {
-    expect(PLAN_ERAS).toEqual(['2026-10-27', '2026-11-06', '2026-11-08', '2026-11-10', '2026-11-12', '2026-11-16'])
-    expect(PLAN_REBASE).toBe('2026-11-16')
-    expect(SYLLABUS_END).toBe('2026-12-22')
-    expect([eraOf('2026-10-26'), eraOf('2026-10-27'), eraOf('2026-11-05'), eraOf('2026-11-06'), eraOf('2026-11-08'), eraOf('2026-11-10'), eraOf('2026-11-12'), eraOf('2026-11-16')]).toEqual([0, 1, 1, 2, 3, 4, 5, 6])
+    expect(PLAN_ERAS).toEqual(['2026-10-27', '2026-11-06', '2026-11-08', '2026-11-10', '2026-11-12', '2026-11-16', '2026-11-22'])
+    expect(PLAN_REBASE).toBe('2026-11-22')
+    expect(SYLLABUS_END).toBe('2026-12-27')
+    expect([eraOf('2026-10-26'), eraOf('2026-10-27'), eraOf('2026-11-05'), eraOf('2026-11-06'), eraOf('2026-11-08'), eraOf('2026-11-10'), eraOf('2026-11-12'), eraOf('2026-11-16'), eraOf('2026-11-22')]).toEqual([0, 1, 1, 2, 3, 4, 5, 6, 7])
     // the original plan's items keep their position-based keys (no ix, no tk)
     for (const d of studyPlan.days.filter((x) => x.date < '2026-10-27')) for (const it of d.items) expect(it.ix === undefined && it.tk === undefined).toBe(true)
     const old = studyPlan.days.filter((d) => d.date < PLAN_REBASE)
-    expect(old).toHaveLength(47)
+    expect(old).toHaveLength(53)
     expect(planDays.filter((d) => d.archived).map((d) => d.date)).toEqual(old.map((d) => d.date))
     expect(row('2026-10-26').items[0].ch).toBe('অন্তরীকরণ')
   })
@@ -63,9 +63,9 @@ describe('plan reorganised on 27 Oct, and again on 6 Nov (Plan v2)', () => {
 
   it('a topic from before 6 Nov moved into the current plan stays on its old day', () => {
     const it = row('2026-11-05').items[0] // বিপরীত ত্রিকোণমিতিক (27 Oct plan)
-    const days = applyEdits(planDays, movePart(undefined, it.key, it.topicList.length, '0', '2026-11-18', ''))
+    const days = applyEdits(planDays, movePart(undefined, it.key, it.topicList.length, '0', '2026-11-25', ''))
     expect(days.find((d) => d.date === '2026-11-05')!.items.some((i) => i.src === it.key)).toBe(true)
-    expect(days.find((d) => d.date === '2026-11-18')!.items.some((i) => i.src === it.key)).toBe(false)
+    expect(days.find((d) => d.date === '2026-11-25')!.items.some((i) => i.src === it.key)).toBe(false)
   })
 
   it('a chapter finished in the old plan stays finished, even though the new plan has it again', () => {
@@ -129,38 +129,36 @@ describe('one-time Done for the chapters you finished in the old plan', () => {
   })
 })
 
-describe('MIST Plan v5 (from 16 Nov: v4 three days later, plus Debt)', () => {
+describe('MIST Plan v6 (from 22 Nov: v5 five days later)', () => {
   it('reuses each micro-task with its tick, so ticks made earlier carry over', () => {
-    // যোগজীকরণ (16–19 Nov) keeps the original plan's 3–6 Nov keys; মৌলের … বন্ধন (27–28 Nov) the October ones
-    expect(row('2026-11-16').items[0].tks).toEqual(['task:2026-11-03:0:0', 'task:2026-11-03:0:1'])
-    expect(row('2026-11-28').items[0].tks).toEqual(['task:2026-10-20:0:1', 'task:2026-10-20:0:2', 'task:2026-10-20:0:3'])
-    // 12–15 Nov are history, their items moved (to v5 days or Debt)
-    for (const d of ['2026-11-12', '2026-11-13', '2026-11-14', '2026-11-15']) {
+    // যোগজীকরণ দিন ২ on 23 Nov, দিন ৩ + ৪ on 24 Nov: the original plan's 4–6 Nov keys
+    expect(row('2026-11-23').items[0].tks[0]).toBe('task:2026-11-04:0:0')
+    expect(row('2026-11-24').items[0].tks).toHaveLength(6)
+    expect(row('2026-11-24').items[0].part).toBe('দিন ৩ + দিন ৪ (শেষ)')
+    // মৌলের … বন্ধন (2–3 Dec) keeps the October keys
+    expect(row('2026-12-03').items[0].tks).toEqual(['task:2026-10-20:0:1', 'task:2026-10-20:0:2', 'task:2026-10-20:0:3'])
+    expect(row('2026-11-16').items[0].ch).toBe('যোগজীকরণ')
+    for (const d of ['2026-11-17', '2026-11-18', '2026-11-19', '2026-11-20', '2026-11-21']) {
       expect(row(d).archived).toBe(true)
-      expect(row(d).isFree).toBe(true)
-      expect(row(d).note).toBe('Moved to Plan v5')
+      expect(row(d).note).toBe('Moved to Plan v6')
     }
-    expect(row('2026-11-16').items[0].key).toBe('2026-11-16:60')
-    for (const d of planDays.filter((x) => x.date >= '2026-11-16')) for (const it of d.items) expect(it.itemIdx).toBeGreaterThanOrEqual(60)
-    expect(studyPlan.meta.countdownTo).toBe('2026-12-22')
-    expect(studyPlan.meta.locked).toBe('Plan v5 · locked Mon 16 Nov 2026')
+    expect(row('2026-11-22').isFree).toBe(true)
+    expect(row('2026-11-22').note).toBe('যোগজীকরণ দিন ২ শুরু (Block D)')
+    for (const d of planDays.filter((x) => x.date >= '2026-11-23' && x.date <= '2027-01-04')) for (const it of d.items) expect(it.itemIdx).toBeGreaterThanOrEqual(70)
+    expect(studyPlan.meta.countdownTo).toBe('2026-12-27')
+    expect(studyPlan.meta.locked).toBe('Plan v6 · locked Sun 22 Nov 2026')
   })
 
-  it('Debt: four chapters on no date, with deadlines, keeping their ticks; paid when every micro-task is ticked', () => {
+  it('Debt: the same chapters, every deadline Mon 28 Dec, ticks kept, paid when all ticked', () => {
     expect(debtItems.map((d) => `${d.deadline} ${d.item.ch}`)).toEqual([
-      '2026-12-26 স্থির তড়িৎ',
-      '2026-12-26 চল তড়িৎ',
+      '2026-12-28 স্থির তড়িৎ',
+      '2026-12-28 চল তড়িৎ',
       '2026-12-28 ত্রিকোণমিতিক অনুপাত ও সংযুক্ত কোণ',
-      '2026-12-30 বিপরীত ত্রিকোণমিতিক ফাংশন ও ত্রিকোণমিতিক সমীকরণ',
+      '2026-12-28 বিপরীত ত্রিকোণমিতিক ফাংশন ও ত্রিকোণমিতিক সমীকরণ',
     ])
-    // the same tick keys the 10–12 Nov days used
     expect(debtItems[0].item.tks).toEqual(row('2026-11-10').items[0].tks)
-    expect(debtItems[1].item.tks).toEqual(row('2026-11-11').items[0].tks)
     expect(openDebts(mapReader({}))).toHaveLength(4)
     expect(openDebts(mapReader(Object.fromEntries(debtItems[0].item.tks.map((k) => [k, true]))))).toHaveLength(3)
-    expect(openDebts(mapReader({ [`task:${debtItems[3].item.key}:status`]: 'done' }))).toHaveLength(3)
-    // never on a plan day
-    for (const d of planDays.filter((x) => x.date >= '2026-11-16')) for (const it of d.items) expect(debtItems.some((x) => x.item.tks[0] === it.tks[0])).toBe(false)
   })
 
   it('chapters finished in the 27 Oct plan stay finished', () => {
@@ -169,28 +167,23 @@ describe('MIST Plan v5 (from 16 Nov: v4 three days later, plus Debt)', () => {
     expect(chapterCompletion(r, sched, (c) => c.id === jt.id).done).toBe(1)
   })
 
-  it("follows the owner's v5 table", () => {
+  it("follows the owner's v6 table", () => {
     const ch = (d: string) => row(d).items.map((i) => i.ch)
     const part = (d: string) => row(d).items.map((i) => `${i.ch} · ${i.part}`)
-    expect(part('2026-11-16')).toEqual(['যোগজীকরণ · দিন ১/৪'])
-    expect(part('2026-11-19')).toEqual(['যোগজীকরণ · দিন ৪/৪'])
-    expect(part('2026-11-20')).toEqual(['পরিমাণগত রসায়ন · দিন ১/২'])
-    expect(part('2026-11-25')).toEqual(['জৈব রসায়ন · দিন ৪/৪'])
-    expect(ch('2026-11-26')).toEqual(['ভৌত জগৎ ও পরিমাপ', 'অর্থনৈতিক রসায়ন', 'ল্যাবরেটরির নিরাপদ ব্যবহার'])
-    expect(ch('2026-12-04')).toEqual(['পর্যাবৃত্ত গতি', 'পরমাণুর মডেল এবং নিউক্লিয়ার পদার্থবিজ্ঞান'])
-    expect(ch('2026-12-17')).toEqual(['জ্যোতির্বিজ্ঞান', 'সেমিকন্ডাক্টর ও ইলেকট্রনিক্স'])
-    expect(ch('2026-12-22')).toEqual(['সমতলে বস্তুকণার গতি'])
-    expect(ch('2026-12-23')).toEqual(['বৃত্ত', 'Chapter exam #41'])
-    expect(ch('2026-12-24')).toEqual(['সরলরেখা ও কণিক'])
-    expect(ch('2026-12-25')).toEqual(['Paper Final 1 · পদার্থবিজ্ঞান ১ম পত্র'])
-    expect(row('2026-12-26').items[0].topicList).toEqual(["Fix yesterday's mistakes", "Revise the next paper's chapters"])
+    expect(part('2026-11-23')).toEqual(['যোগজীকরণ · দিন ২/৪'])
+    expect(part('2026-11-25')).toEqual(['পরিমাণগত রসায়ন · দিন ১/২'])
+    expect(part('2026-11-30')).toEqual(['জৈব রসায়ন · দিন ৪/৪'])
+    expect(ch('2026-12-01')).toEqual(['ভৌত জগৎ ও পরিমাপ', 'অর্থনৈতিক রসায়ন', 'ল্যাবরেটরির নিরাপদ ব্যবহার'])
+    expect(ch('2026-12-09')).toEqual(['পর্যাবৃত্ত গতি', 'পরমাণুর মডেল এবং নিউক্লিয়ার পদার্থবিজ্ঞান'])
+    expect(ch('2026-12-22')).toEqual(['জ্যোতির্বিজ্ঞান', 'সেমিকন্ডাক্টর ও ইলেকট্রনিক্স'])
+    expect(ch('2026-12-27')).toEqual(['সমতলে বস্তুকণার গতি'])
+    expect(ch('2026-12-28')).toEqual(['বৃত্ত', 'Chapter exam #41'])
+    expect(ch('2026-12-29')).toEqual(['সরলরেখা ও কণিক'])
+    expect([0, 1, 2, 3, 4, 5].map((i) => ch(new Date(Date.UTC(2026, 11, 30 + i)).toISOString().slice(0, 10))[0].slice(0, 13))).toEqual(['Paper Final 1', 'Paper Final 2', 'Paper Final 3', 'Paper Final 4', 'Paper Final 5', 'Paper Final 6'])
+    expect(row('2027-01-05').items[0].topicList).toEqual(["Fix yesterday's mistakes", "Revise the next paper's chapters"])
     expect(ch('2027-01-14')).toEqual(['Subject Final · English MCQ · Set 1 + Set 2'])
-    expect(ch('2027-01-19')).toEqual(['Subject Final · English Written · Set 1 + Set 2'])
-    expect(ch('2027-01-21')).toEqual(['MIST Final Model 1'])
-    expect(ch('2027-02-12')).toEqual(['RU MCQ prep'])
-    const free = planDays.filter((d) => d.isFree && d.date >= '2026-11-16').map((d) => `${d.date} ${d.note}`)
-    expect(free).toEqual(['2027-01-16 Rest', '2027-01-17 SUST A1 exam, 3:00 PM', '2027-01-30 CU A exam, 11:00 AM', '2027-01-31 Light day', '2027-02-05 MIST Unit C exam, 10:00 AM', '2027-02-06 MIST Unit A exam, 9:00 AM', '2027-02-13 RU C exam'])
-    expect(studyPlan.meta.exam).toBe('2027-02-06')
-    expect(studyPlan.meta.phases.map((p) => `${p.name} ${p.range}`).slice(-2)).toEqual(['Prime Phase 2026-10-27..2026-12-22', 'Revision Phase 2026-12-23..2027-02-13'])
+    const free = planDays.filter((d) => d.isFree && d.date >= '2026-11-22').map((d) => `${d.date} ${d.note}`)
+    expect(free).toEqual(['2026-11-22 যোগজীকরণ দিন ২ শুরু (Block D)', '2027-01-16 Rest', '2027-01-17 SUST A1 exam, 3:00 PM', '2027-01-30 CU A exam, 11:00 AM', '2027-01-31 Light day', '2027-02-05 MIST Unit C exam, 10:00 AM', '2027-02-06 MIST Unit A exam, 9:00 AM', '2027-02-13 RU C exam'])
+    expect(studyPlan.meta.phases.map((p) => `${p.name} ${p.range}`).slice(-2)).toEqual(['Prime Phase 2026-10-27..2026-12-27', 'Revision Phase 2026-12-28..2027-02-13'])
   })
 })

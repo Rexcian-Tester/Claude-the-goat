@@ -23,6 +23,7 @@ const clean = (r: unknown): ExamRow | null => {
 const migrate = (r: ExamRow): ExamRow => {
   const m = scheduleData.moves[r.id]
   const out: ExamRow = { ...r, date: m.date }
+  if (m.status && !r.status) out.status = m.status
   if (m.debt) out.debt = true
   else delete out.debt
   return out
