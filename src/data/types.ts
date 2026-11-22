@@ -185,6 +185,8 @@ export interface ExamRow {
   status?: string
   /** Debt: on no fixed date; `date` is the deadline (sit it when the chapter is done) */
   debt?: boolean
+  /** you moved it yourself: it keeps your date instead of following the Model Test Hub */
+  mine?: boolean
 }
 export interface ExamScheduleJson {
   _readme: string

@@ -981,3 +981,4 @@ a:focus-visible,button:focus-visible,summary:focus-visible,[tabindex]:focus-visi
 .ex-debt{display:flex;flex-direction:column;gap:6px}
 .ex-row.debt{border-color:color-mix(in srgb,var(--warn) 55%,var(--line));border-style:dashed}
 .ex-row.debt.late{border-color:var(--bad)}
+.ex-hub{margin:0;color:var(--muted)}

@@ -67,6 +67,13 @@ Progress syncs through a Pages Function + KV (`functions/api/sync.ts`). See `REA
   schedule" asks first; a row opens a form (Save / Delete); edits are saved whole in the synced field `plan:examsched`
   (`{ rows, at }`, null = the file) and the version before the last change in `plan:examsched:prev` (Undo; Reset goes
   back to the file).
+  **Dates follow the Model Test Hub** (`src/data/hubCatalog.ts`): https://model-test-hub.pages.dev/data/catalog.js is read
+  when the app opens and on coming back (`startHubSync` in `App.tsx`), as JSON after stripping `window.CAT=` and `;`
+  (never run). `exams[]` {id, n, title, kind, date, debt}: each our row links to a hub id once (number + title +
+  Written/MCQ, links kept in localStorage `mist-hub-catalog`), takes its date (no date + debt = Debt; neither = hidden);
+  real exams, rows you added and rows you moved yourself (`mine`, or a saved date differing from the file) keep theirs;
+  unmatched hub exams are added (`hub-<id>`, deletes remembered in `hubGone`). Offline / broken: last good copy, else
+  the file. `shownRows` / `saveEdited` in `src/data/examSchedule.ts`.
 - Progress keys are allow-listed in `src/sync/merge.ts` (`KEY_RE`); new synced keys must use an existing prefix
   (e.g. `day:<date>:…`). Keys are position-based (`task:<date>:<item>:<i>`), so moving topics on a day that
   already has ticks loses those ticks.

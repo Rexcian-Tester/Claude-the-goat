@@ -16,6 +16,7 @@ import { ProgressView } from './views/Progress'
 import { SettingsView } from './views/Settings'
 import { ExamGuideView } from './views/ExamGuide'
 import { ExamsView } from './views/Exams'
+import { startHubSync } from './data/hubCatalog'
 import { SearchSheet } from './views/Search'
 import { FocusView } from './views/Focus'
 import { RoutineView } from './views/Routine'
@@ -112,6 +113,8 @@ export function App() {
   // decided once per page: flipping it later (e.g. opening a day) would replay the entrance animation
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const returning = useMemo(() => cameBack(), [route.name])
+  // read the Model Test Hub's exam dates when the app opens and whenever you come back to it
+  useEffect(() => startHubSync(), [])
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement | null)?.tagName

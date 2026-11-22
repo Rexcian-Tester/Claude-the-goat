@@ -3,6 +3,7 @@
 import { K } from '../logic/keys'
 import { store } from '../store/store'
 import { scheduleData } from './load'
+import { applyHub, linkRows, rememberLinks, type HubCatalog } from './hubCatalog'
 import type { ExamRow } from './types'
 
 export const HUB_URL = scheduleData.site
@@ -13,13 +14,14 @@ const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 export const SCHEDULE_VERSION = scheduleData.version
 /** v: the schedule version it was saved under (none = before v5) */
 /** added: the later-added exams this copy has had (so one you delete stays deleted) */
-interface Saved { rows: ExamRow[]; at: number; v?: number; added?: string[] }
+/** hubGone: Model Test Hub exams you deleted here (so they aren't added back from the hub) */
+interface Saved { rows: ExamRow[]; at: number; v?: number; added?: string[]; hubGone?: string[] }
 const clean = (r: unknown): ExamRow | null => {
   if (!r || typeof r !== 'object') return null
   const x = r as Record<string, unknown>
   if (typeof x.id !== 'string' || typeof x.date !== 'string' || !DATE_RE.test(x.date) || typeof x.title !== 'string') return null
   const s = (k: string) => (typeof x[k] === 'string' ? (x[k] as string) : '')
-  return { id: x.id, date: x.date, no: s('no'), title: x.title, sub: s('sub'), len: s('len'), ...(x.real === true ? { real: true } : {}), ...(s('status') ? { status: s('status') } : {}), ...(x.debt === true ? { debt: true } : {}) }
+  return { id: x.id, date: x.date, no: s('no'), title: x.title, sub: s('sub'), len: s('len'), ...(x.real === true ? { real: true } : {}), ...(s('status') ? { status: s('status') } : {}), ...(x.debt === true ? { debt: true } : {}), ...(x.mine === true ? { mine: true } : {}) }
 }
 const migrate = (r: ExamRow): ExamRow => {
   const m = scheduleData.moves[r.id]
@@ -42,7 +44,10 @@ function read(key: string): Saved | null {
     const row = defaultRows.find((r) => r.id === id)
     if (row) rows.push(row)
   }
-  return { rows, at: typeof v.at === 'number' ? v.at : 0, v: SCHEDULE_VERSION }
+  // a built-in exam whose saved date differs from the file's was moved by you: it keeps your date over the hub's
+  const file = new Map(defaultRows.map((r) => [r.id, r.date]))
+  rows = rows.map((r) => (!r.mine && file.has(r.id) && file.get(r.id) !== r.date ? { ...r, mine: true } : r))
+  return { rows, at: typeof v.at === 'number' ? v.at : 0, v: SCHEDULE_VERSION, hubGone: Array.isArray(v.hubGone) ? v.hubGone.filter((x): x is string => typeof x === 'string') : [] }
 }
 /** In date order (same-day rows keep their order). */
 export const sortRows = (rows: ExamRow[]) => rows.map((r, i) => [r, i] as const).sort((a, b) => a[0].date.localeCompare(b[0].date) || a[1] - b[1]).map(([r]) => r)
@@ -53,10 +58,10 @@ export const isEdited = () => read(K.examSched) !== null
 export const canUndo = () => store.field(K.examSchedPrev) !== undefined
 
 /** Save a new schedule; the one before it becomes Undo. Syncs to your other devices. */
-export function saveRows(rows: ExamRow[]) {
+export function saveRows(rows: ExamRow[], hubGone: string[] = read(K.examSched)?.hubGone ?? []) {
   store.setMany([
     [K.examSchedPrev, store.field(K.examSched)?.v ?? null],
-    [K.examSched, { rows: sortRows(rows), at: Date.now(), v: SCHEDULE_VERSION, added: scheduleData.added } satisfies Saved],
+    [K.examSched, { rows: sortRows(rows), at: Date.now(), v: SCHEDULE_VERSION, added: scheduleData.added, hubGone } satisfies Saved],
   ])
 }
 export const upsertRow = (row: ExamRow) => {
@@ -64,7 +69,39 @@ export const upsertRow = (row: ExamRow) => {
   const i = rows.findIndex((r) => r.id === row.id)
   saveRows(i < 0 ? [...rows, row] : rows.map((r) => (r.id === row.id ? row : r)))
 }
-export const deleteRow = (id: string) => saveRows(scheduleRows().filter((r) => r.id !== id))
+/** Delete an exam; one that came from the Model Test Hub (or is linked to it) is remembered, so the hub doesn't add it back. */
+export const deleteRow = (id: string, hubId?: string) => {
+  const gone = read(K.examSched)?.hubGone ?? []
+  saveRows(scheduleRows().filter((r) => r.id !== id), hubId && !gone.includes(hubId) ? [...gone, hubId] : gone)
+}
+/** Save an exam edited on screen. If you changed its date it becomes yours (keeps your date over the hub's);
+ *  otherwise only your other changes are saved and its date keeps following the hub. */
+export function saveEdited(edited: ExamRow, shown: ExamRow) {
+  const base = scheduleRows().find((r) => r.id === edited.id)
+  const out: ExamRow = { ...edited }
+  if (edited.date === shown.date && !!edited.debt === !!shown.debt && !shown.mine) {
+    if (base) {
+      out.date = base.date
+      if (base.debt) out.debt = true
+      else delete out.debt
+    }
+    delete out.mine
+  } else out.mine = true
+  upsertRow(out)
+}
+
+/** The schedule as shown on the Exam tab: your copy with the Model Test Hub's dates laid over it (last good copy
+ *  when offline). Returns the hub id each exam is linked to as well. */
+export function shownRows(catalog: HubCatalog | null): { rows: ExamRow[]; hubOf: Record<string, string> } {
+  const base = scheduleRows()
+  if (!catalog) return { rows: base, hubOf: {} }
+  const links = linkRows(base, catalog.exams, catalog.links)
+  rememberLinks(links)
+  const hubOf: Record<string, string> = { ...links }
+  const rows = sortRows(applyHub(base, catalog.exams, links, read(K.examSched)?.hubGone ?? []))
+  for (const r of rows) if (r.id.startsWith('hub-')) hubOf[r.id] = r.id.slice(4)
+  return { rows, hubOf }
+}
 /** Back to the version before the last change. */
 export function undoLast() {
   const prev = store.field(K.examSchedPrev)?.v ?? null

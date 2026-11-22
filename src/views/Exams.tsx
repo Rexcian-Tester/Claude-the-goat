@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { dateEn } from '../data/bn'
 import { diffDays, weekdayIndex } from '../data/dhaka'
-import { canUndo, deleteRow, hubHref, isEdited, newId, resetToFile, scheduleNote, scheduleRows, undoLast, upsertRow } from '../data/examSchedule'
+import { canUndo, deleteRow, hubHref, isEdited, newId, resetToFile, saveEdited, scheduleNote, shownRows, undoLast, upsertRow } from '../data/examSchedule'
+import { useHubCatalog, type HubStatus } from '../data/hubCatalog'
 import type { ExamRow } from '../data/types'
 import { useToday } from '../hooks'
 import { Sheet, toast } from '../components/ui'
@@ -12,6 +13,14 @@ const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 
 const dayLabel = (d: string) => `${WD[weekdayIndex(d)]} ${dateEn(d)}`
 /** "1 · স্থির তড়িৎ (Written + MCQ)" */
 const label = (r: ExamRow) => `${r.no && r.no !== '★' ? `${r.no} · ` : ''}${r.title}${r.sub.includes('·') ? ` (${r.sub.split('·').pop()!.trim()})` : ''}`
+/** where the dates come from, in plain words */
+function hubLine(status: HubStatus, at?: number): string {
+  const when = at ? new Date(at).toLocaleString('en-GB', { timeZone: 'Asia/Dhaka', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true }) : ''
+  if (status === 'loading') return at ? `Dates from Model Test Hub (checking for changes…)` : 'Getting dates from Model Test Hub…'
+  if (status === 'ok') return `Dates from Model Test Hub · updated ${when}`
+  if (!at) return status === 'broken' ? "Couldn't read Model Test Hub: showing the saved dates." : 'Offline: showing the saved dates.'
+  return `${status === 'broken' ? "Couldn't read Model Test Hub" : 'Offline'}: showing Model Test Hub dates from ${when}.`
+}
 const monthOf = (d: string) => `${MONTHS[+d.slice(5, 7) - 1]} ${d.slice(0, 4)}`
 
 /** The Exam tab: a button to the Model Test Hub (its app if installed), then the exam routine. The routine is
@@ -21,7 +30,8 @@ export function ExamsView() {
   const today = useToday()
   const [editing, setEditing] = useState(false)
   const [open, setOpen] = useState<ExamRow | null>(null)
-  const all = scheduleRows()
+  const hub = useHubCatalog()
+  const { rows: all, hubOf } = shownRows(hub.catalog)
   // Debt exams sit on no date (their date is a deadline): listed apart, never as today's or the next exam
   const debts = all.filter((r) => r.debt)
   const rows = all.filter((r) => !r.debt)
@@ -68,6 +78,7 @@ export function ExamsView() {
           )}
         </div>
         <p className="small">{all.filter((r) => !r.real).length} exams · {scheduleNote}{isEdited() ? ' · edited by you' : ''}</p>
+        <p className="small ex-hub">{hubLine(hub.status, hub.catalog?.at)}</p>
         {editing && (
           <div className="ex-tools">
             <p className="small"><b>Editing is on.</b> Tap an exam to change or delete it.</p>
@@ -126,12 +137,12 @@ export function ExamsView() {
           })}
         </ol>
       </section>
-      {open && <RowEditor row={open} isNew={!all.some((r) => r.id === open.id)} onClose={() => setOpen(null)} />}
+      {open && <RowEditor row={open} hubId={hubOf[open.id]} isNew={!all.some((r) => r.id === open.id)} onClose={() => setOpen(null)} />}
     </div>
   )
 }
 
-function RowEditor({ row, isNew, onClose }: { row: ExamRow; isNew: boolean; onClose: () => void }) {
+function RowEditor({ row, hubId, isNew, onClose }: { row: ExamRow; hubId?: string; isNew: boolean; onClose: () => void }) {
   const [r, setR] = useState<ExamRow>(row)
   const set = (k: keyof ExamRow) => (e: { target: { value: string } }) => setR({ ...r, [k]: e.target.value })
   const ok = /^\d{4}-\d{2}-\d{2}$/.test(r.date) && r.title.trim() !== ''
@@ -140,7 +151,8 @@ function RowEditor({ row, isNew, onClose }: { row: ExamRow; isNew: boolean; onCl
     if (!out.status) delete out.status
     if (!out.real) delete out.real
     if (!out.debt) delete out.debt
-    upsertRow(out)
+    if (isNew) upsertRow(out)
+    else saveEdited(out, row)
     toast(isNew ? 'Exam added.' : 'Saved.')
     onClose()
   }
@@ -164,7 +176,7 @@ function RowEditor({ row, isNew, onClose }: { row: ExamRow; isNew: boolean; onCl
         <button type="button" className="btn primary" disabled={!ok} onClick={save}>{isNew ? 'Add' : 'Save'}</button>
         <button type="button" className="btn" onClick={onClose}>Cancel</button>
         {!isNew && (
-          <button type="button" className="btn danger" onClick={() => confirm(`Delete "${row.title}" (${dayLabel(row.date)})?`) && (deleteRow(row.id), toast('Exam deleted. Undo brings it back.'), onClose())}>Delete</button>
+          <button type="button" className="btn danger" onClick={() => confirm(`Delete "${row.title}" (${dayLabel(row.date)})?`) && (deleteRow(row.id, hubId), toast('Exam deleted. Undo brings it back.'), onClose())}>Delete</button>
         )}
       </div>
     </Sheet>
