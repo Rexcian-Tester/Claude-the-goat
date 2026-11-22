@@ -14,10 +14,8 @@ export interface Block {
   note?: string
 }
 const hm = (h: number, m = 0) => h * 60 + m
-/** Saturday to Thursday: a full study day. Sleep runs past midnight into the next morning.
- *  Block ids stay the same over time (study-a…d, breakfast, lunch, refresh, checkin), so past ticks, late starts
- *  and study time keep matching. */
-export const ROUTINE: Block[] = [
+/** Saturday to Thursday until 21 Nov 2026 (Block B 9:00–1:00): past days keep these times. */
+export const ROUTINE_BEFORE: Block[] = [
   { id: 'wake', from: hm(3, 30), to: hm(4), label: 'Wake up', kind: 'wake' },
   { id: 'study-a', from: hm(4), to: hm(7, 30), label: 'Study Block A', kind: 'study' },
   { id: 'breakfast', from: hm(7, 30), to: hm(9), label: 'Breakfast & shower', kind: 'break' },
@@ -30,16 +28,31 @@ export const ROUTINE: Block[] = [
   { id: 'sleep', from: hm(21), to: hm(3, 30), label: 'Sleep', kind: 'sleep' },
 ]
 
-/** Friday: the same day, with Study Block B ending at 12:30, Jumu'ah 12:30–2:30 and Study Block C from 2:30 to 4:00. */
-export const FRIDAY: Block[] = ROUTINE.flatMap((b): Block[] => {
-  if (b.id === 'study-b') return [{ ...b, to: hm(12, 30) }]
-  if (b.id === 'lunch') return [{ id: 'jumuah', from: hm(12, 30), to: hm(14, 30), label: "Jumu'ah prayer & lunch", kind: 'break' }]
-  if (b.id === 'study-c') return [{ ...b, from: hm(14, 30) }]
-  if (b.id === 'study-d') return [{ ...b, note: 'Weekly recovery: catch up anything that slipped this week.' }]
-  return [b]
+/** The routine changed on this date (Asia/Dhaka): earlier days keep their old block times, so their targets,
+ *  late starts and watch minutes are read exactly as before. */
+export const ROUTINE_CHANGED = '2026-11-22'
+/** Saturday to Thursday: a full study day. Sleep runs past midnight into the next morning.
+ *  Block ids stay the same over time (study-a…d, breakfast, lunch, refresh, checkin), so past ticks, late starts
+ *  and study time keep matching. From 22 Nov the morning break runs 7:30–9:30 and Study Block B 9:30–1:00. */
+export const ROUTINE: Block[] = ROUTINE_BEFORE.map((b): Block => {
+  if (b.id === 'breakfast') return { ...b, to: hm(9, 30), label: 'Morning break: workout, shower & breakfast' }
+  if (b.id === 'study-b') return { ...b, from: hm(9, 30) }
+  return b
 })
-/** The routine for a date (Asia/Dhaka): Friday has its own. */
-export const routineFor = (date: string = todayISO()): Block[] => (weekdayIndex(date) === 5 ? FRIDAY : ROUTINE)
+/** Friday: the same day, with Study Block B ending at 12:30, Jumu'ah 12:30–2:30 and Study Block C from 2:30 to 4:00. */
+const fridayOf = (day: Block[]): Block[] =>
+  day.flatMap((b): Block[] => {
+    if (b.id === 'study-b') return [{ ...b, to: hm(12, 30) }]
+    if (b.id === 'lunch') return [{ id: 'jumuah', from: hm(12, 30), to: hm(14, 30), label: "Jumu'ah prayer & lunch", kind: 'break' }]
+    if (b.id === 'study-c') return [{ ...b, from: hm(14, 30) }]
+    if (b.id === 'study-d') return [{ ...b, note: 'Weekly recovery: catch up anything that slipped this week.' }]
+    return [b]
+  })
+export const FRIDAY: Block[] = fridayOf(ROUTINE)
+export const FRIDAY_BEFORE: Block[] = fridayOf(ROUTINE_BEFORE)
+/** The routine for a date (Asia/Dhaka): Friday has its own; days before 22 Nov keep the old times. */
+export const routineFor = (date: string = todayISO()): Block[] =>
+  date < ROUTINE_CHANGED ? (weekdayIndex(date) === 5 ? FRIDAY_BEFORE : ROUTINE_BEFORE) : weekdayIndex(date) === 5 ? FRIDAY : ROUTINE
 export type { Block as RoutineBlock }
 
 /** block that covers a minute of the day */

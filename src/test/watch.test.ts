@@ -55,6 +55,16 @@ describe('watch sessions: counting like site time', () => {
     const r = watchSplit(THU, [rec([at('10:00'), at('10:25')])], [], base, target)
     expect(asObj(r)).toEqual({ 'study-a': 25 })
   })
+  it('from 22 Nov Block B starts at 9:30: a 9:00–10:00 watch session gives 30 min to B, the morning-break half to the earliest short block', () => {
+    const MON = '2026-11-23'
+    const tgt = (id: P.StudyBlockId) => P.effectiveTarget(P.blockMinutes(P.studyBlock(id, MON))) * MIN
+    expect(asObj(watchSplit(MON, [rec([at('09:30', MON), at('10:00', MON)])], [], none, tgt))).toEqual({ 'study-b': 30 })
+    const r = asObj(watchSplit(MON, [rec([at('09:00', MON), at('10:00', MON)])], [], none, tgt))
+    expect(r['study-b']).toBe(30)
+    expect(Object.values(r).reduce((a, b) => a + b, 0)).toBe(60)
+    // an old day (before 22 Nov) still reads 9:00–9:30 as Block B
+    expect(asObj(watchSplit(THU, [rec([at('09:00'), at('09:30')])], [], none, target))).toEqual({ 'study-b': 30 })
+  })
   it('a pause is not counted', () => {
     const r = watchSplit(THU, [rec([at('05:00'), at('05:10')], [at('05:20'), at('05:35')])], [], none, target)
     expect(asObj(r)).toEqual({ 'study-a': 25 })
